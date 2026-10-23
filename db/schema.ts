@@ -1,0 +1,14 @@
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+export const listingOverrides = sqliteTable("listing_overrides", {
+  id: integer("id").primaryKey(), name: text("name").notNull(), building: text("building").notNull().default(""), price: integer("price").notNull(), monthlyPrice: integer("monthly_price").notNull().default(0), usdNightly: integer("usd_nightly").notNull().default(0), usdMonthly: integer("usd_monthly").notNull().default(0), description: text("description").notNull(), active: integer("active").notNull(),
+});
+export const inquiries = sqliteTable("inquiries", {
+  id: integer("id").primaryKey({ autoIncrement: true }), apartmentId: integer("apartment_id").notNull(), name: text("name").notNull(), email: text("email").notNull(), phone: text("phone").notNull().default(""), channel: text("channel").notNull().default("email"), requestId: text("request_id"), telegramStatus: text("telegram_status").notNull().default("not_applicable"), checkIn: text("check_in").notNull(), checkOut: text("check_out").notNull(), guests: integer("guests").notNull(), message: text("message").notNull(), status: text("status").notNull(), createdAt: text("created_at").notNull(),
+});
+export const inquiryRateLimits = sqliteTable("inquiry_rate_limits", {
+  key: text("key").primaryKey(), count: integer("count").notNull(),
+});
+
+export const roomDetails = sqliteTable("room_details", { id: integer("id").primaryKey(), amenities: text("amenities").notNull(), sqm: integer("sqm").notNull(), beds: text("beds").notNull(), wifi: text("wifi").notNull(), address: text("address").notNull().default(""), area: text("area").notNull().default(""), view: text("view").notNull().default(""), guests: integer("guests").notNull().default(2), availableUnits: integer("available_units"), isCustom: integer("is_custom").notNull().default(0) });
+export const roomImages = sqliteTable("room_images", { id: integer("id").primaryKey({ autoIncrement: true }), apartmentId: integer("apartment_id").notNull(), mime: text("mime").notNull(), imageData: text("image_data").notNull(), alt: text("alt").notNull().default(""), position: integer("position").notNull().default(0) });
+
