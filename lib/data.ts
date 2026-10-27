@@ -25,6 +25,14 @@ export async function getApartmentForInquiry(id: number): Promise<InquiryApartme
   };
 }
 
+export async function getRoomNames(): Promise<Map<number, string>> {
+  if (!env.DB) throw new Error("Database unavailable");
+  const rows = await env.DB.prepare("SELECT id, name FROM listing_overrides").all<Pick<Override, "id" | "name">>();
+  const names = new Map(apartments.map(apartment => [apartment.id, apartment.name]));
+  for (const row of rows.results || []) names.set(row.id, row.name);
+  return names;
+}
+
 export async function getApartments(): Promise<Apartment[]> {
   if (!env.DB) throw new Error("Database unavailable");
   const [rows, details, images] = await Promise.all([
