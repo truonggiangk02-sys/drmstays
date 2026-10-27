@@ -12,3 +12,41 @@ export const inquiryRateLimits = sqliteTable("inquiry_rate_limits", {
 export const roomDetails = sqliteTable("room_details", { id: integer("id").primaryKey(), amenities: text("amenities").notNull(), sqm: integer("sqm").notNull(), beds: text("beds").notNull(), wifi: text("wifi").notNull(), address: text("address").notNull().default(""), area: text("area").notNull().default(""), view: text("view").notNull().default(""), guests: integer("guests").notNull().default(2), availableUnits: integer("available_units"), isCustom: integer("is_custom").notNull().default(0) });
 export const roomImages = sqliteTable("room_images", { id: integer("id").primaryKey({ autoIncrement: true }), apartmentId: integer("apartment_id").notNull(), mime: text("mime").notNull(), imageData: text("image_data").notNull(), alt: text("alt").notNull().default(""), position: integer("position").notNull().default(0) });
 
+export const catalogBuildings = sqliteTable("catalog_buildings", {
+  sourceId: text("source_id").primaryKey(),
+  published: integer("published").notNull().default(0),
+  description: text("description").notNull().default(""),
+  address: text("address").notNull().default(""),
+  services: text("services").notNull().default("[]"),
+});
+export const catalogRooms = sqliteTable("catalog_rooms", {
+  sourceId: text("source_id").primaryKey(),
+  buildingSourceId: text("building_source_id").notNull().default(""),
+  published: integer("published").notNull().default(0),
+  description: text("description").notNull().default(""),
+  nightlyPrice: integer("nightly_price").notNull().default(0),
+  monthlyPrice: integer("monthly_price").notNull().default(0),
+  services: text("services").notNull().default("[]"),
+});
+export const catalogImages = sqliteTable("catalog_images", {
+  id: text("id").primaryKey(),
+  ownerType: text("owner_type").notNull(),
+  ownerId: text("owner_id").notNull(),
+  objectKey: text("object_key").notNull(),
+  mime: text("mime").notNull(),
+  alt: text("alt").notNull().default(""),
+  position: integer("position").notNull().default(0),
+});
+export const catalogInquiries = sqliteTable("catalog_inquiries", {
+  id: text("id").primaryKey(),
+  sourceRoomId: text("source_room_id").notNull(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull().default(""),
+  checkIn: text("check_in").notNull().default(""),
+  checkOut: text("check_out").notNull().default(""),
+  message: text("message").notNull().default(""),
+  status: text("status").notNull().default("new"),
+  createdAt: text("created_at").notNull(),
+});
+

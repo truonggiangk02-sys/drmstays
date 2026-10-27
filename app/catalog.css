@@ -1,0 +1,27 @@
+.catalog-contact summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.catalog-contact summary:focus-visible,
+.catalog-date-search button:focus-visible,
+.catalog-contact button:focus-visible {
+  outline: 3px solid #ae815d;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .public-catalog .site-header {
+    height: auto;
+    min-height: 84px;
+    flex-wrap: wrap;
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+
+  .public-catalog .site-header nav {
+    width: 100%;
+    gap: 20px;
+  }
+}

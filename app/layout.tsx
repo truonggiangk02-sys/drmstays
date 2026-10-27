@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./cms.css";
+import "./catalog.css";
 
 export const metadata: Metadata = {
   title: "Doraemon Land | Serviced Apartments in Da Nang",
