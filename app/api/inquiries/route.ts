@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
-import { getApartments } from "@/lib/data";
+import { getApartmentForInquiry } from "@/lib/data";
 
 export async function POST(request: NextRequest) {
   if (!env.DB) return new NextResponse("Booking requests are temporarily unavailable", { status: 503 });
@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
   const guests = Number(form.get("guests"));
   const name = text("name", 100), email = text("email", 254), message = text("message", 1000);
   const checkIn = text("checkIn", 10), checkOut = text("checkOut", 10);
-  const apartment = (await getApartments()).find(a => a.id === apartmentId && a.active && a.availableUnits !== 0);
+  const apartment = await getApartmentForInquiry(apartmentId);
   const validDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
-  if (!apartment || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !validDate(checkIn) || !validDate(checkOut) || checkIn < new Date().toISOString().slice(0,10) || checkOut <= checkIn || !Number.isInteger(guests) || guests < 1 || guests > apartment.guests) return new NextResponse("Please check your details and dates, then try again.", { status: 400 });
+  if (!apartment || !apartment.active || apartment.availableUnits === 0 || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !validDate(checkIn) || !validDate(checkOut) || checkIn < new Date().toISOString().slice(0,10) || checkOut <= checkIn || !Number.isInteger(guests) || guests < 1 || guests > apartment.guests) return new NextResponse("Please check your details and dates, then try again.", { status: 400 });
   await env.DB.prepare("INSERT INTO inquiries (apartment_id, name, email, check_in, check_out, guests, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'new', ?)").bind(apartmentId, name, email, checkIn, checkOut, guests, message, new Date().toISOString()).run();
   return NextResponse.redirect(new URL("/thanks", request.url), 303);
 }

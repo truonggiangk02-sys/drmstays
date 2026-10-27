@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
-import { getApartments } from "@/lib/data";
+import { getApartmentForInquiry } from "@/lib/data";
 import { vietnamToday } from "@/lib/dates";
 
 type Payload = {
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
   const checkIn = String(payload.checkIn || "");
   const checkOut = String(payload.checkOut || "");
   const requestId = String(payload.requestId || "");
-  const apartment = (await getApartments()).find((item) => item.id === apartmentId && item.active && item.availableUnits !== 0);
+  const apartment = await getApartmentForInquiry(apartmentId);
   const phoneDigits = phone.replace(/\D/g, "");
   const today = vietnamToday();
-  if (!apartment || !name || name.length > 100 || !/^\+?[\d\s().-]{8,24}$/.test(phone) || phoneDigits.length < 8 || phoneDigits.length > 15 || !validDate(checkIn) || !validDate(checkOut) || checkIn < today || checkOut <= checkIn || (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000 > 365 || !Number.isInteger(guests) || guests < 1 || guests > apartment.guests || !/^[0-9a-f-]{36}$/i.test(requestId)) return jsonError("Please check your dates and contact details.", 400);
+  if (!apartment || !apartment.active || apartment.availableUnits === 0 || !name || name.length > 100 || !/^\+?[\d\s().-]{8,24}$/.test(phone) || phoneDigits.length < 8 || phoneDigits.length > 15 || !validDate(checkIn) || !validDate(checkOut) || checkIn < today || checkOut <= checkIn || (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000 > 365 || !Number.isInteger(guests) || guests < 1 || guests > apartment.guests || !/^[0-9a-f-]{36}$/i.test(requestId)) return jsonError("Please check your dates and contact details.", 400);
 
   const botToken = String(env.TELEGRAM_BOT_TOKEN || "");
   const chatId = String(env.TELEGRAM_CHAT_ID || "");
