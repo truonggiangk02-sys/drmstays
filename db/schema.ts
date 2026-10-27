@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 export const listingOverrides = sqliteTable("listing_overrides", {
   id: integer("id").primaryKey(), name: text("name").notNull(), building: text("building").notNull().default(""), price: integer("price").notNull(), monthlyPrice: integer("monthly_price").notNull().default(0), usdNightly: integer("usd_nightly").notNull().default(0), usdMonthly: integer("usd_monthly").notNull().default(0), description: text("description").notNull(), active: integer("active").notNull(),
 });
@@ -49,4 +49,49 @@ export const catalogInquiries = sqliteTable("catalog_inquiries", {
   status: text("status").notNull().default("new"),
   createdAt: text("created_at").notNull(),
 });
+
+export const partnerInquiries = sqliteTable("partner_inquiries", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  email: text("email").notNull().default(""),
+  property: text("property").notNull().default(""),
+  message: text("message").notNull().default(""),
+  status: text("status").notNull().default("new"),
+  createdAt: text("created_at").notNull(),
+});
+
+export const siteContentItems = sqliteTable("site_content_items", {
+  id: text("id").primaryKey(),
+  section: text("section").notNull(),
+  titleVi: text("title_vi").notNull().default(""),
+  titleEn: text("title_en").notNull().default(""),
+  bodyVi: text("body_vi").notNull().default(""),
+  bodyEn: text("body_en").notNull().default(""),
+  published: integer("published").notNull().default(1),
+  deleted: integer("deleted").notNull().default(0),
+  position: integer("position").notNull().default(0),
+});
+
+export const landmarks = sqliteTable("landmarks", {
+  id: text("id").primaryKey(),
+  nameVi: text("name_vi").notNull(),
+  nameEn: text("name_en").notNull().default(""),
+  descriptionVi: text("description_vi").notNull().default(""),
+  descriptionEn: text("description_en").notNull().default(""),
+  latitude: real("latitude"),
+  longitude: real("longitude"),
+  buildingIdsJson: text("building_ids_json").notNull().default("[]"),
+  published: integer("published").notNull().default(1),
+  deleted: integer("deleted").notNull().default(0),
+  position: integer("position").notNull().default(0),
+});
+
+export const travelTimeCache = sqliteTable("travel_time_cache", {
+  buildingId: text("building_id").notNull(),
+  landmarkId: text("landmark_id").notNull(),
+  durationSeconds: integer("duration_seconds").notNull(),
+  distanceMeters: integer("distance_meters").notNull(),
+  expiresAt: integer("expires_at").notNull(),
+}, (table) => [primaryKey({ columns: [table.buildingId, table.landmarkId] })]);
 

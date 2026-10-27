@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
 import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getEditableContent, contentSections, sampleContent, type ContentSection } from '@/lib/site-content';
 
 type ImageRow = {
   id: string;
@@ -19,21 +20,26 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Image too large', { status: 413 });
   const form = await request.formData();
   const action = String(form.get('action') || 'upload');
+  const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
   const kind = String(form.get('kind') || '');
   const sourceId = String(form.get('sourceId') || '');
-  if (!/^[0-9a-f-]{36}$/i.test(sourceId) || !['building', 'room'].includes(kind))
+  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(sourceId) || !['building', 'room', 'content'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
-  let source;
-  try {
-    source = await getStaydeskCatalog();
-  } catch {
-    return new NextResponse('Staydesk catalog unavailable', { status: 503 });
+  let exists = false;
+  if (kind === 'content') {
+    const sample = sampleContent.find(item => item.id === sourceId);
+    const section = sample?.section || (await env.DB.prepare('SELECT section FROM site_content_items WHERE id = ? AND deleted = 0').bind(sourceId).first<{ section: string }>())?.section;
+    if (section && contentSections.includes(section as ContentSection))
+      exists = (await getEditableContent(section as ContentSection)).some(item => item.id === sourceId);
+  } else {
+    let source;
+    try { source = await getStaydeskCatalog(); }
+    catch { return new NextResponse('Staydesk catalog unavailable', { status: 503 }); }
+    exists = kind === 'building'
+      ? source.buildings.some(item => item.id === sourceId)
+      : source.buildings.some(item => item.rooms.some(room => room.id === sourceId));
   }
-  const exists =
-    kind === 'building'
-      ? source.buildings.some((item) => item.id === sourceId)
-      : source.buildings.some((item) => item.rooms.some((room) => room.id === sourceId));
-  if (!exists) return new NextResponse('Item not found in Staydesk', { status: 404 });
+  if (!exists) return new NextResponse('Item not found', { status: 404 });
 
   if (action === 'upload') {
     const file = form.get('image');
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
     await env.BUCKET.put(objectKey, bytes, { httpMetadata: { contentType: file.type } });
     try {
       await env.DB.prepare(
-        'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       )
         .bind(
           id,
@@ -77,6 +83,7 @@ export async function POST(request: NextRequest) {
             .trim()
             .slice(0, 150),
           count?.total || 0,
+          category,
         )
         .run();
     } catch (error) {
@@ -96,12 +103,13 @@ export async function POST(request: NextRequest) {
       await env.BUCKET.delete(row.object_key);
     } else {
       const rows = await env.DB.prepare(
-        'SELECT id FROM catalog_images WHERE owner_type = ? AND owner_id = ? ORDER BY position, id',
+        "SELECT id FROM catalog_images WHERE owner_type = ? AND owner_id = ? AND category = 'photo' ORDER BY position, id",
       )
         .bind(kind, sourceId)
         .all<{ id: string }>();
       const ids = (rows.results || []).map((item) => item.id);
       const index = ids.indexOf(imageId);
+      if (index < 0) return new NextResponse('Only photos can be set as cover', { status: 400 });
       if (index > 0) {
         ids.splice(index, 1);
         ids.unshift(imageId);
@@ -115,5 +123,9 @@ export async function POST(request: NextRequest) {
       }
     }
   } else return new NextResponse('Invalid action', { status: 400 });
-  return NextResponse.redirect(new URL(`/admin/catalog#item-${sourceId}`, request.url), 303);
+  const returnTo = form.get('returnTo') === 'media' || kind === 'content' ? 'media' : 'catalog';
+  const destination = new URL(`/admin/${returnTo}`, request.url);
+  if (returnTo === 'media') destination.searchParams.set('open', sourceId);
+  destination.hash = `item-${sourceId}`;
+  return NextResponse.redirect(destination, 303);
 }

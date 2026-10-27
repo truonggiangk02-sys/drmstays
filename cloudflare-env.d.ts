@@ -8,5 +8,8 @@ declare namespace Cloudflare {
     TELEGRAM_CHAT_ID?: string;
     STAYDESK_CATALOG_URL?: string;
     STAYDESK_CATALOG_SECRET?: string;
+    PREVIEW_DEMO?: string;
+    OPENAI_API_KEY?: string;
+    HERE_API_KEY?: string;
   }
 }

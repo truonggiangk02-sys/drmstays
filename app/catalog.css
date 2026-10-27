@@ -1,3 +1,13 @@
+.catalog-demo-banner {
+  margin: 0;
+  padding: 10px 6%;
+  background: #f5e7c9;
+  color: #513d20;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .catalog-contact summary {
   display: flex;
   align-items: center;

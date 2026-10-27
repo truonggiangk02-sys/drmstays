@@ -83,7 +83,7 @@ export default async function CatalogInquiries({
                   <small>{item.phone}</small>
                   <small>{item.email}</small>
                 </td>
-                <td>{names.get(item.source_room_id) || item.source_room_id}</td>
+                <td>{item.source_room_id ? names.get(item.source_room_id) || item.source_room_id : 'General inquiry'}</td>
                 <td>
                   {item.check_in && item.check_out
                     ? `${item.check_in} → ${item.check_out}`
