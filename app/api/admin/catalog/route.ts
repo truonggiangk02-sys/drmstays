@@ -4,17 +4,6 @@ import { isAdmin, validOrigin } from '@/lib/admin';
 import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { formCoordinates, formLines, formNumber, formText, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 
-function servicesFrom(value: FormDataEntryValue | null) {
-  return [
-    ...new Set(
-      String(value || '')
-        .split(/\r?\n/)
-        .map((item) => item.trim().slice(0, 120))
-        .filter(Boolean),
-    ),
-  ].slice(0, 30);
-}
-
 export async function POST(request: NextRequest) {
   if (!(await isAdmin()) || !validOrigin(request))
     return new NextResponse('Forbidden', { status: 403 });
