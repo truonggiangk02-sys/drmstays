@@ -1,7 +1,10 @@
 import { env } from "cloudflare:workers";
 import { NextRequest, NextResponse } from "next/server";
 import { getApartments } from "@/lib/data";
-import { vietnamToday } from "@/lib/dates";
+import { validStay } from "@/lib/dates";
+import { clientIp, readLimitedBody } from "@/lib/request";
+import { consumeRateLimit, maybePruneRateLimits } from "@/lib/rate-limit";
+import { sendTelegram, telegramConfigured } from "@/lib/telegram";
 
 type Payload = {
   apartmentId?: unknown;
@@ -18,34 +21,25 @@ function jsonError(error: string, status: number) {
   return NextResponse.json({ error }, { status });
 }
 
-function validDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
+const MAX_BODY_BYTES = 4096;
+const IP_LIMIT_PER_HOUR = 10;
+const PHONE_LIMIT_PER_HOUR = 5;
 
 export async function POST(request: NextRequest) {
   if (!env.DB) return jsonError("Inquiries are temporarily unavailable.", 503);
   const origin = request.headers.get("origin");
   if (!origin || origin !== request.nextUrl.origin) return jsonError("Invalid request origin.", 403);
   if (!request.headers.get("content-type")?.startsWith("application/json")) return jsonError("Invalid request format.", 415);
-  if (Number(request.headers.get("content-length") || 0) > 4096) return jsonError("Request too large.", 413);
+
+  const ip = clientIp(request);
+  if (ip && !(await consumeRateLimit("wa-ip", ip, IP_LIMIT_PER_HOUR))) return jsonError("Too many inquiries. Please try again later.", 429);
+  void maybePruneRateLimits();
 
   let payload: Payload;
   try {
-    const reader = request.body?.getReader();
-    if (!reader) return jsonError("Invalid request body.", 400);
-    const decoder = new TextDecoder();
-    let raw = "", bytes = 0;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > 4096) { await reader.cancel(); return jsonError("Request too large.", 413); }
-      raw += decoder.decode(value, { stream: true });
-    }
-    raw += decoder.decode();
-    payload = JSON.parse(raw) as Payload;
+    const body = await readLimitedBody(request, MAX_BODY_BYTES);
+    if (!body) return jsonError("Request too large.", 413);
+    payload = JSON.parse(new TextDecoder().decode(body)) as Payload;
   }
   catch { return jsonError("Invalid request body.", 400); }
   if (typeof payload !== "object" || payload === null) return jsonError("Invalid request body.", 400);
@@ -60,12 +54,9 @@ export async function POST(request: NextRequest) {
   const requestId = String(payload.requestId || "");
   const apartment = (await getApartments()).find((item) => item.id === apartmentId && item.active && item.availableUnits !== 0);
   const phoneDigits = phone.replace(/\D/g, "");
-  const today = vietnamToday();
-  if (!apartment || !name || name.length > 100 || !/^\+?[\d\s().-]{8,24}$/.test(phone) || phoneDigits.length < 8 || phoneDigits.length > 15 || !validDate(checkIn) || !validDate(checkOut) || checkIn < today || checkOut <= checkIn || (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000 > 365 || !Number.isInteger(guests) || guests < 1 || guests > apartment.guests || !/^[0-9a-f-]{36}$/i.test(requestId)) return jsonError("Please check your dates and contact details.", 400);
+  if (!apartment || !name || name.length > 100 || !/^\+?[\d\s().-]{8,24}$/.test(phone) || phoneDigits.length < 8 || phoneDigits.length > 15 || !validStay({ checkIn, checkOut, guests, maxGuests: apartment.guests }) || !/^[0-9a-f-]{36}$/i.test(requestId)) return jsonError("Please check your dates and contact details.", 400);
 
-  const botToken = String(env.TELEGRAM_BOT_TOKEN || "");
-  const chatId = String(env.TELEGRAM_CHAT_ID || "");
-  if (!/^\d+:[A-Za-z0-9_-]+$/.test(botToken) || !chatId) return jsonError("Direct inquiries are being configured. Please try again shortly.", 503);
+  if (!telegramConfigured()) return jsonError("Direct inquiries are being configured. Please try again shortly.", 503);
 
   const guestPhoneCleaned = phone.startsWith("+") ? phoneDigits : phoneDigits.startsWith("0") ? `84${phoneDigits.slice(1)}` : phoneDigits;
   const message = `New Doraemon Land booking inquiry\n\nRoom: ${apartment.name}\nBuilding: ${apartment.building}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${guests}\nGuest: ${name}\nWhatsApp: ${phone}\n\nChat with guest: https://wa.me/${guestPhoneCleaned}\n👉 Click link above to chat with guest and send rate/deposit info.`;
@@ -74,24 +65,13 @@ export async function POST(request: NextRequest) {
   if (existing && (existing.apartment_id !== apartmentId || existing.name !== name || existing.phone !== phone || existing.check_in !== checkIn || existing.check_out !== checkOut || existing.guests !== guests)) return jsonError("Please start a new inquiry if you change your details.", 409);
   if (existing?.telegram_status === "sent") return NextResponse.json({ ok: true });
 
-  const phoneHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(phoneDigits))), (byte) => byte.toString(16).padStart(2, "0")).join("");
-  const hour = new Date().toISOString().slice(0, 13);
-  const key = `${hour}:${phoneHash}`;
-  const limit = await env.DB.prepare("INSERT INTO inquiry_rate_limits (key, count) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET count = count + 1 RETURNING count").bind(key).first<{ count: number }>();
-  if (!limit || limit.count > 5) return jsonError("Too many inquiries. Please try again later.", 429);
+  if (!(await consumeRateLimit("wa-phone", phoneDigits, PHONE_LIMIT_PER_HOUR))) return jsonError("Too many inquiries. Please try again later.", 429);
   if (!existing) {
     await env.DB.prepare("INSERT INTO inquiries (apartment_id, name, email, phone, channel, request_id, telegram_status, check_in, check_out, guests, message, status, created_at) VALUES (?, ?, '', ?, 'whatsapp', ?, 'pending', ?, ?, ?, '', 'new', ?)").bind(apartmentId, name, phone, requestId, checkIn, checkOut, guests, new Date().toISOString()).run();
   }
 
   try {
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: message, disable_web_page_preview: true }),
-      signal: AbortSignal.timeout(8000),
-    });
-    const result = await response.json() as { ok?: boolean };
-    if (!response.ok || !result.ok) throw new Error(`Telegram API returned ${response.status}`);
+    await sendTelegram(message);
   } catch (error) {
     console.error("Telegram alert failed", error instanceof Error ? error.name : "unknown error");
     await env.DB.prepare("UPDATE inquiries SET telegram_status = 'failed' WHERE request_id = ?").bind(requestId).run();
