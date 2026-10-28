@@ -1,12 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getApartments } from "@/lib/data";
 import { BookingExperience } from "@/components/booking-experience";
+import { SITE_DESCRIPTION, SITE_NAME, absoluteUrl, jsonLd, siteUrl } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+// Short ISR window: CMS edits show up within a minute without hitting D1 on every visit.
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  return siteUrl() ? { alternates: { canonical: "/" } } : {};
+}
 
 export default async function Home() {
   const apartments = (await getApartments()).filter((apartment) => apartment.active);
+  const base = siteUrl();
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    ...(base ? { url: base } : {}),
+    ...(apartments[0] && absoluteUrl(apartments[0].image) ? { image: absoluteUrl(apartments[0].image) } : {}),
+    address: { "@type": "PostalAddress", addressLocality: "Da Nang", addressCountry: "VN" },
+    makesOffer: apartments.map((room) => ({ "@type": "Offer", name: room.name, price: room.price, priceCurrency: "VND" })),
+  };
   return <main>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}/>
     <header className="site-header">
       <Link className="brand" href="/"><span className="brand-mark">D</span><span>DORAEMON<span className="brand-accent"> LAND</span><small>SERVICED APARTMENTS IN DA NANG</small></span></Link>
       <nav><a href="#apartments">Room types</a><a href="#buildings">Our buildings</a><a href="#why-stay">The experience</a></nav>
