@@ -1,142 +1,101 @@
-# vinext-starter
+# DRM Stays – website khách (Đà Nẵng)
 
-## Public catalog preview
+Website song ngữ (`/vi`, `/en`) giới thiệu các tòa nhà và từng phòng của DRM Stays: ảnh, diện tích, tiện ích, giá tháng, bản đồ và thời gian di chuyển tới các địa điểm. Khách gửi yêu cầu tư vấn hoặc chủ tòa gửi thông tin hợp tác; chủ nhà nhận thông báo qua Telegram và quản lý nội dung, ảnh, yêu cầu trong `/admin`.
 
-`/stays` shows the selected Staydesk buildings and individual rooms. The owner
-manages public descriptions, nightly/monthly prices, services, visibility and
-photos at `/admin/catalog`. Photos use the Site R2 `BUCKET` binding; public
-metadata and contact requests use D1. Requests are saved at
-`/admin/catalog-inquiries`; Telegram/WhatsApp delivery is deliberately not
-configured in this preview.
+- **Framework:** Next.js 16 chạy bằng [vinext](https://github.com/cloudflare/vinext) (Vite 8) trên Cloudflare Workers
+- **Database:** Cloudflare D1 (SQL migration trong `drizzle/`)
+- **Ảnh:** Cloudflare R2 (binding `BUCKET`)
+- **Nguồn danh mục tòa/phòng và tình trạng trống:** API công khai của Staydesk (`STAYDESK_CATALOG_URL`)
+- **Package manager:** pnpm, Node.js `>=22.13.0`
 
-Set `STAYDESK_CATALOG_URL=https://staydesk-nine.vercel.app` and
-`STAYDESK_CATALOG_SECRET` as Site environment variables. The secret must match
-`PUBLIC_CATALOG_SECRET` on Staydesk and be at least 32 characters. Deploy the
-Staydesk API branch first, then migrate the Site D1 database and provide an R2
-binding before opening `/stays`. This branch has not been deployed to the live
-Site.
-
-A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
-
-## Prerequisites
-
-- Node.js `>=22.13.0`
-- Portable: Windows, macOS, or Linux; no Bash required
-- Managed Linux: managed Linux runtime with Bash, `flock`, `curl`, `sha256sum`, and GNU `timeout`
-- Git is required only for publishing
-
-## Sites Lifecycle
-
-The Sites initializer copies the shared starter and selects managed-linux only when `SITES_MANAGED_LINUX_CONTAINER=1`; otherwise it selects portable. It saves the selection only in ignored `.sites-runtime/execution-profile.json`. Both profiles copy/configure first, then use the plugin's separate `install-dependencies.mjs` step to measure installation independently. Edit source under `app/` and follow the Sites skill for installation, preview, builds, and publishing.
-
-Run `node <plugin-root>/scripts/configure-execution-profile.mjs` only when the profile is unknown for the current checkout and environment. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
-
-This starter does not use `wrangler.jsonc`.
-
-`install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
-
-- **Portable:** Preserve host HOME, npm cache, registry, proxy, temporary paths, retry/concurrency settings, and lifecycle-script policy. Use `--prefer-offline --no-audit --no-fund`.
-- **Managed Linux:** Use the existing project-local HOME/cache/tmp setup and Linux install lock, tarball preflight, and timeout. Restore the image-seeded npm cache only when its lockfile hash matches; retain network fallback. Builds keep their existing timeout. These helpers are not invoked by the portable profile.
-
-`scripts/sites-env.mjs` preserves the caller's HOME, npm cache, proxy, XDG, and temporary-directory configuration while defaulting Wrangler and Miniflare state to the checkout. If npm reports an unwritable cache, select a writable path with `npm_config_cache` for that install. The `dev` and `start` scripts also keep Wrangler logs inside the checkout. Generated `.sites-runtime/` and `.wrangler/` directories are disposable and ignored by Git.
-
-On portable, `npm run dev` uses `vinext dev` with HMR, starting at port 5173. Vinext records the running server in ignored `.vinext/` state, rejects an ordinary duplicate launch, and recovers stale state after a stopped process; exactly simultaneous starts can race. Pass `--port <port>` or `--hostname <host>` after `npm run dev --` when needed; keep portable previews on loopback.
-
-For browser QA on managed Linux, use `sites-preview start`. The project's dev script runs Vite and accepts the supervisor's `--host 0.0.0.0 --port 4173 --strictPort` arguments. The internal browser uses `http://terminal.local:4173/`; it is not a user-facing URL. The supervisor owns the preview lifecycle. The ignored local profile survives the supervisor's cleared process environment.
-
-The portable profile simulates ChatGPT sign-in only for loopback development requests. Visit `/signin-with-chatgpt?return_to=/` to sign in as `local_seedy` (`seedy@sites.test`, display name `Seedy`) and `/signout-with-chatgpt?return_to=/` to sign out. The development cookie preserves that identity across server restarts. Mock auth is disabled in the managed-linux profile and is not included in production builds; hosted authentication remains dispatch-owned.
-
-The Worker uses `vinext/server/fetch-handler`, including Vinext's config-aware image handling. After building, `npm start` runs that Worker locally through Wrangler on `127.0.0.1`, sharing `.wrangler/state` with dev preview and local D1 migrations; it does not deploy the site or simulate sign-in. Use the URL printed by the server. Pass `npm start -- --port <port>` to select a different built-preview port.
-
-Local previews use Miniflare's placeholder `Request.cf` metadata without a network lookup. Set `CLOUDFLARE_CF_FETCH_ENABLED=true` to opt into fetching preview metadata; this setting does not change hosted request metadata.
-
-Local tool usage metrics are disabled by default. Set `WRANGLER_SEND_METRICS=true` to opt in.
-
-## Included Shape
-
-- edit site code under `app/`
-- `app/chatgpt-auth.ts` provides optional dispatch-owned ChatGPT sign-in helpers
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/index.ts` reads the D1 binding from the Cloudflare Worker environment
-- `db/schema.ts` starts intentionally empty
-- `@cloudflare/workers-types` provides Worker types; `cloudflare-env.d.ts` declares optional `DB`/`BUCKET` bindings—update these declarations if binding names change
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Use it as the durable user key; use email and name for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive `oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty `name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use the returned `userId` as the stable user key for user-owned records; do not use email as a durable identifier.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send anonymous visitors through Sign in with ChatGPT.
-- In a Server Component, start sign-in with `<a href={chatGPTSignInPath(returnTo)} target="_top">`. The auth helper module is server-only; do not import it into a Client Component.
-- Do not use `fetch`, XHR, a client-side router, or a framework link that can prefetch the sign-in route. SIWC must start as a top-level navigation.
-- Never request the AuthAPI authorization endpoint directly. The dispatch-owned `/signin-with-chatgpt` route must start the SIWC flow.
-- Use `chatGPTSignOutPath(returnTo)` for browser sign-out links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the OAuth cookies, and identity header injection. Do not implement app routes for those reserved paths. Routes that do not import and call the helper remain anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the Sites hosting platform's access policy controls for workspace-wide restrictions, or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Local D1 migrations
-
-For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:
+## Chạy local
 
 ```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
+pnpm install
+pnpm dev      # dev server (vinext + HMR) tại http://localhost:5173
+pnpm build    # build ra dist/ (gồm dist/server/wrangler.json)
+pnpm start    # chạy bản build bằng wrangler dev (D1/R2 local) trên 127.0.0.1:8787
+pnpm lint
+pnpm test     # Vitest
 ```
 
-Replace the filename with the pending migration and `DB` with your D1 binding name if different. Use `.wrangler/state`, not `.wrangler/state/v3`; Wrangler adds the versioned directories. Do not replay migrations already applied locally. This updates only the preview database; publishing applies production migrations separately.
+Kiểm tra kiểu: `npx tsc --noEmit`. `pnpm start` đọc cấu hình ở `dist/server/wrangler.json` nên phải `pnpm build` trước.
 
-## Diagnostic Commands
+Chế độ xem thử không cần Staydesk: đặt `PREVIEW_DEMO=1`. Nó hiển thị phòng mẫu, nên site tự gửi `noindex`, `robots.txt` chặn toàn bộ và sitemap rỗng. **Tuyệt đối không bật ở production.**
 
-- `npm run install:ci`: perform the one locked dependency install
-- `npm run dev`: start the Vite/Vinext development server
-- `npm run build`: build the deployable Sites artifact
-- `npm run start`: preview the built Worker locally with D1/R2 support
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+## Biến môi trường và binding
 
-When using the Sites plugin, follow its skill instructions for installation, builds, and publishing. These npm commands remain available for standalone use.
+| Tên | Loại | Bắt buộc | Mô tả |
+| --- | --- | --- | --- |
+| `DB` | D1 binding | Có | Database chính. Thiếu thì các form trả 503. |
+| `BUCKET` | R2 binding | Có (ảnh) | Ảnh tòa/phòng/bài viết. Thiếu thì ảnh không hiển thị. |
+| `ADMIN_PASSWORD` | secret | Có, để dùng admin | Mật khẩu `/admin`. Cookie phiên ký HMAC từ giá trị này; đổi mật khẩu sẽ đăng xuất mọi phiên. Dùng chuỗi dài, ngẫu nhiên. |
+| `STAYDESK_CATALOG_SECRET` | secret | Có (trừ demo) | Phải khớp `PUBLIC_CATALOG_SECRET` bên Staydesk, tối thiểu 32 ký tự. |
+| `STAYDESK_CATALOG_URL` | biến | Nên đặt | Địa chỉ HTTPS của Staydesk. Mặc định trong code là `https://staydesk-nine.vercel.app`. |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | secret | Khuyến nghị | Nhận thông báo yêu cầu mới. Thiếu thì yêu cầu vẫn được lưu nhưng không có thông báo (admin hiện "No Telegram alert"). |
+| `SITE_URL` | biến | Khuyến nghị | Origin công khai, ví dụ `https://tên-miền` (không có `/` cuối). Dùng cho canonical, hreflang, Open Graph. Thiếu thì các thẻ đó bị bỏ; `robots.txt` và `sitemap.xml` dùng origin của request. |
+| `HERE_API_KEY` | secret | Không | Tính thời gian đi xe máy trên bản đồ. Cần tọa độ tòa chính xác. |
+| `OPENAI_API_KEY` | secret | Không | Dịch nội dung CMS Việt → Anh (chỉ admin kích hoạt, `store: false`). |
+| `PREVIEW_DEMO` | biến | Không | Xem mục trên. |
 
-The portable build runs Vinext directly without a host `timeout` command. The managed-linux build uses `scripts/build-verified.sh` and its existing `SITES_BUILD_TIMEOUT` setting.
+Khai báo kiểu ở `cloudflare-env.d.ts`. **Local:** `pnpm start` đọc biến từ `dist/server/.dev.vars` (mỗi dòng `TÊN=giá trị`). **Production:** đặt trong cấu hình deploy của dự án; `DB` và `BUCKET` khai báo ở `.openai/hosting.json`.
 
-## Learn More
+## Database và migration
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0010`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
+
+Chạy trên D1 local (sau `pnpm build`):
+
+```sh
+for f in drizzle/*.sql; do
+  node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js \
+    d1 execute DB --local --persist-to .wrangler/state \
+    --config dist/server/wrangler.json --file "$f"
+done
+```
+
+Production: nếu deploy bằng Wrangler, áp từng file còn thiếu, ví dụ `npx wrangler d1 execute <tên-database> --remote --file drizzle/0010_inquiry_alerts.sql`.
+
+Bảng `inquiry_rate_limits` được dọn ngay trong request (xác suất nhỏ mỗi lần), không cần cron.
+
+## Route chính
+
+Trang công khai: `/vi/...` và `/en/...` (trang chủ, `stays`, `buildings/[id]`, `rooms/[id]`, `services`, `partners`, `about`, `journal`, `faq`, `contact`). `/` chuyển hướng tới `/vi`. Mỗi trang có metadata riêng; canonical và hreflang chỉ xuất khi có `SITE_URL`. `robots.txt` và `sitemap.xml` do route handler sinh ra (sitemap liệt kê từng trang theo cả hai ngôn ngữ).
+
+API công khai:
+
+| Route | Mô tả |
+| --- | --- |
+| `POST /api/catalog-inquiries` | Form liên hệ/tư vấn. Kiểm tra origin, honeypot `website`, giới hạn 10/giờ/IP và 5/giờ/số điện thoại, body tối đa 10 KB, ngày theo giờ Việt Nam (tối đa 365 đêm). Lưu D1, báo Telegram, redirect `303`. |
+| `POST /api/partner-inquiries` | Form chủ tòa/đối tác. Cùng cơ chế bảo vệ như trên. |
+| `GET /api/catalog-images/[id]` | Ảnh từ R2; ảnh của mục chưa publish chỉ admin xem được. |
+| `GET /api/travel-time` | Thời gian đi xe máy (HERE), cache 24 giờ trong D1. |
+| `POST /api/inquiries`, `POST /api/whatsapp-inquiries` | Form đặt phòng của site Doraemon Land cũ (còn lại trong mã, giữ lại cùng cơ chế bảo vệ). |
+
+API admin (cần cookie đăng nhập và `Origin` cùng site, nếu không `403`; đều là `POST`): `login`, `logout`, `catalog`, `catalog-images`, `catalog-inquiries`, `partner-inquiries`, `content`, `locations`, và các route phòng cũ `rooms`, `listings`, `images`, `inquiries`.
+
+Mọi yêu cầu từ khách được lưu D1 **trước**, rồi mới báo Telegram. Telegram lỗi không làm mất yêu cầu: trạng thái `telegram_status` ghi `failed` và trang admin hiện cảnh báo để chủ nhà liên hệ khách thủ công.
+
+## Bảo mật
+
+`next.config.ts` đặt CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS và `nosniff` (chỉ ở production). CSP cho phép Google Fonts, `tile.openstreetmap.org` (nền bản đồ) và ảnh cùng origin. Nếu thêm tên miền ngoài cho ảnh, font hay bản đồ thì phải thêm vào CSP, nếu không trình duyệt sẽ chặn.
+
+## Test
+
+Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` được alias sang `tests/stubs/cloudflare-workers.ts`; binding gán qua `tests/helpers/env.ts`; D1 giả lập ở `tests/helpers/d1.ts`; Telegram giả lập bằng cách thay `fetch` toàn cục, không test nào gọi mạng thật. Có test cho 4 route form công khai và cho `lib/dates.ts`, `lib/request.ts`, `lib/rate-limit.ts`.
+
+## Deploy
+
+1. `npx tsc --noEmit && pnpm lint && pnpm test && pnpm build`.
+2. Áp các migration còn thiếu lên D1 production.
+3. Đặt biến/secret và binding như bảng trên; **không** đặt `PREVIEW_DEMO`.
+4. Deploy, rồi kiểm tra: `/robots.txt`, `/sitemap.xml`, mở một trang phòng và xem nguồn trang (canonical, hreflang), bản đồ có tải nền, gửi thử mỗi form và xác nhận Telegram nhận được tin, đăng nhập `/admin`.
+
+## Cấu trúc thư mục
+
+- `app/` – trang và API route (App Router); `app/[lang]/[[...path]]/page.tsx` là trang khách song ngữ
+- `components/` – giao diện (`components/ui/` là shadcn, `map-explorer.tsx` là bản đồ)
+- `lib/` – dữ liệu danh mục, Staydesk, ngày tháng, rate limit, đọc body, Telegram, phiên admin, SEO
+- `db/`, `drizzle/` – schema và migration SQL
+- `tests/` – test Vitest
+- `build/`, `scripts/` – hạ tầng build/preview của vinext
