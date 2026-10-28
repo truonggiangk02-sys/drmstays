@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
   if (Number(request.headers.get('content-length') || 0) > 10_000)
     return new NextResponse('Request too large', { status: 413 });
   const form = await request.formData();
-  if (form.get('website')) return NextResponse.redirect(new URL('/thanks', request.url), 303);
+  const lang = form.get('lang') === 'vi' ? 'vi' : form.get('lang') === 'en' ? 'en' : null;
+  const destination = (roomId: string) => lang ? `/${lang}/${roomId ? `rooms/${roomId}` : 'contact'}?sent=1` : '/thanks';
+  if (form.get('website')) return NextResponse.redirect(new URL(destination(''), request.url), 303);
   const text = (key: string, max: number) =>
     String(form.get(key) || '')
       .trim()
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
   const checkIn = text('checkIn', 10),
     checkOut = text('checkOut', 10);
   if (
-    !/^[0-9a-f-]{36}$/i.test(sourceRoomId) ||
+    (sourceRoomId !== '' && !/^[0-9a-f-]{36}$/i.test(sourceRoomId)) ||
     !name ||
     !/^\+?[\d\s().-]{8,24}$/.test(phone) ||
     (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
@@ -37,16 +39,16 @@ export async function POST(request: NextRequest) {
     message.length > 1000
   )
     return new NextResponse('Please check your contact details', { status: 400 });
-  let catalog;
-  try {
-    catalog = await getPublicCatalog();
-  } catch {
-    return new NextResponse('Contact form unavailable', { status: 503 });
+  if (sourceRoomId) {
+    let catalog;
+    try {
+      catalog = await getPublicCatalog();
+    } catch {
+      return new NextResponse('Contact form unavailable', { status: 503 });
+    }
+    if (!catalog.buildings.some((building) => building.rooms.some((room) => room.id === sourceRoomId)))
+      return new NextResponse('Room unavailable', { status: 404 });
   }
-  if (
-    !catalog.buildings.some((building) => building.rooms.some((room) => room.id === sourceRoomId))
-  )
-    return new NextResponse('Room unavailable', { status: 404 });
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   const hash = Array.from(
     new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip))),
@@ -74,5 +76,5 @@ export async function POST(request: NextRequest) {
       new Date().toISOString(),
     )
     .run();
-  return NextResponse.redirect(new URL('/thanks', request.url), 303);
+  return NextResponse.redirect(new URL(destination(sourceRoomId), request.url), 303);
 }
