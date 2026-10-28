@@ -14,6 +14,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "test": "vitest run",
+    "deploy:config": "node scripts/deploy-config.mjs",
     "preview:local": "node scripts/local-preview.mjs"
   },
   "dependencies": {

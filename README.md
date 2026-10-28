@@ -97,6 +97,10 @@ Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` đư
 
 ## Deploy
 
+Hướng dẫn đầy đủ từng bước (Cloudflare, migration, secret, tên miền, kiểm tra sau deploy, vận hành): xem [`docs/DEPLOY.md`](docs/DEPLOY.md). `pnpm deploy:config` sinh cấu hình Worker với tài nguyên Cloudflare thật.
+
+Tóm tắt:
+
 1. `npx tsc --noEmit && pnpm lint && pnpm test && pnpm build`.
 2. Áp các migration còn thiếu lên D1 production.
 3. Đặt biến/secret và binding như bảng trên; **không** đặt `PREVIEW_DEMO`.
