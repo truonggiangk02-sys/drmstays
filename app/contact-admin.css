@@ -1,0 +1,11 @@
+.contact-admin-form{display:grid;gap:18px;max-width:760px;margin:25px 0 65px}
+.contact-admin-form fieldset{display:grid;gap:12px;min-width:0;margin:0;padding:22px;border:1px solid #dce6da;background:#fff}
+.contact-admin-form legend{padding:0 8px;color:#214b3e;font-weight:800}
+.contact-admin-form label:not(.contact-admin-toggle){display:grid;gap:8px;font-size:13px;font-weight:700}
+.contact-admin-form input[type=text]{width:100%;min-height:48px;padding:11px;border:1px solid #bccdbf;background:#fff;color:#18372d;font-size:14px}
+.contact-admin-form small{color:#607166;line-height:1.5}
+.contact-admin-toggle{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700}
+.contact-admin-toggle input{width:19px;height:19px;accent-color:#315d50}
+.contact-admin-form button{width:fit-content;min-height:48px;padding:12px 18px;border:0;background:#315d50;color:#fff;font-weight:700}
+.contact-admin-form :is(input,button):focus-visible{outline:3px solid #ae815d;outline-offset:3px}
+.contact-admin-success{padding:12px 16px;border-left:3px solid #315d50;background:#e7f1e8;color:#285b43}

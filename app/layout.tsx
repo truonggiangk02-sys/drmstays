@@ -8,6 +8,10 @@ import "./map-explorer.css";
 import "./map-explorer-polish.css";
 import { env } from "cloudflare:workers";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, siteUrl } from "@/lib/site";
+import "./quick-contact.css";
+import "./quick-contact-fallback.css";
+import "./contact-admin.css";
+import "./editorial.css";
 
 export function generateMetadata(): Metadata {
   const base = siteUrl();

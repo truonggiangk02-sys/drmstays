@@ -56,5 +56,8 @@ export async function getEditableContent(section: ContentSection): Promise<Conte
 export async function getDeletedContent(section: ContentSection): Promise<ContentItem[]> {
   if (!env.DB) return [];
   const result = await env.DB.prepare('SELECT id, section, title_vi, title_en, body_vi, body_en, published, deleted, position FROM site_content_items WHERE section = ? AND deleted = 1 ORDER BY position, id').bind(section).all<ContentItem>();
-  return (result.results || []).map(item => sampleContent.find(sampleItem => sampleItem.id === item.id) || item);
+  return (result.results || []).map(item => {
+    const sample = sampleContent.find(sampleItem => sampleItem.id === item.id && sampleItem.section === section);
+    return sample && !item.title_vi ? { ...sample, deleted: 1 } : item;
+  });
 }

@@ -37,24 +37,24 @@ const text = {
     buildings: 'Tòa nhà', map: 'Bản đồ', rooms: 'loại phòng', from: 'Từ', month: 'tháng', view: 'Xem phòng trong tòa',
     places: 'Địa điểm trên bản đồ', select: 'Chọn một tòa để xem các điểm đến.',
     morePlaces: 'Xem thêm địa điểm', fewerPlaces: 'Thu gọn địa điểm',
-    directions: 'Xem tuyến xe máy trên Google Maps', time: 'Tuyến đường xe máy', timePending: 'Chưa có dữ liệu tuyến đường', timeAction: 'Xem thời gian đi xe máy', timeLoading: 'Đang lấy tuyến đường…', timeUnavailable: 'Chưa lấy được tuyến đường. Bạn vẫn có thể mở trong Google Maps.', timeApproximate: 'Chưa thể vẽ tuyến đường hoặc tính quãng đường vì vị trí tòa mới là tham khảo.', minutes: 'phút', distance: 'km',
+    directions: 'Xem tuyến xe máy trên Google Maps', time: 'Tuyến đường xe máy', timePending: 'Chưa có dữ liệu tuyến đường', timeAction: 'Xem thời gian đi xe máy', timeLoading: 'Đang lấy tuyến đường…', timeUnavailable: 'Chưa lấy được tuyến đường. Bạn vẫn có thể mở trong Google Maps.', timeApproximate: 'Chọn điểm xuất phát trong Google Maps để xem thời gian thực tế.', minutes: 'phút', distance: 'km',
     noPin: 'Vị trí ghim của tòa này đang chờ xác nhận.', noPlaces: 'Chưa có địa điểm công khai cho tòa này.',
     mapNote: 'Tòa này chưa có tọa độ. Hãy xem địa chỉ trong thẻ tòa nhà.',
     mapLoading: 'Đang tải bản đồ…',
     approximate: 'Ghim tòa chỉ là vị trí tham khảo theo khu vực, chưa phải đúng cửa tòa.',
-    mapHelp: 'Ghim xanh là tòa nhà, ghim nâu là địa điểm. Chạm ghim để xem chi tiết.', selectedPlace: 'Địa điểm đã chọn', reference: 'Vị trí tham khảo', confirmed: 'Vị trí đã xác nhận', allPlaces: 'địa điểm', closePlace: 'Đóng chi tiết địa điểm', viewList: 'Xem danh sách địa điểm', fitAll: 'Xem tất cả ghim', chooseOrigin: 'Vị trí tòa chưa xác nhận; Google Maps sẽ để bạn chọn điểm xuất phát.', illustrative: 'Ảnh minh họa', previousPhoto: 'Ảnh trước', nextPhoto: 'Ảnh tiếp', routeOnMap: 'Tuyến trên bản đồ chưa sẵn sàng; hãy xem tuyến xe máy trong Google Maps.',
+    mapHelp: 'Ghim xanh là tòa nhà, ghim nâu là địa điểm. Chạm ghim để xem chi tiết.', selectedPlace: 'Địa điểm đã chọn', reference: 'Vị trí tham khảo', confirmed: 'Vị trí đã xác nhận', allPlaces: 'địa điểm', closePlace: 'Đóng chi tiết địa điểm', viewList: 'Xem danh sách địa điểm', fitAll: 'Xem tất cả ghim', illustrative: 'Ảnh minh họa', previousPhoto: 'Ảnh trước', nextPhoto: 'Ảnh tiếp', routeOnMap: 'Tuyến trên bản đồ chưa sẵn sàng; hãy xem tuyến xe máy trong Google Maps.',
   },
   en: {
     heading: 'Find a stay around your Da Nang plans', subtitle: 'Choose a building, explore places on the map and open motorcycle directions in Google Maps.',
     buildings: 'Buildings', map: 'Map', rooms: 'room types', from: 'From', month: 'month', view: 'Explore rooms',
     places: 'Places on the map', select: 'Choose a building to see places.',
     morePlaces: 'Show more places', fewerPlaces: 'Show fewer places',
-    directions: 'View motorcycle route in Google Maps', time: 'Motorcycle route', timePending: 'No route data yet', timeAction: 'Check motorcycle route time', timeLoading: 'Checking route…', timeUnavailable: 'Route data is unavailable. You can still open directions in Google Maps.', timeApproximate: 'A route or distance cannot be shown because the building pin is only approximate.', minutes: 'min', distance: 'km',
+    directions: 'View motorcycle route in Google Maps', time: 'Motorcycle route', timePending: 'No route data yet', timeAction: 'Check motorcycle route time', timeLoading: 'Checking route…', timeUnavailable: 'Route data is unavailable. You can still open directions in Google Maps.', timeApproximate: 'Choose your starting point in Google Maps to see the actual travel time.', minutes: 'min', distance: 'km',
     noPin: 'This building pin is waiting for its location to be confirmed.', noPlaces: 'No places have been published for this building yet.',
     mapNote: 'This building has no coordinates yet. See its address in the building card.',
     mapLoading: 'Loading map…',
     approximate: 'The building pin is an approximate area reference, not its confirmed entrance.',
-    mapHelp: 'Green pins are buildings; brown pins are places. Select a pin for details.', selectedPlace: 'Selected place', reference: 'Approximate location', confirmed: 'Confirmed location', allPlaces: 'places', closePlace: 'Close place details', viewList: 'View place list', fitAll: 'Show all pins', chooseOrigin: 'Building location is unconfirmed; Google Maps will let you choose your starting point.', illustrative: 'Illustrative photo', previousPhoto: 'Previous photo', nextPhoto: 'Next photo', routeOnMap: 'The route is not available on this map yet; view motorcycle directions in Google Maps.',
+    mapHelp: 'Green pins are buildings; brown pins are places. Select a pin for details.', selectedPlace: 'Selected place', reference: 'Approximate location', confirmed: 'Confirmed location', allPlaces: 'places', closePlace: 'Close place details', viewList: 'View place list', fitAll: 'Show all pins', illustrative: 'Illustrative photo', previousPhoto: 'Previous photo', nextPhoto: 'Next photo', routeOnMap: 'The route is not available on this map yet; view motorcycle directions in Google Maps.',
   },
 } as const;
 
@@ -81,7 +81,7 @@ function validRoutePath(value: unknown): [number, number][] | undefined {
   return path;
 }
 
-export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuilding[]; landmarks: MapLandmark[]; lang: Language }) {
+export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { buildings: MapBuilding[]; landmarks: MapLandmark[]; lang: Language; dateQuery?: string }) {
   const t = text[lang];
   const [selectedId, setSelectedId] = useState(buildings[0]?.id || '');
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
@@ -97,6 +97,10 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
   const placeMarkers = useRef<Map<string, Leaflet.Marker>>(new Map());
   const landmarkLayer = useRef<Leaflet.LayerGroup | null>(null);
   const routeLayer = useRef<Leaflet.Polyline | null>(null);
+  const placeTitle = useRef<HTMLHeadingElement>(null);
+  const listHeading = useRef<HTMLHeadingElement>(null);
+  const placeTrigger = useRef<HTMLElement | null>(null);
+  const routeRequestId = useRef(0);
   const selected = buildings.find(building => building.id === selectedId) || buildings[0];
   const nearby = useMemo(() => {
     if (!selected) return [];
@@ -109,11 +113,14 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
   const selectedPhotos = selected?.photos?.length ? selected.photos : selected ? [{ url: selected.imageUrl, alt: selected.imageAlt || selected.name }] : [];
   const selectedPhoto = selectedPhotos[Math.min(selectedPhotoIndex, selectedPhotos.length - 1)];
   const routeKey = selected && selectedPlace ? `${selected.id}:${selectedPlace.id}` : '';
-  const shownMinutes = selectedPlace?.routeMinutes ?? (routeState?.key === routeKey && routeState.status === 'ready' ? routeState.minutes : null);
+  const shownMinutes = selected && isPositioned(selected) && !selected.coordinateApproximate
+    ? selectedPlace?.routeMinutes ?? (routeState?.key === routeKey && routeState.status === 'ready' ? routeState.minutes : null)
+    : null;
   const shownDistance = routeState?.key === routeKey && routeState.status === 'ready' ? routeState.distanceMeters : null;
   const shownPath = routeState?.key === routeKey && routeState.status === 'ready' ? routeState.path : undefined;
 
   function chooseBuilding(id: string) {
+    routeRequestId.current += 1;
     setSelectedId(id);
     setSelectedPlaceId(null);
     setShowAllPlaces(false);
@@ -125,6 +132,7 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
   async function checkRouteTime(place: MapLandmark) {
     if (!selected || !isPositioned(selected) || selected.coordinateApproximate) return;
     const key = `${selected.id}:${place.id}`;
+    const requestId = ++routeRequestId.current;
     setRouteState({ key, status: 'loading' });
     try {
       const url = new URL('/api/travel-time', window.location.origin);
@@ -133,9 +141,9 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
       const response = await fetch(url);
       const result = await response.json() as { minutes?: unknown; distanceMeters?: unknown; path?: unknown };
       if (!response.ok || typeof result.minutes !== 'number' || !Number.isInteger(result.minutes) || result.minutes <= 0) throw new Error('Route unavailable');
-      setRouteState({ key, status: 'ready', minutes: result.minutes, distanceMeters: typeof result.distanceMeters === 'number' && Number.isFinite(result.distanceMeters) && result.distanceMeters > 0 ? result.distanceMeters : undefined, path: validRoutePath(result.path) });
+      if (requestId === routeRequestId.current) setRouteState({ key, status: 'ready', minutes: result.minutes, distanceMeters: typeof result.distanceMeters === 'number' && Number.isFinite(result.distanceMeters) && result.distanceMeters > 0 ? result.distanceMeters : undefined, path: validRoutePath(result.path) });
     } catch {
-      setRouteState({ key, status: 'unavailable' });
+      if (requestId === routeRequestId.current) setRouteState({ key, status: 'unavailable' });
     }
   }
 
@@ -185,12 +193,12 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
     landmarkLayer.current?.clearLayers();
     placeMarkers.current.clear();
     for (const place of nearby) {
-      const icon = L.divIcon({ className: 'drm-place-pin', html: '<span class="drm-place-pin-core"></span>', iconSize: [28, 28], iconAnchor: [14, 14] });
+      const icon = L.divIcon({ className: 'drm-place-pin', html: '<span class="drm-place-pin-core"></span>', iconSize: [44, 44], iconAnchor: [22, 22] });
       const marker = L.marker([place.latitude, place.longitude], { icon, title: place.name, keyboard: true });
       const label = document.createElement('span');
       label.textContent = place.name;
       marker.bindTooltip(label, { direction: 'top' });
-      marker.on('click', () => setSelectedPlaceId(place.id));
+      marker.on('click', () => { placeTrigger.current = marker.getElement() || null; setSelectedPlaceId(place.id); });
       marker.addTo(landmarkLayer.current!);
       marker.getElement()?.setAttribute('aria-label', place.name);
       placeMarkers.current.set(place.id, marker);
@@ -219,6 +227,12 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
   }, [selectedPlaceId, nearby, mapReady]);
 
   useEffect(() => {
+    if (!selectedPlaceId) return;
+    const frame = requestAnimationFrame(() => placeTitle.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [selectedPlaceId, mobileView]);
+
+  useEffect(() => {
     routeLayer.current?.remove();
     routeLayer.current = null;
     const L = leaflet.current, instance = map.current;
@@ -236,9 +250,26 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
     });
   }, [mobileView, selected, selectedPlaceId]);
 
-  function showPlace(place: MapLandmark) {
+  function showPlace(place: MapLandmark, trigger: HTMLElement) {
+    placeTrigger.current = trigger;
     setSelectedPlaceId(place.id);
     setMobileView('map');
+  }
+
+  function closePlace() {
+    const placeId = selectedPlaceId;
+    setSelectedPlaceId(null);
+    requestAnimationFrame(() => {
+      const trigger = placeTrigger.current;
+      if (trigger?.getClientRects().length) trigger.focus();
+      else if (placeId) placeMarkers.current.get(placeId)?.getElement()?.focus();
+    });
+  }
+
+  function returnToList() {
+    setSelectedPlaceId(null);
+    setMobileView('list');
+    requestAnimationFrame(() => listHeading.current?.focus());
   }
 
   function showAllPins() {
@@ -256,14 +287,14 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
     <div className="map-mobile-switch" role="group" aria-label={t.heading}><button type="button" aria-pressed={mobileView === 'list'} className={mobileView === 'list' ? 'active' : ''} onClick={() => setMobileView('list')}>{t.buildings} & {t.places}</button><button type="button" aria-pressed={mobileView === 'map'} className={mobileView === 'map' ? 'active' : ''} onClick={() => setMobileView('map')}>{t.map}</button></div>
     <div className="map-explorer-body">
       <div className={`map-explorer-list ${mobileView === 'map' ? 'mobile-hidden' : ''}`}>
-        <div className="map-list-heading"><h3>{t.buildings}</h3><span>{buildings.length}</span></div>
+        <div className="map-list-heading"><h3 ref={listHeading} tabIndex={-1}>{t.buildings}</h3><span>{buildings.length}</span></div>
         {buildings.map(building => <article key={building.id} className={`map-building ${selected?.id === building.id ? 'is-selected' : ''}`}>
           <button type="button" className="map-building-select" aria-pressed={selected?.id === building.id} onClick={() => chooseBuilding(building.id)}>
             <img src={building.imageUrl || '/drm-stay-logo.png'} alt="" loading="lazy" /><span className="map-building-copy"><strong>{building.name}</strong><small>{building.address}</small><span className="map-building-meta">{building.roomCount} {t.rooms}{building.monthlyPrice ? ` · ${t.from} ${formatMoney(building.monthlyPrice)} ₫ / ${t.month}` : ''}</span><em className={building.coordinateApproximate ? 'approximate' : ''}>{!isPositioned(building) ? t.noPin : building.coordinateApproximate ? t.reference : t.confirmed}</em></span>
           </button>
-          <Link href={`/${lang}/buildings/${building.id}`} className="map-building-link">{t.view} <span aria-hidden="true">↗</span></Link>
+          <Link href={`/${lang}/buildings/${building.id}${dateQuery}`} className="map-building-link">{t.view} <span aria-hidden="true">↗</span></Link>
         </article>)}
-        {selected && <div className="map-nearby"><div className="map-nearby-heading"><h3>{t.places}</h3><span>{nearby.length}</span></div>{!isPositioned(selected) && <p className="map-nearby-hint">{t.noPin}</p>}{selected.coordinateApproximate && <p className="map-nearby-hint">{t.approximate}</p>}{nearby.length ? <><div className="map-nearby-list">{visiblePlaces.map(place => <button type="button" className={`map-place-row ${selectedPlaceId === place.id ? 'is-selected' : ''}`} key={place.id} aria-pressed={selectedPlaceId === place.id} onClick={() => showPlace(place)}><span><strong>{place.name}</strong>{place.description && <small>{place.description}</small>}</span><span aria-hidden="true">↗</span></button>)}</div>{nearby.length > 8 && <button className="map-more-places" type="button" aria-expanded={showAllPlaces} onClick={() => setShowAllPlaces(value => !value)}>{showAllPlaces ? t.fewerPlaces : `${t.morePlaces} (${nearby.length - 8})`}</button>}</> : <p>{t.noPlaces}</p>}</div>}
+        {selected && <div className="map-nearby"><div className="map-nearby-heading"><h3>{t.places}</h3><span>{nearby.length}</span></div>{!isPositioned(selected) && <p className="map-nearby-hint">{t.noPin}</p>}{nearby.length ? <><div className="map-nearby-list">{visiblePlaces.map(place => <button type="button" className={`map-place-row ${selectedPlaceId === place.id ? 'is-selected' : ''}`} key={place.id} aria-pressed={selectedPlaceId === place.id} onClick={(event) => showPlace(place, event.currentTarget)}><span><strong>{place.name}</strong>{place.description && <small>{place.description}</small>}</span><span aria-hidden="true">↗</span></button>)}</div>{nearby.length > 8 && <button className="map-more-places" type="button" aria-expanded={showAllPlaces} onClick={() => setShowAllPlaces(value => !value)}>{showAllPlaces ? t.fewerPlaces : `${t.morePlaces} (${nearby.length - 8})`}</button>}</> : <p>{t.noPlaces}</p>}</div>}
       </div>
       <div className={`map-explorer-map ${mobileView === 'list' ? 'mobile-hidden' : ''}`}>
         <div ref={mapElement} className="map-canvas" role="group" aria-label={`${t.map}. ${t.mapHelp}`} />
@@ -271,10 +302,10 @@ export function MapExplorer({ buildings, landmarks, lang }: { buildings: MapBuil
         <div className="map-map-top"><span className="map-legend"><i className="map-legend-building" aria-hidden="true" />{t.buildings} <i className="map-legend-place" aria-hidden="true" />{t.places}</span><span className="map-map-help">{t.mapHelp}</span><button type="button" className="map-fit-all" onClick={showAllPins}>{t.fitAll}</button></div>
         {selected && <div className={`map-selected-building ${selectedPlace ? 'is-route-open' : ''}`} role="region" aria-label={selected.name}>
           <div className="map-selected-photo"><img src={selectedPhoto?.url || '/drm-stay-logo.png'} alt={selectedPhoto?.alt || selected.name} />{selected.imageIsIllustrative && <span className="map-photo-label">{t.illustrative}</span>}{selectedPhotos.length > 1 && <div className="map-photo-controls"><button type="button" aria-label={t.previousPhoto} onClick={() => setSelectedPhotoIndex(index => (index - 1 + selectedPhotos.length) % selectedPhotos.length)}>‹</button><span>{selectedPhotoIndex + 1} / {selectedPhotos.length}</span><button type="button" aria-label={t.nextPhoto} onClick={() => setSelectedPhotoIndex(index => (index + 1) % selectedPhotos.length)}>›</button></div>}</div>
-          <div className="map-selected-content"><small className="map-selected-eyebrow">{t.buildings}</small><strong>{selected.name}</strong><p>{selected.address}</p><span className="map-selected-meta">{selected.roomCount} {t.rooms}{selected.monthlyPrice ? ` · ${t.from} ${formatMoney(selected.monthlyPrice)} ₫ / ${t.month}` : ''}</span><small className="map-selected-location">{!isPositioned(selected) ? t.noPin : selected.coordinateApproximate ? t.approximate : t.confirmed}</small><Link href={`/${lang}/buildings/${selected.id}`}>{t.view} <span aria-hidden="true">↗</span></Link></div>
+          <div className="map-selected-content"><small className="map-selected-eyebrow">{t.buildings}</small><strong>{selected.name}</strong><p>{selected.address}</p><span className="map-selected-meta">{selected.roomCount} {t.rooms}{selected.monthlyPrice ? ` · ${t.from} ${formatMoney(selected.monthlyPrice)} ₫ / ${t.month}` : ''}</span><small className="map-selected-location">{!isPositioned(selected) ? t.noPin : selected.coordinateApproximate ? t.approximate : t.confirmed}</small><Link href={`/${lang}/buildings/${selected.id}${dateQuery}`}>{t.view} <span aria-hidden="true">↗</span></Link></div>
         </div>}
-        {selected && selectedPlace && <div className="map-place-detail" role="region" aria-label={`${t.selectedPlace}: ${selectedPlace.name}`}><button className="map-place-close" type="button" aria-label={t.closePlace} onClick={() => setSelectedPlaceId(null)}>×</button><small>{t.selectedPlace}</small><h3>{selectedPlace.name}</h3>{selectedPlace.description && <p>{selectedPlace.description}</p>}<div className="map-route-time" role="status"><strong>{t.time}</strong>{shownMinutes ? <span>{shownMinutes} {t.minutes}{shownDistance ? ` · ${(shownDistance / 1000).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { maximumFractionDigits: 1 })} ${t.distance}` : ''}</span> : !isPositioned(selected) || selected.coordinateApproximate ? <span>{t.timeApproximate}</span> : routeState?.key === routeKey && routeState.status === 'loading' ? <span>{t.timeLoading}</span> : routeState?.key === routeKey && routeState.status === 'unavailable' ? <span>{t.timeUnavailable}</span> : <span>{t.timePending}</span>}</div>{!shownMinutes && isPositioned(selected) && !selected.coordinateApproximate && routeState?.status !== 'loading' && <button className="map-time-action" type="button" onClick={() => checkRouteTime(selectedPlace)}>{t.timeAction}</button>}{!shownPath && <p className="map-route-hint">{t.routeOnMap}</p>}<a className="map-directions" href={directionsUrl(selected, selectedPlace)} target="_blank" rel="noopener noreferrer">{t.directions} <span aria-hidden="true">↗</span></a>{(selected.coordinateApproximate || !isPositioned(selected)) && <p className="map-origin-note">{t.chooseOrigin}</p>}</div>}
-        <button type="button" className="map-back-to-list" onClick={() => setMobileView('list')}>{t.viewList}</button>
+        {selected && selectedPlace && <div className="map-place-detail" role="region" aria-label={`${t.selectedPlace}: ${selectedPlace.name}`}><button className="map-place-close" type="button" aria-label={t.closePlace} onClick={closePlace}>×</button><small>{t.selectedPlace}</small><h3 ref={placeTitle} tabIndex={-1}>{selectedPlace.name}</h3>{selectedPlace.description && <p>{selectedPlace.description}</p>}<div className="map-route-time" role="status"><strong>{t.time}</strong>{shownMinutes ? <span>{shownMinutes} {t.minutes}{shownDistance ? ` · ${(shownDistance / 1000).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { maximumFractionDigits: 1 })} ${t.distance}` : ''}</span> : !isPositioned(selected) || selected.coordinateApproximate ? <span>{t.timeApproximate}</span> : routeState?.key === routeKey && routeState.status === 'loading' ? <span>{t.timeLoading}</span> : routeState?.key === routeKey && routeState.status === 'unavailable' ? <span>{t.timeUnavailable}</span> : <span>{t.timePending}</span>}</div>{!shownMinutes && isPositioned(selected) && !selected.coordinateApproximate && (routeState?.key !== routeKey || routeState.status !== 'loading') && <button className="map-time-action" type="button" onClick={() => checkRouteTime(selectedPlace)}>{t.timeAction}</button>}{!shownPath && isPositioned(selected) && !selected.coordinateApproximate && <p className="map-route-hint">{t.routeOnMap}</p>}<a className="map-directions" href={directionsUrl(selected, selectedPlace)} target="_blank" rel="noopener noreferrer">{t.directions} <span aria-hidden="true">↗</span></a><button type="button" className="map-place-back-to-list" onClick={returnToList}>{t.viewList}</button></div>}
+        <button type="button" className="map-back-to-list" onClick={returnToList}>{t.viewList}</button>
       </div>
     </div>
   </section>;

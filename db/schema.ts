@@ -95,5 +95,6 @@ export const travelTimeCache = sqliteTable("travel_time_cache", {
   durationSeconds: integer("duration_seconds").notNull(),
   distanceMeters: integer("distance_meters").notNull(),
   expiresAt: integer("expires_at").notNull(),
+  polylinesJson: text("polylines_json").notNull().default("[]"),
 }, (table) => [primaryKey({ columns: [table.buildingId, table.landmarkId] })]);
 

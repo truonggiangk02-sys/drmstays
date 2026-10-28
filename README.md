@@ -42,7 +42,7 @@ Khai báo kiểu ở `cloudflare-env.d.ts`. **Local:** `pnpm start` đọc biế
 
 ## Database và migration
 
-Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0010`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
+Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0012`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
 
 Chạy trên D1 local (sau `pnpm build`):
 
@@ -54,7 +54,7 @@ for f in drizzle/*.sql; do
 done
 ```
 
-Production: nếu deploy bằng Wrangler, áp từng file còn thiếu, ví dụ `npx wrangler d1 execute <tên-database> --remote --file drizzle/0010_inquiry_alerts.sql`.
+Production: nếu deploy bằng Wrangler, áp từng file còn thiếu, ví dụ `npx wrangler d1 execute <tên-database> --remote --file drizzle/0012_inquiry_alerts.sql`.
 
 Bảng `inquiry_rate_limits` được dọn ngay trong request (xác suất nhỏ mỗi lần), không cần cron.
 
