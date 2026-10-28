@@ -10,5 +10,5 @@ export const inquiryRateLimits = sqliteTable("inquiry_rate_limits", {
 });
 
 export const roomDetails = sqliteTable("room_details", { id: integer("id").primaryKey(), amenities: text("amenities").notNull(), sqm: integer("sqm").notNull(), beds: text("beds").notNull(), wifi: text("wifi").notNull(), address: text("address").notNull().default(""), area: text("area").notNull().default(""), view: text("view").notNull().default(""), guests: integer("guests").notNull().default(2), availableUnits: integer("available_units"), isCustom: integer("is_custom").notNull().default(0) });
-export const roomImages = sqliteTable("room_images", { id: integer("id").primaryKey({ autoIncrement: true }), apartmentId: integer("apartment_id").notNull(), mime: text("mime").notNull(), imageData: text("image_data").notNull(), alt: text("alt").notNull().default(""), position: integer("position").notNull().default(0) });
+export const roomImages = sqliteTable("room_images", { id: integer("id").primaryKey({ autoIncrement: true }), apartmentId: integer("apartment_id").notNull(), mime: text("mime").notNull(), imageData: text("image_data").notNull(), alt: text("alt").notNull().default(""), position: integer("position").notNull().default(0), r2Key: text("r2_key") });
 

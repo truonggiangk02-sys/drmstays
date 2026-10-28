@@ -17,9 +17,12 @@ export async function POST(request: NextRequest) {
   const action = String(form.get("action") || "upload");
   const imageId = Number(form.get("imageId"));
   if (action === "delete" || action === "up" || action === "down" || action === "cover") {
-    const current = await env.DB.prepare("SELECT id, position FROM room_images WHERE id = ? AND apartment_id = ?").bind(imageId, roomId).first<{ id: number; position: number }>();
+    const current = await env.DB.prepare("SELECT id, position, r2_key FROM room_images WHERE id = ? AND apartment_id = ?").bind(imageId, roomId).first<{ id: number; position: number; r2_key: string | null }>();
     if (!current) return new NextResponse("Image not found", { status: 404 });
-    if (action === "delete") await env.DB.prepare("DELETE FROM room_images WHERE id = ? AND apartment_id = ?").bind(imageId, roomId).run();
+    if (action === "delete") {
+      await env.DB.prepare("DELETE FROM room_images WHERE id = ? AND apartment_id = ?").bind(imageId, roomId).run();
+      if (current.r2_key) await env.BUCKET?.delete(current.r2_key);
+    }
     else {
       const rows = await env.DB.prepare("SELECT id FROM room_images WHERE apartment_id = ? ORDER BY position, id").bind(roomId).all<{ id: number }>();
       const ids = (rows.results || []).map(row => row.id);
@@ -35,12 +38,25 @@ export async function POST(request: NextRequest) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const valid = file.type === "image/jpeg" ? bytes[0] === 0xff && bytes[1] === 0xd8 : file.type === "image/png" ? bytes.slice(0, 4).join() === "137,80,78,71" : bytes.slice(0, 4).join() === "82,73,70,70" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
     if (!valid) return new NextResponse("Invalid image file", { status: 400 });
-    let binary = "";
-    for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.slice(i, i + 8192));
     const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM room_images WHERE apartment_id = ?").bind(roomId).first<{ total: number }>();
     if ((count?.total || 0) >= 12) return new NextResponse("Maximum 12 images per room", { status: 400 });
     const alt = String(form.get("alt") || "").trim().slice(0, 120);
-    await env.DB.prepare("INSERT INTO room_images (apartment_id, mime, image_data, alt, position) VALUES (?, ?, ?, ?, ?)").bind(roomId, file.type, btoa(binary), alt, count?.total || 0).run();
+    let imageData = "", r2Key: string | null = null;
+    if (env.BUCKET) {
+      r2Key = `rooms/${roomId}/${crypto.randomUUID()}`;
+      await env.BUCKET.put(r2Key, bytes, { httpMetadata: { contentType: file.type } });
+    } else {
+      // No R2 binding: fall back to base64 in D1.
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.slice(i, i + 8192));
+      imageData = btoa(binary);
+    }
+    try {
+      await env.DB.prepare("INSERT INTO room_images (apartment_id, mime, image_data, alt, position, r2_key) VALUES (?, ?, ?, ?, ?, ?)").bind(roomId, file.type, imageData, alt, count?.total || 0, r2Key).run();
+    } catch (error) {
+      if (r2Key) await env.BUCKET?.delete(r2Key);
+      throw error;
+    }
   } else return new NextResponse("Invalid action", { status: 400 });
   return NextResponse.redirect(new URL(`/admin/rooms#room-${roomId}`, request.url), 303);
 }
