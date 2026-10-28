@@ -21,6 +21,17 @@ pnpm test     # Vitest
 
 Kiểm tra kiểu: `npx tsc --noEmit`. `pnpm start` đọc cấu hình ở `dist/server/wrangler.json` nên phải `pnpm build` trước.
 
+### Xem thử nội bộ bằng một lệnh
+
+```sh
+pnpm install            # lần đầu
+pnpm preview:local
+```
+
+Lệnh này tự build, tạo database local, rồi chạy site tại `http://127.0.0.1:8787` với dữ liệu mẫu (không cần tài khoản Cloudflare hay Staydesk). Mở `/vi`, `/en`, và `/admin` (mật khẩu mặc định `preview-admin`). Chỉ máy này truy cập được; nhấn `Ctrl+C` để dừng. Tùy chọn: `--skip-build` (dùng lại bản build trước, nhanh hơn), `--reset` (xóa database local, bắt đầu lại từ đầu), `--port=8800`.
+
+Muốn thử với dữ liệu Staydesk thật thay vì dữ liệu mẫu: tạo file `.dev.vars` ở thư mục gốc (đã được git bỏ qua) chứa các biến cần dùng, ví dụ `ADMIN_PASSWORD=...`, `STAYDESK_CATALOG_URL=...`, `STAYDESK_CATALOG_SECRET=...` và không có `PREVIEW_DEMO`. Lệnh sẽ dùng file đó thay cho giá trị mặc định.
+
 Chế độ xem thử không cần Staydesk: đặt `PREVIEW_DEMO=1`. Nó hiển thị phòng mẫu, nên site tự gửi `noindex`, `robots.txt` chặn toàn bộ và sitemap rỗng. **Tuyệt đối không bật ở production.**
 
 ## Biến môi trường và binding
