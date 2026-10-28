@@ -12,7 +12,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const args = process.argv.slice(2);
@@ -24,7 +24,8 @@ if (!Number.isInteger(port) || port < 1024 || port > 65535) {
 }
 
 const wrangler = path.join(root, "node_modules/wrangler/bin/wrangler.js");
-const sitesEnv = path.join(root, "scripts/sites-env.mjs");
+// `node --import` needs a file:// URL; a bare C:\... path fails on Windows.
+const sitesEnv = pathToFileURL(path.join(root, "scripts/sites-env.mjs")).href;
 const serverDir = path.join(root, "dist/server");
 const baseConfig = path.join(serverDir, "wrangler.json");
 const localConfig = path.join(serverDir, "wrangler.local.json");
@@ -67,7 +68,7 @@ const migrated = run("Preparing the local database", [
   "--local", "--persist-to", state, "--config", localConfig,
 ]);
 if (!migrated) {
-  console.error("If this database was set up by hand earlier, run again with --reset to start fresh.");
+  console.error("If the error above mentions a table that already exists, run again with --reset to start fresh.");
   process.exit(1);
 }
 
