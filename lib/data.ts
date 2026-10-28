@@ -4,6 +4,35 @@ import { apartments, type Apartment } from "./apartments";
 type Override = { id: number; name: string; building: string; price: number; monthly_price: number; usd_nightly: number; usd_monthly: number; description: string; active: number };
 type Details = { id: number; amenities: string; sqm: number; beds: string; wifi: string; address: string; area: string; view: string; guests: number; available_units: number | null; is_custom: number };
 type Image = { id: number; apartment_id: number; alt: string };
+type InquiryApartment = Pick<Apartment, "id" | "name" | "building" | "active" | "availableUnits" | "guests">;
+
+export async function getApartmentForInquiry(id: number): Promise<InquiryApartment | null> {
+  if (!env.DB) throw new Error("Database unavailable");
+  if (!Number.isSafeInteger(id) || id < 1) return null;
+  const base = apartments.find(apartment => apartment.id === id);
+  const [row, detail] = await Promise.all([
+    env.DB.prepare("SELECT id, name, building, active FROM listing_overrides WHERE id = ?").bind(id).first<Pick<Override, "id" | "name" | "building" | "active">>(),
+    env.DB.prepare("SELECT id, guests, available_units, is_custom FROM room_details WHERE id = ?").bind(id).first<Pick<Details, "id" | "guests" | "available_units" | "is_custom">>(),
+  ]);
+  if (!base && (!row || !detail || detail.is_custom !== 1)) return null;
+  return {
+    id,
+    name: row?.name || base!.name,
+    building: row?.building || base!.building,
+    active: row ? row.active === 1 : base!.active,
+    availableUnits: detail?.available_units ?? base?.availableUnits ?? 0,
+    guests: detail?.guests || base?.guests || 1,
+  };
+}
+
+export async function getRoomNames(): Promise<Map<number, string>> {
+  if (!env.DB) throw new Error("Database unavailable");
+  const rows = await env.DB.prepare("SELECT id, name FROM listing_overrides").all<Pick<Override, "id" | "name">>();
+  const names = new Map(apartments.map(apartment => [apartment.id, apartment.name]));
+  for (const row of rows.results || []) names.set(row.id, row.name);
+  return names;
+}
+
 export async function getApartments(): Promise<Apartment[]> {
   if (!env.DB) throw new Error("Database unavailable");
   const [rows, details, images] = await Promise.all([
@@ -13,11 +42,21 @@ export async function getApartments(): Promise<Apartment[]> {
   ]);
   const overrides = new Map((rows.results || []).map(row => [row.id, row]));
   const detailMap = new Map((details.results || []).map(row => [row.id, row]));
+  const imagesByRoom = new Map<number, Image[]>();
+  for (const image of images.results || []) {
+    const gallery = imagesByRoom.get(image.apartment_id) || [];
+    gallery.push(image);
+    imagesByRoom.set(image.apartment_id, gallery);
+  }
+  const buildings = new Map<string, Apartment>();
+  for (const apartment of apartments) {
+    if (!buildings.has(apartment.building)) buildings.set(apartment.building, apartment);
+  }
   const base = apartments.map(apartment => {
     const row = overrides.get(apartment.id);
     const detail = detailMap.get(apartment.id);
-    const gallery = (images.results || []).filter(image => image.apartment_id === apartment.id).map(image => ({ id: image.id, url: `/api/room-images/${image.id}`, alt: image.alt || apartment.name }));
-    const buildingInfo = apartments.find(item => item.building === (row?.building || apartment.building)) || apartment;
+    const gallery = (imagesByRoom.get(apartment.id) || []).map(image => ({ id: image.id, url: `/api/room-images/${image.id}`, alt: image.alt || apartment.name }));
+    const buildingInfo = buildings.get(row?.building || apartment.building) || apartment;
     return {
       ...apartment,
       address: buildingInfo.address,
@@ -31,7 +70,7 @@ export async function getApartments(): Promise<Apartment[]> {
   });
   const custom = (rows.results || []).filter(row => row.id > 3 && detailMap.get(row.id)?.is_custom === 1).map(row => {
     const detail = detailMap.get(row.id)!;
-    const gallery = (images.results || []).filter(image => image.apartment_id === row.id).map(image => ({ id: image.id, url: `/api/room-images/${image.id}`, alt: image.alt || row.name }));
+    const gallery = (imagesByRoom.get(row.id) || []).map(image => ({ id: image.id, url: `/api/room-images/${image.id}`, alt: image.alt || row.name }));
     return {
       id: row.id,
       slug: `room-${row.id}`,

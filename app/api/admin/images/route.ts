@@ -22,23 +22,25 @@ export async function POST(request: NextRequest) {
     if (action === "delete") await env.DB.prepare("DELETE FROM room_images WHERE id = ? AND apartment_id = ?").bind(imageId, roomId).run();
     else {
       const rows = await env.DB.prepare("SELECT id FROM room_images WHERE apartment_id = ? ORDER BY position, id").bind(roomId).all<{ id: number }>();
-      const ids = (rows.results || []).map(row => row.id);
+      const originalIds = (rows.results || []).map(row => row.id);
+      const ids = [...originalIds];
       const index = ids.indexOf(imageId);
       if (action === "cover") { ids.splice(index, 1); ids.unshift(imageId); }
       if (action === "up" && index > 0) [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]];
       if (action === "down" && index < ids.length - 1) [ids[index + 1], ids[index]] = [ids[index], ids[index + 1]];
-      await env.DB.batch(ids.map((id, position) => env.DB!.prepare("UPDATE room_images SET position = ? WHERE id = ? AND apartment_id = ?").bind(position, id, roomId)));
+      const updates = ids.flatMap((id, position) => originalIds[position] === id ? [] : [env.DB!.prepare("UPDATE room_images SET position = ? WHERE id = ? AND apartment_id = ?").bind(position, id, roomId)]);
+      if (updates.length) await env.DB.batch(updates);
     }
   } else if (action === "upload") {
     const file = form.get("image");
     if (!(file instanceof File) || file.size < 1 || file.size > 900_000 || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) return new NextResponse("Use a JPG, PNG, or WebP image under 900 KB", { status: 400 });
+    const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM room_images WHERE apartment_id = ?").bind(roomId).first<{ total: number }>();
+    if ((count?.total || 0) >= 12) return new NextResponse("Maximum 12 images per room", { status: 400 });
     const bytes = new Uint8Array(await file.arrayBuffer());
     const valid = file.type === "image/jpeg" ? bytes[0] === 0xff && bytes[1] === 0xd8 : file.type === "image/png" ? bytes.slice(0, 4).join() === "137,80,78,71" : bytes.slice(0, 4).join() === "82,73,70,70" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
     if (!valid) return new NextResponse("Invalid image file", { status: 400 });
     let binary = "";
     for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.slice(i, i + 8192));
-    const count = await env.DB.prepare("SELECT COUNT(*) AS total FROM room_images WHERE apartment_id = ?").bind(roomId).first<{ total: number }>();
-    if ((count?.total || 0) >= 12) return new NextResponse("Maximum 12 images per room", { status: 400 });
     const alt = String(form.get("alt") || "").trim().slice(0, 120);
     await env.DB.prepare("INSERT INTO room_images (apartment_id, mime, image_data, alt, position) VALUES (?, ?, ?, ?, ?)").bind(roomId, file.type, btoa(binary), alt, count?.total || 0).run();
   } else return new NextResponse("Invalid action", { status: 400 });

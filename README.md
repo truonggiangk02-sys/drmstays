@@ -1,5 +1,21 @@
 # vinext-starter
 
+## Public catalog preview
+
+`/stays` shows the selected Staydesk buildings and individual rooms. The owner
+manages public descriptions, nightly/monthly prices, services, visibility and
+photos at `/admin/catalog`. Photos use the Site R2 `BUCKET` binding; public
+metadata and contact requests use D1. Requests are saved at
+`/admin/catalog-inquiries`; Telegram/WhatsApp delivery is deliberately not
+configured in this preview.
+
+Set `STAYDESK_CATALOG_URL=https://staydesk-nine.vercel.app` and
+`STAYDESK_CATALOG_SECRET` as Site environment variables. The secret must match
+`PUBLIC_CATALOG_SECRET` on Staydesk and be at least 32 characters. Deploy the
+Staydesk API branch first, then migrate the Site D1 database and provide an R2
+binding before opening `/stays`. This branch has not been deployed to the live
+Site.
+
 A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
 
 ## Prerequisites
