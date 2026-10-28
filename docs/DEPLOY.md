@@ -26,6 +26,68 @@ Website chỉ đọc danh mục từ Staydesk qua `GET /api/public-catalog` (bea
 pnpm exec wrangler login
 ```
 
+## Phụ lục: bản thử riêng để tự xem (dữ liệu mẫu)
+
+Dành cho việc tự xem và thử site từ bất kỳ máy nào, kể cả điện thoại, **chưa phải site thật**. Bản này chạy ở chế độ demo (`PREVIEW_DEMO=1`): hiện phòng mẫu, tự chặn Google lập chỉ mục, không cần Staydesk, không cần tên miền và không cần R2. Địa chỉ có dạng `https://drmstays-staging.<tài-khoản>.workers.dev`; chỉ ai biết đường link mới vào được, và nội dung chỉ là dữ liệu mẫu.
+
+Điều kiện: đã có tài khoản Cloudflare, đã tải mã mới nhất về (`git pull github main`) và đã chạy `pnpm install` hoặc `corepack pnpm install` một lần. Các lệnh dưới đây dùng `node` và `npx` nên không cần `pnpm`. Chạy trong PowerShell, ở thư mục gốc của repo.
+
+1. Đăng nhập (mở trình duyệt, bấm cho phép):
+
+```bash
+npx wrangler login
+```
+
+2. Tạo database. Lệnh in ra `database_id` (chuỗi UUID), ghi lại:
+
+```bash
+npx wrangler d1 create drmstays-staging-db
+```
+
+3. Build, rồi sinh cấu hình bản thử (thay `<database_id>`):
+
+```bash
+node scripts/run-framework.mjs build
+```
+
+```powershell
+$env:D1_DATABASE_ID = "<database_id>"
+$env:D1_DATABASE_NAME = "drmstays-staging-db"
+$env:WORKER_NAME = "drmstays-staging"
+$env:NO_R2 = "1"
+$env:PREVIEW_DEMO = "1"
+node scripts/deploy-config.mjs
+```
+
+4. Áp migration (gõ `Y` khi được hỏi):
+
+```bash
+npx wrangler d1 migrations apply DB --remote --config dist/server/wrangler.deploy.json
+```
+
+5. Deploy:
+
+```bash
+npx wrangler deploy --config dist/server/wrangler.deploy.json
+```
+
+Wrangler in ra địa chỉ `https://drmstays-staging....workers.dev`.
+
+6. Đặt mật khẩu admin cho bản thử (lệnh hỏi giá trị, gõ rồi Enter):
+
+```bash
+npx wrangler secret put ADMIN_PASSWORD --config dist/server/wrangler.deploy.json
+```
+
+Mở địa chỉ ở bước 5, thêm `/vi`, `/en` hoặc `/admin`.
+
+Lưu ý riêng của bản thử:
+- Không có R2 nên **không tải ảnh lên được** trong admin; ảnh hiển thị là ảnh mẫu.
+- Form gửi đi được và lưu vào database của bản thử, nhưng không có thông báo Telegram trừ khi đặt `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID` như bước 5 của hướng dẫn chính.
+- Cập nhật khi có mã mới: `git pull github main`, chạy lại bước 3 (build và sinh cấu hình, dùng lại các biến cũ), bước 4 nếu có migration mới, rồi bước 5.
+- Xóa bản thử: dashboard Cloudflare, Workers & Pages, chọn `drmstays-staging`, Settings, Delete. Database `drmstays-staging-db` xóa ở mục D1.
+- Biến `PREVIEW_DEMO` chỉ dành cho bản thử. **Không bao giờ** đặt nó cho site thật.
+
 ## 1. Kiểm tra phía Staydesk
 
 Website cần `PUBLIC_CATALOG_SECRET` (từ 32 ký tự) đã đặt trên Staydesk, và API `/api/public-catalog` đã chạy trên bản deploy của Staydesk.
