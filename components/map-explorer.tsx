@@ -42,7 +42,7 @@ const text = {
     mapNote: 'Tòa này chưa có tọa độ. Hãy xem địa chỉ trong thẻ tòa nhà.',
     mapLoading: 'Đang tải bản đồ…',
     approximate: 'Ghim tòa chỉ là vị trí tham khảo theo khu vực, chưa phải đúng cửa tòa.',
-    mapHelp: 'Ghim xanh là tòa nhà, ghim nâu là địa điểm. Chạm ghim để xem chi tiết.', selectedPlace: 'Địa điểm đã chọn', reference: 'Vị trí tham khảo', confirmed: 'Vị trí đã xác nhận', allPlaces: 'địa điểm', closePlace: 'Đóng chi tiết địa điểm', viewList: 'Xem danh sách địa điểm', fitAll: 'Xem tất cả ghim', illustrative: 'Ảnh minh họa', previousPhoto: 'Ảnh trước', nextPhoto: 'Ảnh tiếp', routeOnMap: 'Tuyến trên bản đồ chưa sẵn sàng; hãy xem tuyến xe máy trong Google Maps.',
+    mapHelp: 'Ghim xanh là tòa nhà, ghim nâu là địa điểm. Chạm ghim để xem chi tiết.', selectedPlace: 'Địa điểm đã chọn', reference: 'Vị trí tham khảo', confirmed: 'Vị trí đã xác nhận', allPlaces: 'địa điểm', closePlace: 'Đóng chi tiết địa điểm', closeCard: 'Đóng thẻ tòa nhà', viewList: 'Xem danh sách địa điểm', fitAll: 'Xem tất cả ghim', illustrative: 'Ảnh minh họa', previousPhoto: 'Ảnh trước', nextPhoto: 'Ảnh tiếp', routeOnMap: 'Tuyến trên bản đồ chưa sẵn sàng; hãy xem tuyến xe máy trong Google Maps.',
   },
   en: {
     heading: 'Find a stay around your Da Nang plans', subtitle: 'Choose a building, explore places on the map and open motorcycle directions in Google Maps.',
@@ -54,7 +54,7 @@ const text = {
     mapNote: 'This building has no coordinates yet. See its address in the building card.',
     mapLoading: 'Loading map…',
     approximate: 'The building pin is an approximate area reference, not its confirmed entrance.',
-    mapHelp: 'Green pins are buildings; brown pins are places. Select a pin for details.', selectedPlace: 'Selected place', reference: 'Approximate location', confirmed: 'Confirmed location', allPlaces: 'places', closePlace: 'Close place details', viewList: 'View place list', fitAll: 'Show all pins', illustrative: 'Illustrative photo', previousPhoto: 'Previous photo', nextPhoto: 'Next photo', routeOnMap: 'The route is not available on this map yet; view motorcycle directions in Google Maps.',
+    mapHelp: 'Green pins are buildings; brown pins are places. Select a pin for details.', selectedPlace: 'Selected place', reference: 'Approximate location', confirmed: 'Confirmed location', allPlaces: 'places', closePlace: 'Close place details', closeCard: 'Close building card', viewList: 'View place list', fitAll: 'Show all pins', illustrative: 'Illustrative photo', previousPhoto: 'Previous photo', nextPhoto: 'Next photo', routeOnMap: 'The route is not available on this map yet; view motorcycle directions in Google Maps.',
   },
 } as const;
 
@@ -85,6 +85,8 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
   const t = text[lang];
   const [selectedId, setSelectedId] = useState(buildings[0]?.id || '');
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  // The building card sits over the map; the visitor can dismiss it and re-open it by choosing a building again.
+  const [cardOpen, setCardOpen] = useState(true);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const [showAllPlaces, setShowAllPlaces] = useState(false);
@@ -122,6 +124,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
   function chooseBuilding(id: string) {
     routeRequestId.current += 1;
     setSelectedId(id);
+    setCardOpen(true);
     setSelectedPlaceId(null);
     setShowAllPlaces(false);
     setRouteState(null);
@@ -256,6 +259,13 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
     setMobileView('map');
   }
 
+  useEffect(() => {
+    if (!cardOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setCardOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cardOpen]);
+
   function closePlace() {
     const placeId = selectedPlaceId;
     setSelectedPlaceId(null);
@@ -300,7 +310,8 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
         <div ref={mapElement} className="map-canvas" role="group" aria-label={`${t.map}. ${t.mapHelp}`} />
         {!mapReady && <div className="map-loading" role="status">{t.mapLoading}</div>}
         <div className="map-map-top"><span className="map-legend"><i className="map-legend-building" aria-hidden="true" />{t.buildings} <i className="map-legend-place" aria-hidden="true" />{t.places}</span><span className="map-map-help">{t.mapHelp}</span><button type="button" className="map-fit-all" onClick={showAllPins}>{t.fitAll}</button></div>
-        {selected && <div className={`map-selected-building ${selectedPlace ? 'is-route-open' : ''}`} role="region" aria-label={selected.name}>
+        {selected && cardOpen && <div className={`map-selected-building ${selectedPlace ? 'is-route-open' : ''}`} role="region" aria-label={selected.name}>
+          <button type="button" className="map-card-close" aria-label={t.closeCard} onClick={() => setCardOpen(false)}>×</button>
           <div className="map-selected-photo"><img src={selectedPhoto?.url || '/drm-stay-logo.png'} alt={selectedPhoto?.alt || selected.name} />{selected.imageIsIllustrative && <span className="map-photo-label">{t.illustrative}</span>}{selectedPhotos.length > 1 && <div className="map-photo-controls"><button type="button" aria-label={t.previousPhoto} onClick={() => setSelectedPhotoIndex(index => (index - 1 + selectedPhotos.length) % selectedPhotos.length)}>‹</button><span>{selectedPhotoIndex + 1} / {selectedPhotos.length}</span><button type="button" aria-label={t.nextPhoto} onClick={() => setSelectedPhotoIndex(index => (index + 1) % selectedPhotos.length)}>›</button></div>}</div>
           <div className="map-selected-content"><small className="map-selected-eyebrow">{t.buildings}</small><strong>{selected.name}</strong><p>{selected.address}</p><span className="map-selected-meta">{selected.roomCount} {t.rooms}{selected.monthlyPrice ? ` · ${t.from} ${formatMoney(selected.monthlyPrice)} ₫ / ${t.month}` : ''}</span><small className="map-selected-location">{!isPositioned(selected) ? t.noPin : selected.coordinateApproximate ? t.approximate : t.confirmed}</small><Link href={`/${lang}/buildings/${selected.id}${dateQuery}`}>{t.view} <span aria-hidden="true">↗</span></Link></div>
         </div>}

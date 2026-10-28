@@ -226,3 +226,6 @@
   .location-item-meta { width: 100%; margin-left: 20px; }
   .location-item > form { padding: 0 14px 18px; }
 }
+.map-card-close { position: absolute; z-index: 3; top: 8px; right: 8px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .94); color: var(--map-ink); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 2px 10px rgba(24, 42, 37, .25); }
+.map-card-close:hover { background: #fff; }
+.map-card-close:focus-visible { outline: 3px solid var(--map-copper); outline-offset: 2px; }
