@@ -6,6 +6,10 @@ import "./structure.css";
 import "leaflet/dist/leaflet.css";
 import "./map-explorer.css";
 import "./map-explorer-polish.css";
+import "./quick-contact.css";
+import "./quick-contact-fallback.css";
+import "./contact-admin.css";
+import "./editorial.css";
 
 export const metadata: Metadata = {
   title: "DRM Stays | Apartments and Monthly Stays in Da Nang",
