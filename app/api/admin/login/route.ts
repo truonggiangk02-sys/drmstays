@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip))), b => b.toString(16).padStart(2, "0")).join("");
   const bucket = Math.floor(Date.now() / 900000);
-  const attempt = await env.DB.prepare("INSERT INTO inquiry_rate_limits (key, count) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET count = count + 1 RETURNING count").bind(`admin-login:${bucket}:${hash}`).first<{ count: number }>();
+  const attempt = await env.DB.prepare("INSERT INTO inquiry_rate_limits (key, count) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET count = count + 1 RETURNING count").bind(`${new Date().toISOString().slice(0, 13)}:admin-login:${bucket}:${hash}`).first<{ count: number }>();
   if (!attempt || attempt.count > 10) return NextResponse.redirect(new URL("/admin/login?error=limited", request.url), 303);
   const form = await request.formData();
   const candidate = String(form.get("password") || "");

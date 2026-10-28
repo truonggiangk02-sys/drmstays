@@ -16,6 +16,7 @@ type Contact = {
   check_out: string;
   message: string;
   status: string;
+  telegram_status: string;
   created_at: string;
 };
 
@@ -40,7 +41,7 @@ export default async function CatalogInquiries({
       : 1;
   const [rows, source] = await Promise.all([
     env.DB.prepare(
-      'SELECT id, source_room_id, name, phone, email, check_in, check_out, message, status, created_at FROM catalog_inquiries ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?',
+      'SELECT id, source_room_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at FROM catalog_inquiries ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?',
     )
       .bind((page - 1) * 50)
       .all<Contact>(),
@@ -56,7 +57,7 @@ export default async function CatalogInquiries({
   return (
     <AdminShell title="Catalog contacts">
       <p className="admin-hint">
-        Guest requests saved from the public catalog. Notifications are not configured yet.
+        Guest requests saved from the public catalog. Each request is also sent to Telegram; if the alert shows Failed, contact the guest from this list.
       </p>
       <div className="admin-table-wrap cms-inquiries">
         <table>
@@ -100,6 +101,9 @@ export default async function CatalogInquiries({
                     </select>
                     <button>Save</button>
                   </form>
+                  <small className={item.telegram_status === 'failed' ? 'alert-failed' : undefined}>
+                    {item.telegram_status === 'failed' ? 'Telegram alert FAILED' : item.telegram_status === 'sent' ? 'Telegram alert sent' : item.telegram_status === 'pending' ? 'Telegram alert pending' : 'No Telegram alert'}
+                  </small>
                 </td>
               </tr>
             ))}

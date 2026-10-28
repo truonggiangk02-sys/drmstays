@@ -47,6 +47,7 @@ export const catalogInquiries = sqliteTable("catalog_inquiries", {
   checkOut: text("check_out").notNull().default(""),
   message: text("message").notNull().default(""),
   status: text("status").notNull().default("new"),
+  telegramStatus: text("telegram_status").notNull().default("not_applicable"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -58,6 +59,7 @@ export const partnerInquiries = sqliteTable("partner_inquiries", {
   property: text("property").notNull().default(""),
   message: text("message").notNull().default(""),
   status: text("status").notNull().default("new"),
+  telegramStatus: text("telegram_status").notNull().default("not_applicable"),
   createdAt: text("created_at").notNull(),
 });
 

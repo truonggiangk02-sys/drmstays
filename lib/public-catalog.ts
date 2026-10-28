@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { env } from 'cloudflare:workers';
 import { apartments } from './apartments';
 import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding } from './staydesk-catalog';
@@ -18,7 +19,7 @@ const demoMapPoints = new Map([
   [demoBuildingIds[1], { latitude: 16.0504252, longitude: 108.2396042 }], // Kiệt 234 Đỗ Bá; approximate.
 ]);
 
-export async function getPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang = 'en') {
+async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang = 'en') {
   if (!env.DB) throw new Error('Catalog database is unavailable');
   const [source, buildingRows, roomRows, imageRows] = await Promise.all([
     getStaydeskCatalog(checkIn, checkOut),
@@ -106,3 +107,6 @@ export async function getPublicCatalog(checkIn?: string, checkOut?: string, lang
   });
   return { checkIn: source.checkIn, checkOut: source.checkOut, buildings: published };
 }
+
+/** Memoised per request so generateMetadata and the page share one Staydesk fetch. */
+export const getPublicCatalog = cache(loadPublicCatalog);

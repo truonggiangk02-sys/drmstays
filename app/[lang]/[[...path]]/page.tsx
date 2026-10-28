@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { env } from 'cloudflare:workers';
 import { getPublicCatalog } from '@/lib/public-catalog';
 import { getContentItems, getContentImages, contentSections, type ContentItem, type ContentSection, type ContentImage } from '@/lib/site-content';
 import { getPublicLandmarks } from '@/lib/landmarks';
 import { MapExplorer } from '@/components/map-explorer';
+import { absoluteUrl, siteUrl, summarize } from '@/lib/site';
 import { PropertyGallery } from '@/components/property-gallery';
 import { DateRangeSearch } from '@/components/date-range-search';
 import { CatalogContactForm } from '@/components/catalog-contact-form';
@@ -46,6 +48,44 @@ const copy = {
     received: 'Your inquiry has been received. Our team will contact you.', empty: 'Content is being updated.', backJournal: 'Back to journal', selectedDates: 'Your selected dates', dateSeparator: 'to', changeDates: 'Change dates',
   },
 } as const;
+
+const homeTitle = { vi: 'DRM Stays | Căn hộ và phòng thuê tháng tại Đà Nẵng', en: 'DRM Stays | Apartments and Monthly Stays in Da Nang' } as const;
+const sectionTitle = {
+  vi: { stays: 'Tòa nhà & phòng', services: 'Dịch vụ', partners: 'Chủ tòa & đối tác', about: 'Về DRM Stays', journal: 'Cẩm nang', faq: 'Câu hỏi thường gặp', contact: 'Liên hệ' },
+  en: { stays: 'Buildings & rooms', services: 'Services', partners: 'Owners & partners', about: 'About DRM Stays', journal: 'Journal', faq: 'FAQ', contact: 'Contact' },
+} as const;
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; path?: string[] }> }): Promise<Metadata> {
+  const { lang: input, path: segments = [] } = await params;
+  if (input !== 'vi' && input !== 'en') return { robots: { index: false } };
+  const lang: Lang = input, [section, id] = segments;
+  const path = segments.length ? `/${segments.join('/')}` : '';
+  let title: string | undefined, description: string = copy[lang].heroText, image: string | undefined;
+  if (!section) { title = homeTitle[lang]; }
+  else if (section === 'buildings' || section === 'rooms') {
+    const data = await catalog(undefined, undefined, lang);
+    const building = section === 'buildings' ? data?.buildings.find(item => item.id === id) : undefined;
+    const room = section === 'rooms' ? data?.buildings.flatMap(item => item.rooms).find(item => item.id === id) : undefined;
+    const found = building || room;
+    if (!found) return data ? { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } } : {};
+    title = building ? propertyName(building.name) : room!.name;
+    description = summarize(found.description || description);
+    image = found.images[0]?.url;
+  } else if (section === 'journal' && id) {
+    const article = (await getContentItems('journal')).find(item => item.id === id);
+    if (!article) return { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } };
+    title = contentTitle(article, lang);
+    description = summarize(contentBody(article, lang) || description);
+  } else if (section in sectionTitle[lang]) title = sectionTitle[lang][section as keyof typeof sectionTitle['vi']];
+  const ogImage = image ? absoluteUrl(image) : null;
+  return {
+    ...(title ? { title: section ? title : { absolute: title } } : {}),
+    description,
+    // Canonical and hreflang URLs must be absolute, so they are only emitted once SITE_URL is configured.
+    ...(siteUrl() ? { alternates: { canonical: `/${lang}${path}`, languages: { vi: `/vi${path}`, en: `/en${path}`, 'x-default': `/vi${path}` } } } : {}),
+    openGraph: { type: 'website', locale: lang === 'vi' ? 'vi_VN' : 'en_US', title: title || homeTitle[lang], description, ...(siteUrl() ? { url: `/${lang}${path}` } : {}), ...(ogImage ? { images: [{ url: ogImage }] } : {}) },
+  };
+}
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 function selectedDateQuery(checkIn?: string, checkOut?: string) {
