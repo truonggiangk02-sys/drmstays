@@ -15,12 +15,18 @@ export async function POST(request: NextRequest) {
   const id = action === 'create' ? crypto.randomUUID() : String(form.get('id') || '');
   if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(id)) return new NextResponse('Invalid item', { status: 400 });
   if (action === 'delete') {
-    if (sampleContent.some(item => item.id === id && item.section === section)) {
-      await env.DB.prepare('INSERT INTO site_content_items (id, section, deleted) VALUES (?, ?, 1) ON CONFLICT(id) DO UPDATE SET deleted=1').bind(id, section).run();
+    const sample = sampleContent.find(item => item.id === id && item.section === section);
+    if (sample) {
+      await env.DB.prepare('INSERT INTO site_content_items (id, section, title_vi, title_en, body_vi, body_en, published, deleted, position) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?) ON CONFLICT(id) DO UPDATE SET deleted=1')
+        .bind(id, section, sample.title_vi, sample.title_en, sample.body_vi, sample.body_en, sample.published, sample.position).run();
     } else await env.DB.prepare('UPDATE site_content_items SET deleted = 1 WHERE id = ? AND section = ?').bind(id, section).run();
   } else if (action === 'restore') {
-    if (sampleContent.some(item => item.id === id && item.section === section)) {
-      await env.DB.prepare('DELETE FROM site_content_items WHERE id = ? AND section = ?').bind(id, section).run();
+    const sample = sampleContent.find(item => item.id === id && item.section === section);
+    const saved = sample ? await env.DB.prepare('SELECT title_vi FROM site_content_items WHERE id = ? AND section = ?').bind(id, section).first<{ title_vi: string }>() : null;
+    if (sample && saved && !saved.title_vi) {
+      // Older deleted sample rows only stored the ID. Restore their default copy.
+      await env.DB.prepare('UPDATE site_content_items SET title_vi = ?, title_en = ?, body_vi = ?, body_en = ?, published = ?, position = ?, deleted = 0 WHERE id = ? AND section = ?')
+        .bind(sample.title_vi, sample.title_en, sample.body_vi, sample.body_en, sample.published, sample.position, id, section).run();
     } else await env.DB.prepare('UPDATE site_content_items SET deleted = 0 WHERE id = ? AND section = ?').bind(id, section).run();
   } else if (action === 'save' || action === 'create') {
     const value = (key: string, max: number) => String(form.get(key) || '').trim().slice(0, max);

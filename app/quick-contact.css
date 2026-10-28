@@ -1,0 +1,15 @@
+.quick-contact{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:50;display:flex;flex-direction:column;gap:9px;font-family:'Poppins',Arial,sans-serif}
+.quick-contact-link{display:flex;align-items:center;gap:11px;min-width:152px;min-height:49px;padding:7px 16px 7px 8px;border:1px solid #d8e5d9;border-radius:15px;background:#fffefa;color:#18372d;box-shadow:0 8px 24px #112f2529;font-size:13px;font-weight:700;touch-action:manipulation;transition:transform .18s ease,box-shadow .18s ease}
+.quick-contact-link:hover{transform:translateX(-3px);box-shadow:0 12px 29px #112f253a}
+.quick-contact-mark{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:#e7eee8;color:#214b3e;font-size:16px;font-weight:800}
+.quick-contact-link.is-whatsapp .quick-contact-mark{background:#e3f4e8;color:#176c39}
+.quick-contact-link.is-telegram .quick-contact-mark{background:#e5f2fa;color:#17618c}
+.quick-contact-link.is-facebook .quick-contact-mark{background:#e7edfa;color:#2455a5}
+.quick-contact-link.is-zalo .quick-contact-mark{background:#e5efff;color:#1354b5}
+.quick-contact-link:focus-visible{outline:3px solid #ae815d;outline-offset:3px}
+.quick-contact-link.is-unconfigured{border-style:dashed;background:#f5f6f1;color:#66776b;box-shadow:0 5px 15px #112f2519;cursor:default}
+.quick-contact-link.is-unconfigured .quick-contact-mark{opacity:.55}
+.quick-contact-link.is-unconfigured small{display:none;font-size:10px;font-weight:500;color:#6a786c}
+@media(max-width:700px){.quick-contact{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(auto-fit,minmax(66px,1fr));gap:7px;padding:7px;border:1px solid #d8e5d9;border-radius:18px;background:#fffefaf2;box-shadow:0 11px 34px #112f2536;backdrop-filter:blur(12px)}.quick-contact-link{flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:72px;padding:5px 2px;border:0;border-radius:11px;background:transparent;box-shadow:none;font-size:11px;line-height:1.2;text-align:center}.quick-contact-link:hover{transform:none;background:#edf3eb;box-shadow:none}.quick-contact-mark{width:31px;height:31px;border-radius:9px;font-size:15px}.quick-contact-name{white-space:nowrap}}
+@media(max-width:700px){.quick-contact-link.is-unconfigured{border:0;background:transparent;box-shadow:none}.quick-contact-link.is-unconfigured small{display:block;font-size:9px;line-height:1.1}.quick-contact-link.is-unconfigured:hover{background:transparent}}
+@media(prefers-reduced-motion:reduce){.quick-contact-link{transition:none}}

@@ -1,0 +1,4 @@
+.quick-contact-fallback{display:flex;align-items:center;justify-content:center;gap:10px;width:fit-content;min-height:52px;padding:0 17px;border:1px solid #d5e3d8;border-radius:999px;background:#214b3e;color:#fff;box-shadow:0 12px 32px #112f2552;font-size:14px;font-weight:700;touch-action:manipulation}
+.quick-contact-fallback:hover{background:#315d50}
+.quick-contact-fallback:focus-visible{outline:3px solid #ae815d;outline-offset:3px}
+@media(max-width:700px){.quick-contact-fallback{left:auto;right:12px;padding:0 15px}}
