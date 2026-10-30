@@ -81,9 +81,8 @@ API công khai:
 | `POST /api/partner-inquiries` | Form chủ tòa/đối tác. Cùng cơ chế bảo vệ như trên. |
 | `GET /api/catalog-images/[id]` | Ảnh từ R2; ảnh của mục chưa publish chỉ admin xem được. |
 | `GET /api/travel-time` | Thời gian đi xe máy (HERE), cache 24 giờ trong D1. |
-| `POST /api/inquiries`, `POST /api/whatsapp-inquiries` | Form đặt phòng của site Doraemon Land cũ (còn lại trong mã, giữ lại cùng cơ chế bảo vệ). |
 
-API admin (cần cookie đăng nhập và `Origin` cùng site, nếu không `403`; đều là `POST`): `login`, `logout`, `catalog`, `catalog-images`, `catalog-inquiries`, `partner-inquiries`, `content`, `locations`, và các route phòng cũ `rooms`, `listings`, `images`, `inquiries`.
+API admin (cần cookie đăng nhập và `Origin` cùng site, nếu không `403`; đều là `POST`): `login`, `logout`, `catalog`, `catalog-images`, `catalog-inquiries`, `partner-inquiries`, `content`, `locations`, `contact-channels`.
 
 Mọi yêu cầu từ khách được lưu D1 **trước**, rồi mới báo Telegram. Telegram lỗi không làm mất yêu cầu: trạng thái `telegram_status` ghi `failed` và trang admin hiện cảnh báo để chủ nhà liên hệ khách thủ công.
 
@@ -93,7 +92,7 @@ Mọi yêu cầu từ khách được lưu D1 **trước**, rồi mới báo Tel
 
 ## Test
 
-Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` được alias sang `tests/stubs/cloudflare-workers.ts`; binding gán qua `tests/helpers/env.ts`; D1 giả lập ở `tests/helpers/d1.ts`; Telegram giả lập bằng cách thay `fetch` toàn cục, không test nào gọi mạng thật. Có test cho 4 route form công khai và cho `lib/dates.ts`, `lib/request.ts`, `lib/rate-limit.ts`.
+Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` được alias sang `tests/stubs/cloudflare-workers.ts`; binding gán qua `tests/helpers/env.ts`; D1 giả lập ở `tests/helpers/d1.ts`; Telegram giả lập bằng cách thay `fetch` toàn cục, không test nào gọi mạng thật. Có test cho 2 route form công khai (`catalog-inquiries`, `partner-inquiries`), cho các hàm phụ (`lib/dates.ts`, `lib/request.ts`, `lib/rate-limit.ts`, `lib/room-copy.ts`) và `tests/admin-auth.test.ts`: tự quét **mọi** route trong `app/api/admin/` và kiểm tra chúng từ chối người chưa đăng nhập, cookie giả, phiên hết hạn và nguồn gửi lạ, nên route admin thêm sau này không thể quên khóa.
 
 ## Deploy
 
