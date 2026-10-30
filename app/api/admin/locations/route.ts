@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
 import { formCoordinates, formText, parseDetails, type BuildingDetails } from '@/lib/catalog-details';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 
 const destination = (request: NextRequest, hash = '') => NextResponse.redirect(new URL(`/admin/locations${hash}`, request.url), 303);
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const sourceId = String(form.get('sourceId') || '');
     if (!/^[0-9a-f-]{36}$/i.test(sourceId)) return new NextResponse('Invalid building ID', { status: 400 });
     let source;
-    try { source = await getStaydeskCatalog(); }
+    try { source = await getFreshStaydeskCatalog(); }
     catch { return new NextResponse('Staydesk unavailable', { status: 503 }); }
     if (!source.buildings.some(building => building.id === sourceId)) return new NextResponse('Building not found', { status: 404 });
     let coordinates;
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   const buildingIds = [...new Set(form.getAll('buildingId').map(String))];
   if (buildingIds.length) {
     let source;
-    try { source = await getStaydeskCatalog(); }
+    try { source = await getFreshStaydeskCatalog(); }
     catch { return new NextResponse('Staydesk unavailable', { status: 503 }); }
     if (buildingIds.some(id => !source.buildings.some(building => building.id === id))) return new NextResponse('Invalid building selection', { status: 400 });
   }

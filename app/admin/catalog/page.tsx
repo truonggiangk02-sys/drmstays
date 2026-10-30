@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 import { CopyRoomDetails } from '@/components/copy-room-details';
 import { buildCopySource } from '@/lib/room-copy';
@@ -40,7 +40,7 @@ export default async function CatalogAdminPage() {
   if (!(await isAdmin())) redirect('/admin/login');
   if (!env.DB) return <AdminShell title="Property catalog"><p>Database unavailable.</p></AdminShell>;
   let source;
-  try { source = await getStaydeskCatalog(); }
+  try { source = await getFreshStaydeskCatalog(); }
   catch { return <AdminShell title="Property catalog"><p>Staydesk is unavailable. Configure the private catalog connection first.</p></AdminShell>; }
   const [buildingsResult, roomsResult, imagesResult] = await Promise.all([
     env.DB.prepare('SELECT source_id, published, address, details_json FROM catalog_buildings').all<BuildingRow>(),
