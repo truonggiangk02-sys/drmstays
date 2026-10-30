@@ -56,7 +56,7 @@ export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; bu
   const introPhoto = photos[2] || photos[1] || heroPhoto;
   const galleryPhotos = photos.slice(1, 5);
 
-  return <main id="main-content" className="editorial-home">
+  return <div className="editorial-home">
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
       {heroPhoto && <img className="editorial-hero-image" src={heroPhoto.url} alt={heroPhoto.alt || 'DRM Stays'} fetchPriority="high" />}
       <div className="editorial-hero-shade" aria-hidden="true" />
@@ -93,5 +93,5 @@ export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; bu
     {journal.length > 0 && <section className="editorial-journal structure-section" aria-labelledby="editorial-journal-title"><div className="editorial-section-head"><div><span className="editorial-section-label">{t.journalLabel}</span><h2 id="editorial-journal-title">{t.journalTitle}</h2></div><p>{t.journalLead}</p></div><div className="editorial-journal-grid">{journal.slice(0, 3).map((item, index) => <Link key={item.id} href={`/${lang}/journal/${item.id}`} className="editorial-journal-card"><span>{String(index + 1).padStart(2, '0')} / {t.journalTitle}</span><h3>{lang === 'vi' ? item.title_vi : item.title_en}</h3><p>{lang === 'vi' ? item.body_vi : item.body_en}</p><strong>{t.journalRead} <span aria-hidden="true">↗</span></strong></Link>)}</div><Link className="editorial-text-link" href={`/${lang}/journal`}>{t.journalAll}<span aria-hidden="true">↗</span></Link></section>}
 
     <section className="editorial-contact"><div><span className="editorial-section-label">DRM STAYS / CONTACT</span><h2>{t.contactTitle}</h2><p>{t.contactBody}</p><Link className="editorial-primary-link" href={`/${lang}/contact`}>{t.contact}<span aria-hidden="true">↗</span></Link></div>{photos[2] && <img src={photos[2].url} alt={photos[2].alt || 'DRM Stays apartment'} loading="lazy" />}</section>
-  </main>;
+  </div>;
 }
