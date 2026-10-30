@@ -1,0 +1,211 @@
+/* Mobile polish for the public site (<=700px). Loaded last so it wins over structure.css. */
+@media (max-width: 700px) {
+  .structure-site .structure-header {
+    min-height: 0;
+    padding: 12px 5% 0;
+    gap: 10px 14px;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 1px 0 #e4e8e1;
+  }
+
+  .structure-site .structure-brand img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .structure-site .structure-header nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 4px;
+    margin: 0 -5%;
+    padding: 0 5%;
+    width: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .structure-site .structure-header nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .structure-site .structure-header nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .structure-site .structure-languages {
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .structure-site .structure-languages a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 4px;
+  }
+
+  .structure-site .structure-hero > div {
+    padding: 44px 6% 40px;
+  }
+
+  .structure-site .structure-hero h1,
+  .structure-site .structure-page-hero h1 {
+    font-size: clamp(36px, 10.5vw, 46px);
+    margin: 14px 0;
+  }
+
+  .structure-site .structure-hero p,
+  .structure-site .structure-page-hero p {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .structure-site .structure-hero > img {
+    min-height: 0;
+    height: 220px;
+  }
+
+  .structure-site .structure-section {
+    padding: 44px 5%;
+  }
+
+  .structure-site .structure-page-hero {
+    padding: 40px 5% 36px;
+  }
+
+  .structure-site .structure-heading {
+    margin-bottom: 24px;
+  }
+
+  .structure-site .structure-heading h2,
+  .structure-site .structure-promo h2,
+  .structure-site .structure-links h2,
+  .structure-site .structure-section > h2,
+  .structure-site .structure-room-detail h2 {
+    font-size: 30px;
+  }
+
+  .structure-site .structure-grid {
+    gap: 18px;
+  }
+
+  .structure-site .structure-card img {
+    height: 190px;
+  }
+
+  .structure-site .structure-card > div {
+    padding: 18px;
+  }
+
+  .structure-site .structure-card h3 {
+    font-size: 25px;
+  }
+
+  .structure-site .structure-promo {
+    padding: 40px 5%;
+    gap: 24px;
+  }
+
+  .structure-site .structure-links {
+    gap: 14px;
+  }
+
+  .structure-site .structure-links > a {
+    padding: 22px;
+  }
+
+  .structure-site .structure-button,
+  .structure-site .structure-form button,
+  .structure-site .structure-search button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .structure-site .structure-search {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .structure-site .structure-search button {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .structure-site .structure-search input,
+  .structure-site .structure-form input,
+  .structure-site .structure-form textarea {
+    min-width: 0;
+    width: 100%;
+    font-size: 16px;
+  }
+
+  .structure-site .structure-detail > img {
+    height: 240px;
+  }
+
+  .structure-site .structure-room-main {
+    height: 240px;
+  }
+
+  .structure-site .structure-room-gallery img {
+    width: 112px;
+    height: 78px;
+    flex: none;
+  }
+
+  .structure-site .structure-room-detail aside {
+    padding: 22px;
+  }
+
+  .structure-site .structure-specs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .structure-site .structure-footer {
+    padding: 36px 5%;
+    gap: 22px;
+  }
+
+  .structure-site .structure-footer img {
+    width: 96px;
+  }
+
+  .structure-site .structure-footer nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .structure-site .map-explorer {
+    padding-top: 28px;
+  }
+
+  .structure-site .map-building-select img {
+    width: 88px;
+    height: 76px;
+  }
+
+  .structure-site .map-building-link {
+    margin-left: 103px;
+    min-height: 32px;
+  }
+
+  .structure-site .map-canvas {
+    height: 62vh;
+    min-height: 420px;
+  }
+
+  .structure-site .map-explorer-map {
+    min-height: 420px;
+  }
+}
