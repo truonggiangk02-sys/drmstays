@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
 import { parseDetails, type BuildingDetails } from '@/lib/catalog-details';
-import { getStaydeskCatalog, demoBuildingIds } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog, getStaydeskCatalog, demoBuildingIds } from '@/lib/staydesk-catalog';
 import { parseBuildingIds, type LandmarkRow } from '@/lib/landmarks';
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +51,7 @@ export default async function LocationsAdmin() {
   if (!(await isAdmin())) redirect('/admin/login');
   if (!env.DB) return <AdminShell title="Vị trí & điểm đến"><p>Chưa kết nối được cơ sở dữ liệu.</p></AdminShell>;
   let buildings: SourceBuilding[] = [];
-  try { buildings = (await getStaydeskCatalog()).buildings; } catch { /* Landmarks remain editable when Staydesk is temporarily unavailable. */ }
+  try { buildings = (await getFreshStaydeskCatalog()).buildings; } catch { /* Landmarks remain editable when Staydesk is temporarily unavailable. */ }
   const [buildingResult, landmarkResult] = await Promise.all([
     env.DB.prepare('SELECT source_id, address, details_json FROM catalog_buildings').all<BuildingRow>(),
     env.DB.prepare('SELECT id, name_vi, name_en, description_vi, description_en, latitude, longitude, building_ids_json, published, deleted, position FROM landmarks ORDER BY position, id').all<LandmarkRow>(),

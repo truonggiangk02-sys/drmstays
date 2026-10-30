@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog, getStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { contentSections, getEditableContent } from '@/lib/site-content';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +33,7 @@ export default async function MediaPage({ searchParams }: { searchParams: Promis
   const { open } = await searchParams;
   if (!env.DB || !env.BUCKET) return <AdminShell title="Ảnh & mặt bằng"><p>Kho ảnh chưa sẵn sàng.</p></AdminShell>;
   let buildings: Awaited<ReturnType<typeof getStaydeskCatalog>>['buildings'] = [];
-  try { buildings = (await getStaydeskCatalog()).buildings; } catch { /* Content media remains available when Staydesk is offline. */ }
+  try { buildings = (await getFreshStaydeskCatalog()).buildings; } catch { /* Content media remains available when Staydesk is offline. */ }
   const [result, content] = await Promise.all([
     env.DB.prepare('SELECT id, owner_type, owner_id, alt, category FROM catalog_images ORDER BY position, id').all<Image>(),
     Promise.all(contentSections.map(async section => ({ section, items: await getEditableContent(section) }))),

@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { formCoordinates, formLines, formNumber, formText, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Invalid source item', { status: 400 });
   let source;
   try {
-    source = await getStaydeskCatalog();
+    source = await getFreshStaydeskCatalog();
   } catch {
     return new NextResponse('Staydesk catalog unavailable', { status: 503 });
   }

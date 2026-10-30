@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 
 export const dynamic = 'force-dynamic';
 type Contact = {
@@ -45,7 +45,7 @@ export default async function CatalogInquiries({
     )
       .bind((page - 1) * 50)
       .all<Contact>(),
-    getStaydeskCatalog().catch(() => null),
+    getFreshStaydeskCatalog().catch(() => null),
   ]);
   const names = new Map(
     source?.buildings.flatMap((building) =>

@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
-import { getStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { getEditableContent, contentSections, sampleContent, type ContentSection } from '@/lib/site-content';
 
 type ImageRow = {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       exists = (await getEditableContent(section as ContentSection)).some(item => item.id === sourceId);
   } else {
     let source;
-    try { source = await getStaydeskCatalog(); }
+    try { source = await getFreshStaydeskCatalog(); }
     catch { return new NextResponse('Staydesk catalog unavailable', { status: 503 }); }
     exists = kind === 'building'
       ? source.buildings.some(item => item.id === sourceId)
