@@ -4,7 +4,6 @@ declare namespace Cloudflare {
     BUCKET?: R2Bucket;
     ADMIN_PASSWORD?: string;
     SITE_URL?: string;
-    WHATSAPP_NUMBER?: string;
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     STAYDESK_CATALOG_URL?: string;

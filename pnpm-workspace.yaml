@@ -4,3 +4,5 @@ allowBuilds:
   unrs-resolver: set this to true or false
   workerd: set this to true or false
 dangerouslyAllowAllBuilds: true
+overrides:
+  source-map-js: ">=1.2.2"

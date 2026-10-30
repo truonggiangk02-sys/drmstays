@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MAX_STAY_NIGHTS, validDate, validStay, vietnamToday } from "@/lib/dates";
+import { MAX_STAY_NIGHTS, validDate, validDateRange, vietnamToday } from "@/lib/dates";
 
 describe("validDate", () => {
   it("accepts real calendar dates", () => {
@@ -22,36 +22,29 @@ describe("vietnamToday", () => {
   });
 });
 
-describe("validStay", () => {
+describe("validDateRange", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-28T10:00:00Z")); // 2026-10-28 in Vietnam
   });
   afterEach(() => vi.useRealTimers());
 
-  const stay = (overrides: Partial<Parameters<typeof validStay>[0]> = {}) => ({ checkIn: "2026-11-01", checkOut: "2026-11-05", guests: 2, maxGuests: 4, ...overrides });
+  const range = (checkIn = "2026-11-01", checkOut = "2026-11-05") => validDateRange(checkIn, checkOut);
 
-  it("accepts a normal stay", () => expect(validStay(stay())).toBe(true));
-  it("accepts check-in today (Vietnam time)", () => expect(validStay(stay({ checkIn: "2026-10-28", checkOut: "2026-10-29" }))).toBe(true));
-  it("rejects check-in in the past", () => expect(validStay(stay({ checkIn: "2026-10-27", checkOut: "2026-10-30" }))).toBe(false));
+  it("accepts a normal stay", () => expect(range()).toBe(true));
+  it("accepts check-in today (Vietnam time)", () => expect(range("2026-10-28", "2026-10-29")).toBe(true));
+  it("rejects check-in in the past", () => expect(range("2026-10-27", "2026-10-30")).toBe(false));
   it("rejects zero or negative nights", () => {
-    expect(validStay(stay({ checkOut: "2026-11-01" }))).toBe(false);
-    expect(validStay(stay({ checkOut: "2026-10-31" }))).toBe(false);
+    expect(range("2026-11-01", "2026-11-01")).toBe(false);
+    expect(range("2026-11-01", "2026-10-31")).toBe(false);
   });
   it("rejects malformed or rolled-over dates", () => {
-    expect(validStay(stay({ checkIn: "2026-02-31" }))).toBe(false);
-    expect(validStay(stay({ checkOut: "soon" }))).toBe(false);
+    expect(range("2026-02-31", "2026-03-05")).toBe(false);
+    expect(range("2026-11-01", "soon")).toBe(false);
   });
   it("caps the stay length at MAX_STAY_NIGHTS", () => {
     expect(MAX_STAY_NIGHTS).toBe(365);
-    expect(validStay(stay({ checkIn: "2026-11-01", checkOut: "2027-11-01" }))).toBe(true);
-    expect(validStay(stay({ checkIn: "2026-11-01", checkOut: "2027-11-02" }))).toBe(false);
-  });
-  it("enforces guest count within capacity", () => {
-    expect(validStay(stay({ guests: 4 }))).toBe(true);
-    expect(validStay(stay({ guests: 5 }))).toBe(false);
-    expect(validStay(stay({ guests: 0 }))).toBe(false);
-    expect(validStay(stay({ guests: 1.5 }))).toBe(false);
-    expect(validStay(stay({ guests: Number.NaN }))).toBe(false);
+    expect(range("2026-11-01", "2027-11-01")).toBe(true);
+    expect(range("2026-11-01", "2027-11-02")).toBe(false);
   });
 });

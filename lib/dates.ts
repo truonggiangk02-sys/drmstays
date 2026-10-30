@@ -21,9 +21,3 @@ export function validDateRange(checkIn: string, checkOut: string): boolean {
   if (checkIn < vietnamToday() || checkOut <= checkIn) return false;
   return (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000 <= MAX_STAY_NIGHTS;
 }
-
-/** Shared stay check for the inquiry forms: valid date range and guests within capacity. */
-export function validStay(stay: { checkIn: string; checkOut: string; guests: number; maxGuests: number }): boolean {
-  const { checkIn, checkOut, guests, maxGuests } = stay;
-  return validDateRange(checkIn, checkOut) && Number.isInteger(guests) && guests >= 1 && guests <= maxGuests;
-}
