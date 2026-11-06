@@ -5,7 +5,7 @@ import { getPublicCatalog } from "@/lib/public-catalog";
 import { siteUrl } from "@/lib/site";
 
 const escapeXml = (value: string) => value.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" })[c]!);
-const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/journal", "/faq", "/contact"];
+const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/journal", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;

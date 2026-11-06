@@ -59,6 +59,6 @@ export function CatalogContactForm({ lang, roomId, checkIn, checkOut }: { lang: 
     <label>{t.request}<textarea name="message" rows={4} maxLength={1000} /></label>
     <label className="honeypot" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
     {message?.kind === 'error' && <p className="structure-form-feedback is-error" role="alert">{message.text}</p>}
-    <button type="submit" disabled={pending}>{pending ? t.sending : t.send}</button><small>{t.note}</small>
+    <button type="submit" disabled={pending}>{pending ? t.sending : t.send}</button><small>{t.note} <a href={`/${lang}/privacy`}>{lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy'}</a>.</small>
   </form>;
 }
