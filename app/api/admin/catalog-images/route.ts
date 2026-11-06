@@ -12,12 +12,49 @@ type ImageRow = {
   position: number;
 };
 
+const MAX_FILE_BYTES = 5_000_000;
+const MAX_REQUEST_BYTES = 26_000_000; // a handful of photos per request; each one is still capped at 5 MB
+const MAX_PER_ITEM = 20;
+
+/** Validates and stores one image. Returns a short problem description, or null when it was saved. */
+async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string): Promise<string | null> {
+  if (file.size > MAX_FILE_BYTES || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
+    return 'use a JPG, PNG or WebP image under 5 MB';
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const valid =
+    file.type === 'image/jpeg'
+      ? bytes[0] === 0xff && bytes[1] === 0xd8
+      : file.type === 'image/png'
+        ? bytes.slice(0, 4).join() === '137,80,78,71'
+        : bytes.slice(0, 4).join() === '82,73,70,70' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
+  if (!valid) return 'not a valid image file';
+  const id = crypto.randomUUID();
+  const objectKey = `catalog/${kind}/${sourceId}/${id}`;
+  const count = await env.DB!.prepare('SELECT COUNT(*) AS total FROM catalog_images WHERE owner_type = ? AND owner_id = ?')
+    .bind(kind, sourceId)
+    .first<{ total: number }>();
+  if ((count?.total || 0) >= MAX_PER_ITEM) return `maximum ${MAX_PER_ITEM} images per item`;
+  await env.BUCKET!.put(objectKey, bytes, { httpMetadata: { contentType: file.type } });
+  try {
+    await env.DB!.prepare(
+      'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    )
+      .bind(id, kind, sourceId, objectKey, file.type, alt, count?.total || 0, category)
+      .run();
+  } catch (error) {
+    await env.BUCKET!.delete(objectKey);
+    throw error;
+  }
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   if (!(await isAdmin()) || !validOrigin(request))
     return new NextResponse('Forbidden', { status: 403 });
   if (!env.DB || !env.BUCKET) return new NextResponse('Image storage unavailable', { status: 503 });
-  if (Number(request.headers.get('content-length') || 0) > 5_500_000)
-    return new NextResponse('Image too large', { status: 413 });
+  if (Number(request.headers.get('content-length') || 0) > MAX_REQUEST_BYTES)
+    return new NextResponse('Upload too large', { status: 413 });
+  const wantsJson = (request.headers.get('accept') || '').includes('application/json');
   const form = await request.formData();
   const action = String(form.get('action') || 'upload');
   const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
@@ -42,54 +79,17 @@ export async function POST(request: NextRequest) {
   if (!exists) return new NextResponse('Item not found', { status: 404 });
 
   if (action === 'upload') {
-    const file = form.get('image');
-    if (
-      !(file instanceof File) ||
-      file.size < 1 ||
-      file.size > 5_000_000 ||
-      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
-    )
-      return new NextResponse('Use a JPG, PNG or WebP image under 5 MB', { status: 400 });
-    const bytes = new Uint8Array(await file.arrayBuffer());
-    const valid =
-      file.type === 'image/jpeg'
-        ? bytes[0] === 0xff && bytes[1] === 0xd8
-        : file.type === 'image/png'
-          ? bytes.slice(0, 4).join() === '137,80,78,71'
-          : bytes.slice(0, 4).join() === '82,73,70,70' &&
-            String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
-    if (!valid) return new NextResponse('Invalid image file', { status: 400 });
-    const id = crypto.randomUUID();
-    const objectKey = `catalog/${kind}/${sourceId}/${id}`;
-    const count = await env.DB.prepare(
-      'SELECT COUNT(*) AS total FROM catalog_images WHERE owner_type = ? AND owner_id = ?',
-    )
-      .bind(kind, sourceId)
-      .first<{ total: number }>();
-    if ((count?.total || 0) >= 20)
-      return new NextResponse('Maximum 20 images per item', { status: 400 });
-    await env.BUCKET.put(objectKey, bytes, { httpMetadata: { contentType: file.type } });
-    try {
-      await env.DB.prepare(
-        'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      )
-        .bind(
-          id,
-          kind,
-          sourceId,
-          objectKey,
-          file.type,
-          String(form.get('alt') || '')
-            .trim()
-            .slice(0, 150),
-          count?.total || 0,
-          category,
-        )
-        .run();
-    } catch (error) {
-      await env.BUCKET.delete(objectKey);
-      throw error;
+    const files = form.getAll('image').filter((item): item is File => item instanceof File && item.size > 0);
+    if (!files.length) return new NextResponse('Choose at least one image', { status: 400 });
+    const alt = String(form.get('alt') || '').trim().slice(0, 150);
+    let uploaded = 0;
+    const failed: string[] = [];
+    for (const file of files) {
+      const problem = await storeImage(file, kind, sourceId, category, alt);
+      if (problem) failed.push(`${file.name || 'image'}: ${problem}`); else uploaded += 1;
     }
+    if (wantsJson) return NextResponse.json({ uploaded, failed }, { status: uploaded || !failed.length ? 200 : 400 });
+    if (!uploaded) return new NextResponse(failed[0] || 'Upload failed', { status: 400 });
   } else if (action === 'delete' || action === 'cover') {
     const imageId = String(form.get('imageId') || '');
     const row = await env.DB.prepare(
