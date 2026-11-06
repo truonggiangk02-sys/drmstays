@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Mac/Linux version of deploy-production.ps1. Run from anywhere:
-#   scripts/deploy-production.sh --d1-id <database_id> [--migrate] [--skip-pull] [--install]
+#   scripts/deploy-production.sh --d1-id <database_id> [--migrate] [--live] [--skip-pull] [--install]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-D1_ID=""; MIGRATE=0; SKIP_PULL=0; INSTALL=0
+D1_ID=""; LIVE=0; MIGRATE=0; SKIP_PULL=0; INSTALL=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --d1-id) D1_ID="$2"; shift 2 ;;
     --migrate) MIGRATE=1; shift ;;
+    --live) LIVE=1; shift ;;
     --skip-pull) SKIP_PULL=1; shift ;;
     --install) INSTALL=1; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
@@ -23,6 +24,8 @@ export STAYDESK_CATALOG_URL=https://staydesk-nine.vercel.app SITE_URL=https://dr
 # append ",drmstays.com,www.drmstays.com" to both lines.
 export CUSTOM_DOMAINS=drmstays.vn,www.drmstays.vn REDIRECT_HOSTS=www.drmstays.vn
 unset PREVIEW_DEMO
+# The public site shows a "coming soon" page until you deploy with --live (admin and APIs keep working).
+if [ "$LIVE" = 1 ]; then unset COMING_SOON; else export COMING_SOON=1; fi
 
 read -r -p "Deploy to PRODUCTION https://drmstays.vn ? Type DEPLOY to continue: " answer
 [ "$answer" = "DEPLOY" ] || { echo "Cancelled."; exit 1; }

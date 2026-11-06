@@ -1,7 +1,7 @@
 # Deploys the real site (drmstays.vn). First time: create the resources and set the secrets as described in
 # docs/DEPLOY.md (section "Production"), then run:   scripts\deploy-production.cmd -D1Id <database_id>
-# Add -Migrate whenever a new file appeared in drizzle/. It asks you to type DEPLOY before anything goes live.
-param([Parameter(Mandatory = $true)][string]$D1Id, [switch]$SkipPull, [switch]$Install, [switch]$Migrate)
+# Add -Live to open the real site to visitors. Add -Migrate whenever a new file appeared in drizzle/. It asks you to type DEPLOY before anything goes live.
+param([Parameter(Mandatory = $true)][string]$D1Id, [switch]$SkipPull, [switch]$Install, [switch]$Migrate, [switch]$Live)
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
@@ -17,6 +17,8 @@ $env:SITE_URL = 'https://drmstays.vn'
 $env:CUSTOM_DOMAINS = 'drmstays.vn,www.drmstays.vn'
 $env:REDIRECT_HOSTS = 'www.drmstays.vn'
 Remove-Item Env:PREVIEW_DEMO -ErrorAction SilentlyContinue
+# The public site shows a "coming soon" page until you deploy with -Live (admin and APIs keep working).
+if ($Live) { Remove-Item Env:COMING_SOON -ErrorAction SilentlyContinue } else { $env:COMING_SOON = '1' }
 
 function Step($label, $script) {
   Write-Host "`n==> $label" -ForegroundColor Cyan
