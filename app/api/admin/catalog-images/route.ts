@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
   if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(sourceId) || !['building', 'room', 'content'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
   let exists = false;
+  let parentId = sourceId;
   if (kind === 'content') {
     const sample = sampleContent.find(item => item.id === sourceId);
     const section = sample?.section || (await env.DB.prepare('SELECT section FROM site_content_items WHERE id = ? AND deleted = 0').bind(sourceId).first<{ section: string }>())?.section;
@@ -72,9 +73,11 @@ export async function POST(request: NextRequest) {
     let source;
     try { source = await getFreshStaydeskCatalog(); }
     catch { return new NextResponse('Staydesk catalog unavailable', { status: 503 }); }
-    exists = kind === 'building'
-      ? source.buildings.some(item => item.id === sourceId)
-      : source.buildings.some(item => item.rooms.some(room => room.id === sourceId));
+    const parent = kind === 'building'
+      ? source.buildings.find(item => item.id === sourceId)
+      : source.buildings.find(item => item.rooms.some(room => room.id === sourceId));
+    exists = !!parent;
+    parentId = parent?.id || sourceId;
   }
   if (!exists) return new NextResponse('Item not found', { status: 404 });
 
@@ -125,7 +128,7 @@ export async function POST(request: NextRequest) {
   } else return new NextResponse('Invalid action', { status: 400 });
   const returnTo = form.get('returnTo') === 'media' || kind === 'content' ? 'media' : 'catalog';
   const destination = new URL(`/admin/${returnTo}`, request.url);
-  if (returnTo === 'media') destination.searchParams.set('open', sourceId);
-  destination.hash = `item-${sourceId}`;
+  if (returnTo === 'media') { destination.searchParams.set('open', sourceId); destination.hash = `item-${sourceId}`; }
+  else { destination.searchParams.set('b', parentId); if (kind === 'room') destination.searchParams.set('r', sourceId); destination.searchParams.set('tab', 'photos'); }
   return NextResponse.redirect(destination, 303);
 }
