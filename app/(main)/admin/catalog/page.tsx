@@ -6,7 +6,7 @@ import { AdminShell } from '@/components/admin-shell';
 import { CatalogPhotos, type CatalogImageRow } from '@/components/catalog-photos';
 import { CopyRoomDetails } from '@/components/copy-room-details';
 import { isAdmin } from '@/lib/admin';
-import { parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
+import { inferFloor, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 import { buildingProgress, groupByFloor, roomProgress, type Progress } from '@/lib/catalog-progress';
 import { buildCopySource } from '@/lib/room-copy';
 import { jsonLd } from '@/lib/site';
@@ -60,9 +60,12 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
   const tab: Tab = (['info', 'text', 'photos', 'rooms'] as const).find(item => item === query.tab && (item !== 'rooms' || !room)) || 'info';
 
   const view = (b: string, r?: string) => `/admin/catalog?b=${b}${r ? `&r=${r}` : ''}`;
+  const roomName = new Map(source.buildings.flatMap(item => item.rooms.map(entry => [entry.id, entry.name] as const)));
   const roomInfo = (roomId: string) => {
     const row = roomRows.get(roomId), detail = parseDetails<RoomDetails>(row?.details_json);
-    return { row, detail, floor: detail.floor || '', progress: roomProgress(row, detail, photoCount('room', roomId)) };
+    // A floor typed in the form wins; otherwise it is read from the room number ("301" is floor 3).
+    const floor = detail.floor || inferFloor(roomName.get(roomId) || '');
+    return { row, detail, floor, progress: roomProgress(row, { ...detail, floor }, photoCount('room', roomId)) };
   };
 
   const buildingRow = buildingRows.get(building.id), buildingDetail = parseDetails<BuildingDetails>(buildingRow?.details_json);
@@ -119,7 +122,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
               </Pair>
               <Pair title="Loại phòng và vị trí">
                 <Field name="typeVi" label="Loại phòng (VI)" value={roomDetail.typeVi} /><Field name="typeEn" label="Room type (EN)" value={roomDetail.typeEn} />
-                <Field name="floor" label="Tầng" value={roomDetail.floor} hint="Dùng để gom phòng theo tầng ở thanh bên." /><Field name="areaSqm" label="Diện tích (m²)" value={roomDetail.areaSqm} type="number" />
+                <Field name="floor" label="Tầng" value={roomDetail.floor} hint={inferFloor(room.name) ? `Để trống thì tự lấy tầng ${inferFloor(room.name)} từ số phòng.` : 'Dùng để gom phòng theo tầng. Số phòng 3 chữ số (301) tự suy ra tầng.'} /><Field name="areaSqm" label="Diện tích (m²)" value={roomDetail.areaSqm} type="number" />
               </Pair>
               <Pair title="Sức chứa">
                 <Field name="beds" label="Số giường" value={roomDetail.beds} type="number" /><Field name="bathrooms" label="Số WC" value={roomDetail.bathrooms} type="number" /><Field name="maxGuests" label="Sức chứa (người)" value={roomDetail.maxGuests} type="number" />

@@ -60,3 +60,13 @@ export function formNumber(form: FormData, key: string, max: number) {
 export function formLines(form: FormData, key: string) {
   return [...new Set(formText(form, key, 5000).split(/\r?\n/).map(item => item.trim().slice(0, 120)).filter(Boolean))].slice(0, 40);
 }
+
+/**
+ * Floor of a room named like its number: "301" is floor 3, "1205" is floor 12, "A-502" is floor 5.
+ * Returns '' when the name has no such number (e.g. "Ocean Suite") so nothing is guessed.
+ */
+export function inferFloor(roomName: string): string {
+  const digits = /(?:^|\D)(\d{3,4})\s*$/.exec(roomName.trim())?.[1];
+  const floor = digits ? Number(digits.slice(0, -2)) : 0;
+  return floor > 0 ? String(floor) : '';
+}
