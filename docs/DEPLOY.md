@@ -280,7 +280,7 @@ Script tự `git pull github main`, build, tạo cấu hình deploy (đã điề
 
 ## Production: drmstays.vn
 
-Địa chỉ chính là `https://drmstays.vn`. `www.drmstays.vn`, `drmstays.com` và `www.drmstays.com` tự chuyển hướng (301) về đó. Cả bốn tên miền phải nằm trong cùng tài khoản Cloudflare (Add a domain, gói Free, đổi nameserver ở nhà đăng ký, chờ "Active").
+Địa chỉ chính là `https://drmstays.vn`. `www.drmstays.vn` tự chuyển hướng (301) về đó; khi thêm `drmstays.com` vào Cloudflare thì thêm `drmstays.com,www.drmstays.com` vào `CUSTOM_DOMAINS` và `REDIRECT_HOSTS` trong script. Mỗi tên miền phải nằm trong cùng tài khoản Cloudflare (Add a domain, gói Free, đổi nameserver ở nhà đăng ký, chờ "Active").
 
 Production dùng tài nguyên **riêng**, không dùng chung với staging:
 

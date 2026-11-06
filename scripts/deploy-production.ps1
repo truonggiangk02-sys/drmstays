@@ -12,8 +12,10 @@ $env:WORKER_NAME = 'drmstays'
 $env:R2_BUCKET_NAME = 'drmstays-prod-media'
 $env:STAYDESK_CATALOG_URL = 'https://staydesk-nine.vercel.app'
 $env:SITE_URL = 'https://drmstays.vn'
-$env:CUSTOM_DOMAINS = 'drmstays.vn,www.drmstays.vn,drmstays.com,www.drmstays.com'
-$env:REDIRECT_HOSTS = 'www.drmstays.vn,drmstays.com,www.drmstays.com'
+# Only domains already Active in this Cloudflare account can be attached. When drmstays.com is added there,
+# append ',drmstays.com,www.drmstays.com' to both lines.
+$env:CUSTOM_DOMAINS = 'drmstays.vn,www.drmstays.vn'
+$env:REDIRECT_HOSTS = 'www.drmstays.vn'
 Remove-Item Env:PREVIEW_DEMO -ErrorAction SilentlyContinue
 
 function Step($label, $script) {
