@@ -277,3 +277,24 @@ scripts\deploy-staging.cmd
 ```
 
 Script tự `git pull github main`, build, tạo cấu hình deploy (đã điền sẵn tên và ID staging) và `wrangler deploy`. Thêm `-SkipPull` để deploy bản đang có trên máy, `-Install` khi dependency đổi. Mật khẩu admin và secret Staydesk đã nằm sẵn trên Cloudflare nên không cần nhập.
+
+## Production: drmstays.vn
+
+Địa chỉ chính là `https://drmstays.vn`. `www.drmstays.vn` tự chuyển hướng (301) về đó; khi thêm `drmstays.com` vào Cloudflare thì thêm `drmstays.com,www.drmstays.com` vào `CUSTOM_DOMAINS` và `REDIRECT_HOSTS` trong script. Mỗi tên miền phải nằm trong cùng tài khoản Cloudflare (Add a domain, gói Free, đổi nameserver ở nhà đăng ký, chờ "Active").
+
+Production dùng tài nguyên **riêng**, không dùng chung với staging:
+
+```bash
+npx wrangler d1 create drmstays-db
+npx wrangler r2 bucket create drmstays-prod-media
+```
+
+Áp migration lần đầu và đặt secret (xem mục 4 và 5 ở trên, dùng Worker tên `drmstays`). Sau đó, trong thư mục dự án (Windows):
+
+```
+scripts\deploy-production.cmd -D1Id <database_id> -Migrate
+```
+
+Script hỏi gõ `DEPLOY` rồi pull, build, áp migration, gắn tên miền và deploy. Lần sau không cần `-Migrate` nếu không có file mới trong `drizzle/`.
+
+Biến liên quan: `SITE_URL` (địa chỉ chính), `CUSTOM_DOMAINS` (tên miền gắn vào Worker), `REDIRECT_HOSTS` (tên miền chuyển hướng về `SITE_URL`). Không đặt `PREVIEW_DEMO`.

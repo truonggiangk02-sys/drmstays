@@ -5,6 +5,8 @@
 //
 // Optional: WORKER_NAME (default drmstays), D1_DATABASE_NAME (default drmstays-db),
 // R2_BUCKET_NAME (default drmstays-media), SITE_URL, STAYDESK_CATALOG_URL.
+// CUSTOM_DOMAINS=a.vn,www.a.vn attaches those domains to the Worker (their DNS must be in the same Cloudflare account).
+// REDIRECT_HOSTS=www.a.vn,a.com makes those hosts redirect to SITE_URL.
 // PREVIEW_DEMO=1 turns on sample data (staging only, never for the real site).
 // NO_R2=1 leaves out the photo bucket (fine for a demo/staging copy: admin photo upload then won't work).
 // Secrets (ADMIN_PASSWORD, tokens...) are never written here; set them with `wrangler secret put`.
@@ -43,11 +45,18 @@ config.r2_buckets = process.env.NO_R2 === "1"
   : [{ binding: "BUCKET", bucket_name: process.env.R2_BUCKET_NAME?.trim() || "drmstays-media" }];
 
 const vars = { ...(config.vars || {}) };
-for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO"]) {
+for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS"]) {
   const value = process.env[key]?.trim();
   if (value) vars[key] = value;
 }
 config.vars = vars;
+
+const domains = (process.env.CUSTOM_DOMAINS || "").split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+if (domains.some((domain) => !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(domain))) {
+  console.error("CUSTOM_DOMAINS must be a comma-separated list of plain host names, e.g. drmstays.vn,www.drmstays.vn");
+  process.exit(1);
+}
+if (domains.length) config.routes = domains.map((pattern) => ({ pattern, custom_domain: true }));
 
 writeFileSync(target, JSON.stringify(config));
 console.log(`Wrote ${path.relative(root, target)} (worker "${config.name}", D1 "${config.d1_databases[0].database_name}", R2 ${config.r2_buckets[0] ? `"${config.r2_buckets[0].bucket_name}"` : "off"}).`);
