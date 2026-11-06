@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { env } from 'cloudflare:workers';
 import { apartments } from './apartments';
 import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding } from './staydesk-catalog';
-import { parseDetails, detailText, detailNumber, detailList, type BuildingDetails, type RoomDetails } from './catalog-details';
+import { inferFloor, parseDetails, detailText, detailNumber, detailList, type BuildingDetails, type RoomDetails } from './catalog-details';
 
 type BuildingRow = { source_id: string; published: number; description: string; address: string; services: string; details_json: string };
 type RoomRow = { source_id: string; published: number; description: string; nightly_price: number; monthly_price: number; services: string; details_json: string };
@@ -89,7 +89,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
           id: room.id, name: room.name, available: room.available,
           description: pickText(lang === 'vi' ? detail.descriptionVi : detail.descriptionEn, lang === 'vi' ? detail.descriptionEn : detail.descriptionVi, profile.description),
           type: pickText(lang === 'vi' ? detail.typeVi : detail.typeEn, lang === 'vi' ? detail.typeEn : detail.typeVi, ''),
-          floor: detailText(detail.floor), areaSqm: detailNumber(detail.areaSqm),
+          floor: detailText(detail.floor) || inferFloor(room.name), areaSqm: detailNumber(detail.areaSqm),
           beds: detailNumber(detail.beds), bathrooms: detailNumber(detail.bathrooms), maxGuests: detailNumber(detail.maxGuests),
           furniture: pickList(lang === 'vi' ? detail.furnitureVi : detail.furnitureEn, lang === 'vi' ? detail.furnitureEn : detail.furnitureVi, []),
           amenities: pickList(lang === 'vi' ? detail.amenitiesVi : detail.amenitiesEn, lang === 'vi' ? detail.amenitiesEn : detail.amenitiesVi, legacyList(profile.services)),
