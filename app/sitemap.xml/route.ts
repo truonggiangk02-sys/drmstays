@@ -9,8 +9,9 @@ const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/journal
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;
-  const paths = env.PREVIEW_DEMO === "1" ? [] : [...staticPaths];
-  if (env.PREVIEW_DEMO !== "1") {
+  const hidden = env.PREVIEW_DEMO === "1" || env.COMING_SOON === "1";
+  const paths = hidden ? [] : [...staticPaths];
+  if (!hidden) {
     try {
       const catalog = await getPublicCatalog();
       for (const building of catalog.buildings) {

@@ -1,0 +1,13 @@
+.coming-soon{min-height:100vh;display:grid;place-items:center;padding:48px 24px;background:radial-gradient(circle at 20% 15%,#2a5443 0,#17372d 55%,#10281f 100%);color:#fff;font-family:'Poppins',Arial,sans-serif;text-align:center}
+.coming-soon-card{width:100%;max-width:680px;display:grid;justify-items:center;gap:22px}
+.coming-soon-logo{width:96px;height:96px;object-fit:contain;border-radius:50%;background:#f8f8f4;padding:14px}
+.coming-soon-kicker{margin:0;color:#c9dccf;font-size:12px;font-weight:600;letter-spacing:.28em;text-transform:uppercase}
+.coming-soon h1{margin:0;font:400 clamp(42px,8vw,76px)/1.05 'Playfair Display',Georgia,serif;letter-spacing:-.01em}
+.coming-soon-rule{width:64px;height:1px;background:#b3cebc;border:0;margin:6px 0}
+.coming-soon p{margin:0;color:#dbe8df;font-size:17px;line-height:1.8}
+.coming-soon-en{color:#b3cebc;font-size:15px}
+.coming-soon-tag{margin-top:6px;color:#fff;font:italic 400 22px/1.4 'Playfair Display',Georgia,serif}
+.coming-soon-links{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:10px}
+.coming-soon-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 22px;border:1px solid #6f937f;color:#fff;font-size:13px;font-weight:600;letter-spacing:.06em;text-decoration:none;transition:background .2s,border-color .2s}
+.coming-soon-links a:hover,.coming-soon-links a:focus-visible{background:#fff;color:#17372d;border-color:#fff;outline:none}
+.coming-soon-foot{margin-top:18px;color:#9db9a8;font-size:12px;letter-spacing:.14em}

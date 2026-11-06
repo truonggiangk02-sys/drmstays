@@ -9,6 +9,8 @@ declare namespace Cloudflare {
     STAYDESK_CATALOG_URL?: string;
     STAYDESK_CATALOG_SECRET?: string;
     PREVIEW_DEMO?: string;
+    COMING_SOON?: string;
+    REDIRECT_HOSTS?: string;
     OPENAI_API_KEY?: string;
     HERE_API_KEY?: string;
   }
