@@ -6,6 +6,14 @@ const SMALL_ENOUGH = 3_500_000; // bytes; anything bigger is shrunk in the brows
 const MAX_SIDE = 2400;
 const BATCH_BYTES = 18_000_000; // keep each request under the server's limit
 
+/** Reloads the page, staying on the Photos tab of the catalog editor. */
+function reloadOnPhotos() {
+  const url = new URL(window.location.href);
+  if (url.pathname === '/admin/catalog') url.searchParams.set('tab', 'photos');
+  url.searchParams.delete('saved');
+  window.location.assign(url);
+}
+
 async function shrink(file: File): Promise<File> {
   if (file.size <= SMALL_ENOUGH || !file.type.startsWith('image/')) return file;
   try {
@@ -62,10 +70,10 @@ export function PhotoUploadEnhancer() {
           problems.push(...(result.failed || []));
         }
       } catch { problems.push('Mất kết nối'); }
-      if (!problems.length) { window.location.reload(); return; }
+      if (!problems.length) { reloadOnPhotos(); return; }
       setStatus(`Đã tải ${done}/${chosen.length} ảnh. Lỗi: ${problems.join('; ')}`);
       if (button) button.disabled = false;
-      if (done) setTimeout(() => window.location.reload(), 4000);
+      if (done) setTimeout(reloadOnPhotos, 4000);
     }
     form.addEventListener('submit', submit);
     return () => form.removeEventListener('submit', submit);

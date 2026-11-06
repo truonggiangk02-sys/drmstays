@@ -26,10 +26,12 @@ export async function POST(request: NextRequest) {
       ? source.buildings.some((item) => item.id === sourceId)
       : source.buildings.some((item) => item.rooms.some((room) => room.id === sourceId));
   if (!exists) return new NextResponse('Item not found in Staydesk', { status: 404 });
+  const parentId = kind === 'building' ? sourceId : source.buildings.find((item) => item.rooms.some((room) => room.id === sourceId))?.id || '';
+  const back = (extra = '') => NextResponse.redirect(new URL(`/admin/catalog?b=${parentId}${kind === 'room' ? `&r=${sourceId}` : ''}${extra}`, request.url), 303);
   if (form.get('action') === 'remove') {
     if (kind === 'building') await env.DB.prepare('INSERT INTO catalog_buildings (source_id, published) VALUES (?, 0) ON CONFLICT(source_id) DO UPDATE SET published=0').bind(sourceId).run();
     else await env.DB.prepare('INSERT INTO catalog_rooms (source_id, published) VALUES (?, 0) ON CONFLICT(source_id) DO UPDATE SET published=0').bind(sourceId).run();
-    return NextResponse.redirect(new URL(`/admin/catalog#item-${sourceId}`, request.url), 303);
+    return back('&saved=hidden');
   }
   const published = form.get('published') === 'on' ? 1 : 0;
   const description = formText(form, 'descriptionEn');
@@ -82,5 +84,5 @@ export async function POST(request: NextRequest) {
       .bind(sourceId, parent.id, published, description, monthlyPrice, services, JSON.stringify(details))
       .run();
   }
-  return NextResponse.redirect(new URL(`/admin/catalog#item-${sourceId}`, request.url), 303);
+  return back('&saved=1');
 }
