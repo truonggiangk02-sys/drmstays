@@ -1,3 +1,4 @@
+import { PhotoUploadEnhancer } from '@/components/photo-upload-enhancer';
 import { env } from 'cloudflare:workers';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
@@ -16,8 +17,8 @@ function Gallery({ kind, id, images }: { kind: 'building' | 'room' | 'content'; 
     <form action="/api/admin/catalog-images" method="post" encType="multipart/form-data" className="catalog-upload">
       <input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={id} /><input type="hidden" name="returnTo" value="media" />
       {kind !== 'content' && <label>Loại ảnh<select name="category"><option value="photo">Ảnh tòa/phòng</option><option value="floorplan">Sơ đồ mặt bằng</option></select></label>}
-      <label>Chọn ảnh JPG, PNG hoặc WebP (tối đa 5 MB)<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required /></label>
-      <label>Mô tả ảnh<input name="alt" maxLength={150} /></label><button>Tải ảnh lên</button>
+      <label>Chọn ảnh JPG, PNG hoặc WebP (chọn được nhiều ảnh cùng lúc)<input type="file" name="image" accept="image/jpeg,image/png,image/webp" multiple required /></label>
+      <label>Mô tả ảnh<input name="alt" maxLength={150} /></label><button>Tải ảnh lên</button><PhotoUploadEnhancer />
     </form>
     {images.length ? <div className="catalog-photo-grid">{images.map((image, index) => <div className="catalog-photo" key={image.id}>
       <img src={`/api/catalog-images/${image.id}`} alt={image.alt || 'Ảnh bất động sản'} />

@@ -4,6 +4,7 @@ import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
+import { PhotoUploadEnhancer } from '@/components/photo-upload-enhancer';
 import { CopyRoomDetails } from '@/components/copy-room-details';
 import { buildCopySource } from '@/lib/room-copy';
 import { jsonLd } from '@/lib/site';
@@ -31,7 +32,7 @@ function Photos({ kind, sourceId, images }: { kind: 'building' | 'room'; sourceI
       <h4>{category === 'photo' ? 'Photos' : 'Floor plans / layout images'}</h4>
       <div className="catalog-photo-grid">{list.map((image, index) => <div key={image.id} className="catalog-photo"><img src={`/api/catalog-images/${image.id}`} alt={image.alt || category} /><span>{category === 'photo' && index === 0 ? 'Cover' : category === 'floorplan' ? 'Floor plan' : `Photo ${index + 1}`}</span><div>{category === 'photo' && <form action="/api/admin/catalog-images" method="post"><input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><input type="hidden" name="imageId" value={image.id} /><input type="hidden" name="action" value="cover" /><button disabled={index === 0}>Set cover</button></form>}<form action="/api/admin/catalog-images" method="post"><input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><input type="hidden" name="imageId" value={image.id} /><input type="hidden" name="action" value="delete" /><button>Delete</button></form></div></div>)}</div>
     </div>)}
-    <form className="catalog-upload" action="/api/admin/catalog-images" method="post" encType="multipart/form-data"><input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><label>Image type<select name="category" defaultValue="photo"><option value="photo">Property photo</option><option value="floorplan">Floor plan / layout</option></select></label><label>JPG, PNG or WebP (max 5 MB)<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required /></label><Field name="alt" label="Image description" maxLength={150} /><button>Upload image</button></form>
+    <form className="catalog-upload" action="/api/admin/catalog-images" method="post" encType="multipart/form-data"><input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><label>Image type<select name="category" defaultValue="photo"><option value="photo">Property photo</option><option value="floorplan">Floor plan / layout</option></select></label><label>JPG, PNG or WebP — pick several at once<input type="file" name="image" accept="image/jpeg,image/png,image/webp" multiple required /></label><Field name="alt" label="Image description" maxLength={150} /><button>Upload image(s)</button><PhotoUploadEnhancer /></form>
     <form className="catalog-remove" action="/api/admin/catalog" method="post"><input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><input type="hidden" name="action" value="remove" /><button>Remove from public website</button><small>The Staydesk record and saved public details remain available for republishing.</small></form>
   </div>;
 }
