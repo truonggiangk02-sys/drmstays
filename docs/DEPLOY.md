@@ -267,3 +267,13 @@ D1 cũng có tính năng khôi phục theo thời điểm (Time Travel); thời 
 - Lệnh `secret put` trước khi Worker tồn tại (xem lưu ý ở bước 5).
 - Nền bản đồ và ảnh trên trình duyệt thật, và kết nối Staydesk, HERE, Telegram thật.
 - Quy trình publish qua nền tảng Sites của ChatGPT (file `.openai/hosting.json`); tài liệu này chỉ mô tả cách tự deploy bằng wrangler.
+
+## Cập nhật staging bằng một lệnh (Windows)
+
+Trong thư mục dự án:
+
+```
+scripts\deploy-staging.cmd
+```
+
+Script tự `git pull github main`, build, tạo cấu hình deploy (đã điền sẵn tên và ID staging) và `wrangler deploy`. Thêm `-SkipPull` để deploy bản đang có trên máy, `-Install` khi dependency đổi. Mật khẩu admin và secret Staydesk đã nằm sẵn trên Cloudflare nên không cần nhập.
