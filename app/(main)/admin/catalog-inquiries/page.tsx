@@ -9,6 +9,7 @@ export const dynamic = 'force-dynamic';
 type Contact = {
   id: string;
   source_room_id: string;
+  source_type_id: string;
   name: string;
   phone: string;
   email: string;
@@ -39,14 +40,16 @@ export default async function CatalogInquiries({
     Number.isSafeInteger((requestedPage - 1) * 50)
       ? requestedPage
       : 1;
-  const [rows, source] = await Promise.all([
+  const [rows, source, typeRows] = await Promise.all([
     env.DB.prepare(
-      'SELECT id, source_room_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at FROM catalog_inquiries ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?',
+      'SELECT id, source_room_id, source_type_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at FROM catalog_inquiries ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?',
     )
       .bind((page - 1) * 50)
       .all<Contact>(),
     getFreshStaydeskCatalog().catch(() => null),
+    env.DB.prepare('SELECT id, name_vi, name_en FROM catalog_room_types').all<{ id: string; name_vi: string; name_en: string }>(),
   ]);
+  const typeNames = new Map((typeRows.results || []).map((row) => [row.id, row.name_vi || row.name_en] as const));
   const names = new Map(
     source?.buildings.flatMap((building) =>
       building.rooms.map((room) => [room.id, room.name] as const),
@@ -84,7 +87,7 @@ export default async function CatalogInquiries({
                   <small>{item.phone}</small>
                   <small>{item.email}</small>
                 </td>
-                <td>{item.source_room_id ? names.get(item.source_room_id) || item.source_room_id : 'General inquiry'}</td>
+                <td>{item.source_type_id ? `Loại: ${typeNames.get(item.source_type_id) || item.source_type_id}` : item.source_room_id ? names.get(item.source_room_id) || item.source_room_id : 'General inquiry'}</td>
                 <td>
                   {item.check_in && item.check_out
                     ? `${item.check_in} → ${item.check_out}`

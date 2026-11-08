@@ -61,28 +61,45 @@ export async function POST(request: NextRequest) {
   } else {
     const parent = source.buildings.find((item) => item.rooms.some((room) => room.id === sourceId));
     if (!parent) return new NextResponse('Room not found in Staydesk', { status: 404 });
+    // The form may carry only some fields (a room that belongs to a type has just floor, price and type),
+    // so anything the form does not send keeps its saved value.
+    const saved = await env.DB.prepare('SELECT monthly_price, details_json FROM catalog_rooms WHERE source_id = ?').bind(sourceId).first<{ monthly_price: number; details_json: string }>();
+    const before = parseDetails<RoomDetails>(saved?.details_json);
+    const text = (key: keyof RoomDetails, max = 3000) => (form.has(key) ? formText(form, key, max) : (before[key] as string | undefined) || '');
+    const num = (key: keyof RoomDetails, max: number) => (form.has(key) ? formNumber(form, key, max) : (before[key] as number | undefined) || 0);
+    const list = (key: keyof RoomDetails) => (form.has(key) ? formLines(form, key) : (before[key] as string[] | undefined) || []);
     let monthlyPrice: number;
     let details: RoomDetails;
     try {
-      monthlyPrice = formNumber(form, 'monthlyPrice', 1_000_000_000);
+      monthlyPrice = form.has('monthlyPrice') ? formNumber(form, 'monthlyPrice', 1_000_000_000) : saved?.monthly_price || 0;
       details = {
-        descriptionVi: formText(form, 'descriptionVi'), descriptionEn: description,
-        typeVi: formText(form, 'typeVi', 120), typeEn: formText(form, 'typeEn', 120),
-        floor: formText(form, 'floor', 40), areaSqm: formNumber(form, 'areaSqm', 100_000),
-        beds: formNumber(form, 'beds', 50), bathrooms: formNumber(form, 'bathrooms', 50),
-        maxGuests: formNumber(form, 'maxGuests', 100), furnitureVi: formLines(form, 'furnitureVi'),
-        furnitureEn: formLines(form, 'furnitureEn'), amenitiesVi: formLines(form, 'amenitiesVi'),
-        amenitiesEn: formLines(form, 'amenitiesEn'), depositVnd: formNumber(form, 'depositVnd', 1_000_000_000),
-        serviceFeesVi: formText(form, 'serviceFeesVi'), serviceFeesEn: formText(form, 'serviceFeesEn'),
-        rulesVi: formText(form, 'rulesVi'), rulesEn: formText(form, 'rulesEn'),
-        minStayMonths: formNumber(form, 'minStayMonths', 120),
+        descriptionVi: text('descriptionVi'), descriptionEn: text('descriptionEn'),
+        typeVi: text('typeVi', 120), typeEn: text('typeEn', 120),
+        floor: text('floor', 40), areaSqm: num('areaSqm', 100_000),
+        beds: num('beds', 50), bathrooms: num('bathrooms', 50),
+        maxGuests: num('maxGuests', 100), furnitureVi: list('furnitureVi'),
+        furnitureEn: list('furnitureEn'), amenitiesVi: list('amenitiesVi'),
+        amenitiesEn: list('amenitiesEn'), depositVnd: num('depositVnd', 1_000_000_000),
+        serviceFeesVi: text('serviceFeesVi'), serviceFeesEn: text('serviceFeesEn'),
+        rulesVi: text('rulesVi'), rulesEn: text('rulesEn'),
+        minStayMonths: num('minStayMonths', 120),
       };
     } catch { return new NextResponse('Invalid room details', { status: 400 }); }
+    const roomDescription = form.has('descriptionEn') ? description : '';
+    const roomServices = form.has('servicesEn') || form.has('descriptionEn') ? services : '[]';
     await env.DB.prepare(
-      'INSERT INTO catalog_rooms (source_id, building_source_id, published, description, nightly_price, monthly_price, services, details_json) VALUES (?, ?, ?, ?, 0, ?, ?, ?) ON CONFLICT(source_id) DO UPDATE SET building_source_id=excluded.building_source_id, published=excluded.published, description=excluded.description, nightly_price=0, monthly_price=excluded.monthly_price, services=excluded.services, details_json=excluded.details_json',
+      'INSERT INTO catalog_rooms (source_id, building_source_id, published, description, nightly_price, monthly_price, services, details_json) VALUES (?, ?, ?, ?, 0, ?, ?, ?) ON CONFLICT(source_id) DO UPDATE SET building_source_id=excluded.building_source_id, published=excluded.published, description=CASE WHEN ? THEN excluded.description ELSE catalog_rooms.description END, nightly_price=0, monthly_price=excluded.monthly_price, services=CASE WHEN ? THEN excluded.services ELSE catalog_rooms.services END, details_json=excluded.details_json',
     )
-      .bind(sourceId, parent.id, published, description, monthlyPrice, services, JSON.stringify(details))
+      .bind(sourceId, parent.id, published, roomDescription, monthlyPrice, roomServices, JSON.stringify(details), form.has('descriptionEn') ? 1 : 0, form.has('servicesEn') || form.has('descriptionEn') ? 1 : 0)
       .run();
+    if (form.has('typeId')) {
+      const typeId = String(form.get('typeId') || '');
+      if (typeId) {
+        const type = await env.DB.prepare('SELECT id FROM catalog_room_types WHERE id = ? AND building_source_id = ?').bind(typeId, parent.id).first();
+        if (!type) return new NextResponse('Room type not found', { status: 404 });
+      }
+      await env.DB.prepare('UPDATE catalog_rooms SET type_id = ? WHERE source_id = ?').bind(typeId || null, sourceId).run();
+    }
   }
   return back('&saved=1');
 }

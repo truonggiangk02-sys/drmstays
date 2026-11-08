@@ -2,10 +2,12 @@ import { cache } from 'react';
 import { env } from 'cloudflare:workers';
 import { apartments } from './apartments';
 import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding } from './staydesk-catalog';
+import { effectivePrice, priceFrom, availableCount, byRoomName, type TypeDetails } from './room-types';
 import { inferFloor, parseDetails, detailText, detailNumber, detailList, type BuildingDetails, type RoomDetails } from './catalog-details';
 
 type BuildingRow = { source_id: string; published: number; description: string; address: string; services: string; details_json: string };
-type RoomRow = { source_id: string; published: number; description: string; nightly_price: number; monthly_price: number; services: string; details_json: string };
+type RoomRow = { source_id: string; published: number; description: string; nightly_price: number; monthly_price: number; services: string; details_json: string; type_id: string | null };
+type TypeRow = { id: string; building_source_id: string; name_vi: string; name_en: string; published: number; monthly_price: number; details_json: string };
 type Image = { id: string; owner_type: string; owner_id: string; alt: string; position: number; category: string };
 type Lang = 'vi' | 'en';
 
@@ -21,11 +23,12 @@ const demoMapPoints = new Map([
 
 async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang = 'en') {
   if (!env.DB) throw new Error('Catalog database is unavailable');
-  const [source, buildingRows, roomRows, imageRows] = await Promise.all([
+  const [source, buildingRows, roomRows, imageRows, typeRows] = await Promise.all([
     getStaydeskCatalog(checkIn, checkOut),
     env.DB.prepare('SELECT source_id, published, description, address, services, details_json FROM catalog_buildings').all<BuildingRow>(),
-    env.DB.prepare('SELECT source_id, published, description, nightly_price, monthly_price, services, details_json FROM catalog_rooms').all<RoomRow>(),
+    env.DB.prepare('SELECT source_id, published, description, nightly_price, monthly_price, services, details_json, type_id FROM catalog_rooms').all<RoomRow>(),
     env.DB.prepare('SELECT id, owner_type, owner_id, alt, position, category FROM catalog_images ORDER BY position, id').all<Image>(),
+    env.DB.prepare('SELECT id, building_source_id, name_vi, name_en, published, monthly_price, details_json FROM catalog_room_types ORDER BY position, name_vi').all<TypeRow>(),
   ]);
   const buildings = new Map((buildingRows.results || []).map(row => [row.source_id, row]));
   const rooms = new Map((roomRows.results || []).map(row => [row.source_id, row]));
@@ -34,7 +37,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
     const key = `${image.owner_type}:${image.owner_id}`;
     images.set(key, [...(images.get(key) || []), image]);
   }
-  const gallery = (kind: 'building' | 'room', id: string, category: string) => (images.get(`${kind}:${id}`) || [])
+  const gallery = (kind: 'building' | 'room' | 'roomtype', id: string, category: string) => (images.get(`${kind}:${id}`) || [])
     .filter(image => image.category === category)
     .map(image => ({ id: image.id, url: `/api/catalog-images/${image.id}`, alt: image.alt }));
   const published = source.buildings.flatMap((building: SourceBuilding) => {
@@ -67,6 +70,28 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
       rules: pickText(lang === 'vi' ? detail.rulesVi : detail.rulesEn, lang === 'vi' ? detail.rulesEn : detail.rulesVi, ''),
       images: photoGallery.length ? photoGallery : env.PREVIEW_DEMO === '1' && firstSample ? [{ id: `demo-building-${building.id}`, url: firstSample.image, alt: firstSample.imageDescription }] : [],
       floorplans: gallery('building', building.id, 'floorplan'),
+      types: typeRows.results?.filter(row => row.building_source_id === building.id && row.published === 1).flatMap(row => {
+        const detail = parseDetails<TypeDetails>(row.details_json);
+        const pick = <K extends keyof TypeDetails>(vi: K, en: K) => lang === 'vi' ? [detail[vi], detail[en]] as const : [detail[en], detail[vi]] as const;
+        const typeRooms = building.rooms.flatMap(room => {
+          const own = rooms.get(room.id);
+          if (!own || own.published !== 1 || own.type_id !== row.id) return [];
+          return [{ id: room.id, name: room.name, floor: detailText(parseDetails<RoomDetails>(own.details_json).floor) || inferFloor(room.name), available: room.available, monthlyPrice: effectivePrice(own.monthly_price, row.monthly_price) }];
+        }).sort(byRoomName);
+        if (!typeRooms.length) return [];
+        const [descLocal, descOther] = pick('descriptionVi', 'descriptionEn'), [feeLocal, feeOther] = pick('serviceFeesVi', 'serviceFeesEn'), [ruleLocal, ruleOther] = pick('rulesVi', 'rulesEn');
+        const [furLocal, furOther] = pick('furnitureVi', 'furnitureEn'), [amLocal, amOther] = pick('amenitiesVi', 'amenitiesEn');
+        return [{
+          id: row.id, name: pickText(lang === 'vi' ? row.name_vi : row.name_en, lang === 'vi' ? row.name_en : row.name_vi, ''),
+          description: pickText(descLocal, descOther, ''), areaSqm: detailNumber(detail.areaSqm), beds: detailNumber(detail.beds),
+          bathrooms: detailNumber(detail.bathrooms), maxGuests: detailNumber(detail.maxGuests),
+          furniture: pickList(furLocal, furOther, []), amenities: pickList(amLocal, amOther, []),
+          depositVnd: detailNumber(detail.depositVnd), minStayMonths: detailNumber(detail.minStayMonths),
+          serviceFees: pickText(feeLocal, feeOther, ''), rules: pickText(ruleLocal, ruleOther, ''),
+          priceFrom: priceFrom(typeRooms), availableCount: availableCount(typeRooms), rooms: typeRooms,
+          images: gallery('roomtype', row.id, 'photo'), floorplans: gallery('roomtype', row.id, 'floorplan'),
+        }];
+      }) || [],
       rooms: building.rooms.flatMap(room => {
         const sample = apartments[demoRoomIds.indexOf(room.id)];
         const profile = rooms.get(room.id) || (env.PREVIEW_DEMO === '1' && sample ? {
@@ -83,6 +108,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
           }),
         } : undefined);
         if (!profile || profile.published !== 1) return [];
+        if ('type_id' in profile && profile.type_id) return []; // typed rooms are shown through their room type
         const detail = parseDetails<RoomDetails>(profile.details_json);
         const photos = gallery('room', room.id, 'photo');
         return [{

@@ -43,3 +43,11 @@
 .cx-floor li a{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(110px,1fr) 70px 90px minmax(160px,1.4fr);gap:12px;align-items:center;padding:12px 14px;color:#17372d;text-decoration:none;font-size:14px}.cx-floor li a:hover{background:#f3f7f1}
 .cx-sec-photos .catalog-photos{margin:0}
 @media(max-width:900px){.cx{grid-template-columns:minmax(0,1fr)}.cx-nav{position:static;max-height:none}.cx-nav:not([open]) .cx-nav-floor{display:none}.cx-floor li a{grid-template-columns:1fr 1fr;row-gap:6px}.cx-sec{padding:18px 16px}.cx-savebar{padding:12px 16px}}
+.cx-nav-add{color:#7d5636!important;font-weight:600}.cx-nav-add.is-active{color:#fff!important}
+.cx-hint{margin:0 0 16px;font-size:14px;color:#4f6054;line-height:1.6}
+.cx-assign{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;font-size:14px}.cx-assign span{margin-left:auto;font-size:12px;color:#7d5636}
+.cx-assign input[type=checkbox]{width:18px;height:18px}
+.cx-field select{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #c8d6ca;background:#fff;font:400 15px/1.5 'Poppins',sans-serif;color:#17372d}
+.cx-danger{display:flex;align-items:center;gap:14px;margin-top:22px;padding:14px 16px;border:1px solid #e3c2bb;background:#fbf1ee}
+.cx-danger button{min-height:40px;padding:0 18px;background:#a33f33;color:#fff;border:0;font-weight:700;cursor:pointer}.cx-danger small{color:#7f382c}
+#cx-t-rooms:checked~form.cx-sec-rooms{display:block}

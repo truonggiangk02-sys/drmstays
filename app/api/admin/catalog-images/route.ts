@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
   const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
   const kind = String(form.get('kind') || '');
   const sourceId = String(form.get('sourceId') || '');
-  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(sourceId) || !['building', 'room', 'content'].includes(kind))
+  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
   let exists = false;
   let parentId = sourceId;
@@ -69,6 +69,10 @@ export async function POST(request: NextRequest) {
     const section = sample?.section || (await env.DB.prepare('SELECT section FROM site_content_items WHERE id = ? AND deleted = 0').bind(sourceId).first<{ section: string }>())?.section;
     if (section && contentSections.includes(section as ContentSection))
       exists = (await getEditableContent(section as ContentSection)).some(item => item.id === sourceId);
+  } else if (kind === 'roomtype') {
+    const type = await env.DB.prepare('SELECT building_source_id FROM catalog_room_types WHERE id = ?').bind(sourceId).first<{ building_source_id: string }>();
+    exists = !!type;
+    parentId = type?.building_source_id || sourceId;
   } else {
     let source;
     try { source = await getFreshStaydeskCatalog(); }
@@ -129,6 +133,6 @@ export async function POST(request: NextRequest) {
   const returnTo = form.get('returnTo') === 'media' || kind === 'content' ? 'media' : 'catalog';
   const destination = new URL(`/admin/${returnTo}`, request.url);
   if (returnTo === 'media') { destination.searchParams.set('open', sourceId); destination.hash = `item-${sourceId}`; }
-  else { destination.searchParams.set('b', parentId); if (kind === 'room') destination.searchParams.set('r', sourceId); destination.searchParams.set('tab', 'photos'); }
+  else { destination.searchParams.set('b', parentId); if (kind === 'room') destination.searchParams.set('r', sourceId); if (kind === 'roomtype') destination.searchParams.set('t', sourceId); destination.searchParams.set('tab', 'photos'); }
   return NextResponse.redirect(destination, 303);
 }

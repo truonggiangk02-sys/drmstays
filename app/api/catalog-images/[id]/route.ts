@@ -23,6 +23,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       visible = !!(await env.DB.prepare('SELECT 1 FROM catalog_buildings WHERE source_id = ? AND published = 1').bind(row.owner_id).first());
     } else if (row.owner_type === 'room') {
       visible = !!(await env.DB.prepare('SELECT 1 FROM catalog_rooms r JOIN catalog_buildings b ON b.source_id = r.building_source_id WHERE r.source_id = ? AND r.published = 1 AND b.published = 1').bind(row.owner_id).first());
+    } else if (row.owner_type === 'roomtype') {
+      visible = !!(await env.DB.prepare('SELECT 1 FROM catalog_room_types t JOIN catalog_buildings b ON b.source_id = t.building_source_id WHERE t.id = ? AND t.published = 1 AND b.published = 1').bind(row.owner_id).first());
     }
     if (!visible) return new NextResponse('Not found', { status: 404 });
   }
