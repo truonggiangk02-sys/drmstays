@@ -10,7 +10,7 @@ const clean = <T extends Record<string, unknown>>(value: T): T =>
 const images = (photos: Photo[]) => photos.map(photo => absoluteUrl(photo.url)).filter((url): url is string => !!url).slice(0, 5);
 
 /** JSON-LD for the page, or null when the public origin (SITE_URL) is unknown: structured data needs absolute URLs. */
-export function structuredData(kind: 'home' | 'building' | 'room', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData): object | null {
+export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData): object | null {
   const base = siteUrl();
   if (!base) return null;
   if (kind === 'home') return {
@@ -29,16 +29,16 @@ export function structuredData(kind: 'home' | 'building' | 'room', lang: Lang, d
       geo: b.latitude !== null && b.longitude !== null ? { '@type': 'GeoCoordinates', latitude: b.latitude, longitude: b.longitude } : undefined,
     });
   }
-  if (kind === 'room' && data) {
+  if ((kind === 'room' || kind === 'type') && data) {
     const r = data as RoomData;
     return clean({
-      '@context': 'https://schema.org', '@type': 'Accommodation', name: r.name, description: r.description, url: `${base}/${lang}/rooms/${r.id}`,
+      '@context': 'https://schema.org', '@type': 'Accommodation', name: r.name, description: r.description, url: `${base}/${lang}/${kind === 'type' ? 'types' : 'rooms'}/${r.id}`,
       image: images(r.images),
       floorSize: r.areaSqm ? { '@type': 'QuantitativeValue', value: r.areaSqm, unitCode: 'MTK' } : undefined,
       occupancy: r.maxGuests ? { '@type': 'QuantitativeValue', maxValue: r.maxGuests } : undefined,
       numberOfBedrooms: r.beds,
       containedInPlace: building ? { '@type': 'ApartmentComplex', name: building.name, url: `${base}/${lang}/buildings/${building.id}` } : undefined,
-      offers: r.monthlyPrice > 0 ? { '@type': 'Offer', price: r.monthlyPrice, priceCurrency: 'VND', url: `${base}/${lang}/rooms/${r.id}` } : undefined,
+      offers: r.monthlyPrice > 0 ? { '@type': 'Offer', price: r.monthlyPrice, priceCurrency: 'VND', url: `${base}/${lang}/${kind === 'type' ? 'types' : 'rooms'}/${r.id}` } : undefined,
     });
   }
   return null;

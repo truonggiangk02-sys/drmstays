@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react';
 
 type Lang = 'vi' | 'en';
 
-export function CatalogContactForm({ lang, roomId, checkIn, checkOut }: { lang: Lang; roomId: string; checkIn?: string; checkOut?: string }) {
+export function CatalogContactForm({ lang, roomId = '', typeId = '', checkIn, checkOut }: { lang: Lang; roomId?: string; typeId?: string; checkIn?: string; checkOut?: string }) {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<{ kind: 'error' | 'success'; text: string } | null>(null);
   const t = lang === 'vi' ? {
@@ -51,7 +51,7 @@ export function CatalogContactForm({ lang, roomId, checkIn, checkOut }: { lang: 
   if (message?.kind === 'success') return <p className="structure-form-feedback is-success" role="status">{message.text}</p>;
 
   return <form className="structure-form" action="/api/catalog-inquiries" method="post" onSubmit={submit} aria-busy={pending}>
-    <input type="hidden" name="sourceRoomId" value={roomId} /><input type="hidden" name="lang" value={lang} />
+    <input type="hidden" name="sourceRoomId" value={roomId} />{typeId && <input type="hidden" name="sourceTypeId" value={typeId} />}<input type="hidden" name="lang" value={lang} />
     <label>{t.name}<input name="name" required maxLength={100} autoComplete="name" /></label>
     <label>{t.phone}<input name="phone" type="tel" required maxLength={24} autoComplete="tel" /></label>
     <label>{t.email}<input name="email" type="email" maxLength={254} autoComplete="email" /></label>

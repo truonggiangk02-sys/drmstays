@@ -33,13 +33,14 @@ export async function POST(request: NextRequest) {
   }
 
   const lang = form.get('lang') === 'vi' ? 'vi' : form.get('lang') === 'en' ? 'en' : null;
-  const destination = (roomId: string) => lang ? `/${lang}/${roomId ? `rooms/${roomId}` : 'contact'}?sent=1` : '/thanks';
+  const destination = (roomId: string, typeId = '') => lang ? `/${lang}/${typeId ? `types/${typeId}` : roomId ? `rooms/${roomId}` : 'contact'}?sent=1` : '/thanks';
   if (form.get('website')) return NextResponse.redirect(new URL(destination(''), request.url), 303);
   const text = (key: string, max: number) =>
     String(form.get(key) || '')
       .trim()
       .slice(0, max);
   const sourceRoomId = text('sourceRoomId', 36);
+  const sourceTypeId = text('sourceTypeId', 36);
   const name = text('name', 100),
     phone = text('phone', 24),
     email = text('email', 254),
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
     checkOut = text('checkOut', 10);
   if (
     (sourceRoomId !== '' && !/^[0-9a-f-]{36}$/i.test(sourceRoomId)) ||
+    (sourceTypeId !== '' && !/^[0-9a-f-]{36}$/i.test(sourceTypeId)) ||
     !name ||
     !/^\+?[\d\s().-]{8,24}$/.test(phone) ||
     (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
@@ -57,19 +59,28 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Please check your contact details', { status: 400 });
 
   let roomName = '';
+  let typeName = '';
   let buildingName = '';
-  if (sourceRoomId) {
+  if (sourceRoomId || sourceTypeId) {
     let catalog;
     try {
       catalog = await getPublicCatalog();
     } catch {
       return new NextResponse('Contact form unavailable', { status: 503 });
     }
-    const building = catalog.buildings.find((item) => item.rooms.some((room) => room.id === sourceRoomId));
-    const room = building?.rooms.find((item) => item.id === sourceRoomId);
-    if (!building || !room) return new NextResponse('Room unavailable', { status: 404 });
-    roomName = room.name;
-    buildingName = building.name;
+    if (sourceTypeId) {
+      const building = catalog.buildings.find((item) => (item.types || []).some((type) => type.id === sourceTypeId));
+      const type = building?.types.find((item) => item.id === sourceTypeId);
+      if (!building || !type) return new NextResponse('Room type unavailable', { status: 404 });
+      typeName = type.name;
+      buildingName = building.name;
+    } else {
+      const building = catalog.buildings.find((item) => item.rooms.some((room) => room.id === sourceRoomId));
+      const room = building?.rooms.find((item) => item.id === sourceRoomId);
+      if (!building || !room) return new NextResponse('Room unavailable', { status: 404 });
+      roomName = room.name;
+      buildingName = building.name;
+    }
   }
 
   const phoneDigits = phone.replace(/\D/g, '');
@@ -79,9 +90,9 @@ export async function POST(request: NextRequest) {
   const alert = telegramConfigured();
   const id = crypto.randomUUID();
   await env.DB.prepare(
-    "INSERT INTO catalog_inquiries (id, source_room_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?)",
+    "INSERT INTO catalog_inquiries (id, source_room_id, source_type_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', ?, ?)",
   )
-    .bind(id, sourceRoomId, name, phone, email, checkIn, checkOut, message, alert ? 'pending' : 'not_applicable', new Date().toISOString())
+    .bind(id, sourceRoomId, sourceTypeId, name, phone, email, checkIn, checkOut, message, alert ? 'pending' : 'not_applicable', new Date().toISOString())
     .run();
 
   // Saved first: an alert failure is recorded for the admin but must not fail the visitor's request.
@@ -89,7 +100,7 @@ export async function POST(request: NextRequest) {
     let status = 'sent';
     try {
       await sendTelegram(
-        `New DRM Stays inquiry\n\n${roomName ? `Room: ${roomName}\nBuilding: ${buildingName}\n` : ''}${checkIn ? `Dates: ${checkIn} to ${checkOut}\n` : ''}Name: ${name}\nPhone: ${phone}${email ? `\nEmail: ${email}` : ''}${message ? `\nMessage: ${message}` : ''}\n\nOpen the admin to follow up.`,
+        `New DRM Stays inquiry\n\n${roomName ? `Room: ${roomName}\nBuilding: ${buildingName}\n` : ''}${typeName ? `Room type: ${typeName}\nBuilding: ${buildingName}\n` : ''}${checkIn ? `Dates: ${checkIn} to ${checkOut}\n` : ''}Name: ${name}\nPhone: ${phone}${email ? `\nEmail: ${email}` : ''}${message ? `\nMessage: ${message}` : ''}\n\nOpen the admin to follow up.`,
       );
     } catch (error) {
       console.error('Telegram alert failed', error instanceof Error ? error.name : 'unknown error');
@@ -101,5 +112,5 @@ export async function POST(request: NextRequest) {
       console.error('Inquiry telegram status update failed');
     }
   }
-  return NextResponse.redirect(new URL(destination(sourceRoomId), request.url), 303);
+  return NextResponse.redirect(new URL(destination(sourceRoomId, sourceTypeId), request.url), 303);
 }

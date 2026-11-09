@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       for (const building of catalog.buildings) {
         paths.push(`/buildings/${building.id}`);
         for (const room of building.rooms) paths.push(`/rooms/${room.id}`);
+        for (const type of building.types) paths.push(`/types/${type.id}`);
       }
     } catch { /* The catalog source is down: still list the static pages. */ }
     try {
