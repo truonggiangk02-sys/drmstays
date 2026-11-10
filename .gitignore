@@ -52,3 +52,6 @@ next-env.d.ts
 
 # local Cloudflare variables (may hold secrets)
 .dev.vars*
+
+# SEO audit output (local only)
+drmstays.vn-audit/
