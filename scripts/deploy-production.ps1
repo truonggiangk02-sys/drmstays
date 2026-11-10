@@ -17,6 +17,7 @@ $env:SITE_URL = 'https://drmstays.vn'
 $env:CUSTOM_DOMAINS = 'drmstays.vn,www.drmstays.vn'
 $env:REDIRECT_HOSTS = 'www.drmstays.vn'
 Remove-Item Env:PREVIEW_DEMO -ErrorAction SilentlyContinue
+Remove-Item Env:STAGING -ErrorAction SilentlyContinue
 # The public site shows a "coming soon" page until you deploy with -Live (admin and APIs keep working).
 if ($Live) { Remove-Item Env:COMING_SOON -ErrorAction SilentlyContinue } else { $env:COMING_SOON = '1' }
 

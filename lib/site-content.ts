@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { catalogImageUrl } from './image-url';
 
 export const contentSections = ['about', 'services', 'partners', 'journal', 'faq'] as const;
 export type ContentSection = typeof contentSections[number];
@@ -6,16 +7,16 @@ export type ContentItem = {
   id: string; section: ContentSection; title_vi: string; title_en: string;
   body_vi: string; body_en: string; published: number; deleted: number; position: number;
 };
-export type ContentImage = { id: string; url: string; alt: string };
+export type ContentImage = { id: string; url: string; alt: string; width?: number; height?: number };
 
 export async function getContentImages(items: ContentItem[]): Promise<Record<string, ContentImage[]>> {
   if (!env.DB || !items.length) return {};
   const ids = new Set(items.map(item => item.id));
-  const result = await env.DB.prepare("SELECT id, owner_id, alt FROM catalog_images WHERE owner_type = 'content' AND category = 'photo' ORDER BY position, id").all<{ id: string; owner_id: string; alt: string }>();
+  const result = await env.DB.prepare("SELECT id, owner_id, alt, width, height FROM catalog_images WHERE owner_type = 'content' AND category = 'photo' ORDER BY position, id").all<{ id: string; owner_id: string; alt: string; width: number | null; height: number | null }>();
   const images: Record<string, ContentImage[]> = {};
   for (const row of result.results || []) {
     if (!ids.has(row.owner_id)) continue;
-    (images[row.owner_id] ||= []).push({ id: row.id, url: `/api/catalog-images/${row.id}`, alt: row.alt });
+    (images[row.owner_id] ||= []).push({ id: row.id, url: catalogImageUrl(row.id), alt: row.alt, ...(row.width && row.height ? { width: row.width, height: row.height } : {}) });
   }
   return images;
 }

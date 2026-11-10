@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { policies, policySections } from "@/lib/policies";
-import { structuredData } from "@/lib/structured-data";
+import { breadcrumbData, structuredData } from "@/lib/structured-data";
 import { jsonLd } from "@/lib/site";
 import { resetEnvBeforeEach, setEnv } from "./helpers/env";
 
@@ -56,5 +56,25 @@ describe("structuredData", () => {
 
   it("can never close the script tag it is embedded in", () => {
     expect(jsonLd({ name: "</script><script>alert(1)</script>" })).not.toContain("</script>");
+  });
+});
+
+describe("breadcrumbData", () => {
+  const trail = [{ name: "Home", path: "/vi" }, { name: "Stays", path: "/vi/stays" }, { name: "AnLiu", path: "/vi/buildings/b1" }];
+  it("needs SITE_URL because every item must be an absolute address", () => {
+    setEnv({});
+    expect(breadcrumbData(trail)).toBeNull();
+  });
+  it("numbers the trail from the home page and uses absolute addresses", () => {
+    setEnv({ SITE_URL: "https://drmstays.vn" });
+    const ld = breadcrumbData(trail) as Json;
+    expect(ld["@type"]).toBe("BreadcrumbList");
+    expect(ld.itemListElement.map((item: Json) => [item.position, item.name, item.item])).toEqual([
+      [1, "Home", "https://drmstays.vn/vi"], [2, "Stays", "https://drmstays.vn/vi/stays"], [3, "AnLiu", "https://drmstays.vn/vi/buildings/b1"],
+    ]);
+  });
+  it("is null for an empty trail", () => {
+    setEnv({ SITE_URL: "https://drmstays.vn" });
+    expect(breadcrumbData([])).toBeNull();
   });
 });

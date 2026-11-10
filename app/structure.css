@@ -27,3 +27,6 @@
 .structure-room-chips li{display:inline-flex;align-items:baseline;gap:8px;padding:8px 14px;border:1px solid #cdd9cf;background:#fff;font-size:14px}
 .structure-room-chips li small,.structure-room-chips li span{font-size:12px;color:#4f6054}
 .structure-room-chips li.is-available{border-color:#2f8f5b;background:#eef7f1}.structure-room-chips li.is-unavailable{border-color:#e3c2bb;background:#fbf1ee;color:#7f382c}
+
+/* <img> carries width/height so the page reserves its space; let the height follow the width unless a rule above sets it. */
+:where(.structure-site img[width][height]){height:auto}

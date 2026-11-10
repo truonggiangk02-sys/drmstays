@@ -12,6 +12,28 @@ export function siteUrl(): string | null {
   try { return raw ? new URL(raw).origin : null; } catch { return null; }
 }
 
+type IndexingVars = { SITE_URL?: string; STAGING?: string; PREVIEW_DEMO?: string; COMING_SOON?: string };
+
+/**
+ * Whether search engines may index responses served on `host`. Only the production address (the host of SITE_URL) is
+ * indexable. Staging (STAGING=1), demo/coming-soon builds, *.workers.dev addresses, localhost and any other host that
+ * reaches the Worker (a second domain, an old address) are all kept out, so one copy of the content is ever visible.
+ */
+export function indexingAllowed(host: string | null | undefined, vars: IndexingVars): boolean {
+  if (vars.PREVIEW_DEMO === "1" || vars.COMING_SOON === "1" || vars.STAGING === "1") return false;
+  const name = String(host || "").trim().toLowerCase().replace(/:\d+$/, "").replace(/^\[|\]$/g, "");
+  if (!name || name === "localhost" || name === "127.0.0.1" || name === "::1") return false;
+  if (name.endsWith(".workers.dev") || name.endsWith(".pages.dev")) return false;
+  let canonical = "";
+  try { canonical = vars.SITE_URL ? new URL(vars.SITE_URL).hostname.toLowerCase() : ""; } catch { /* an invalid SITE_URL counts as unset */ }
+  return !canonical || name === canonical;
+}
+
+/** `indexingAllowed` with the Worker's own variables. */
+export function isIndexable(host: string | null | undefined): boolean {
+  return indexingAllowed(host, env as IndexingVars);
+}
+
 /** Serialises JSON-LD for an inline script tag; "<" is escaped so data can never close the tag. */
 export function jsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");

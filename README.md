@@ -44,7 +44,8 @@ Chế độ xem thử không cần Staydesk: đặt `PREVIEW_DEMO=1`. Nó hiển
 | `STAYDESK_CATALOG_SECRET` | secret | Có (trừ demo) | Phải khớp `PUBLIC_CATALOG_SECRET` bên Staydesk, tối thiểu 32 ký tự. |
 | `STAYDESK_CATALOG_URL` | biến | Nên đặt | Địa chỉ HTTPS của Staydesk. Mặc định trong code là `https://staydesk-nine.vercel.app`. |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | secret | Khuyến nghị | Nhận thông báo yêu cầu mới. Thiếu thì yêu cầu vẫn được lưu nhưng không có thông báo (admin hiện "No Telegram alert"). |
-| `SITE_URL` | biến | Khuyến nghị | Origin công khai, ví dụ `https://tên-miền` (không có `/` cuối). Dùng cho canonical, hreflang, Open Graph. Thiếu thì các thẻ đó bị bỏ; `robots.txt` và `sitemap.xml` dùng origin của request. |
+| `SITE_URL` | biến | **Bắt buộc** khi deploy | Origin công khai, ví dụ `https://tên-miền` (https, không có đường dẫn, không có `/` cuối). Dùng cho canonical, hreflang, `og:image`, JSON-LD, sitemap. Thiếu thì các thẻ đó bị bỏ; `scripts/deploy-config.mjs` từ chối deploy nếu thiếu (đặt `ALLOW_MISSING_SITE_URL=1` để bỏ qua có chủ đích) và Worker ghi cảnh báo vào log. Chỉ host của `SITE_URL` được phép lập chỉ mục (xem `STAGING`). |
+| `STAGING` | biến | Staging: đặt `1` | Đánh dấu bản staging: mọi phản hồi có `X-Robots-Tag: noindex, nofollow`, mọi trang có `<meta name="robots" content="noindex, nofollow">`, `robots.txt` là `Disallow: /`. Địa chỉ `*.workers.dev`, localhost và mọi host khác `SITE_URL` cũng tự bị noindex. **Không** đặt ở production. |
 | `HERE_API_KEY` | secret | Không | Tính thời gian đi xe máy trên bản đồ. Cần tọa độ tòa chính xác. |
 | `OPENAI_API_KEY` | secret | Không | Dịch nội dung CMS Việt → Anh (chỉ admin kích hoạt, `store: false`). |
 | `PREVIEW_DEMO` | biến | Không | Xem mục trên. |
@@ -53,7 +54,7 @@ Khai báo kiểu ở `cloudflare-env.d.ts`. **Local:** `pnpm start` đọc biế
 
 ## Database và migration
 
-Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0012`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
+Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0014`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
 
 Chạy trên D1 local (sau `pnpm build`):
 
@@ -71,7 +72,7 @@ Bảng `inquiry_rate_limits` được dọn ngay trong request (xác suất nh�
 
 ## Route chính
 
-Trang công khai: `/vi/...` và `/en/...` (trang chủ, `stays`, `buildings/[id]`, `rooms/[id]`, `services`, `partners`, `about`, `journal`, `faq`, `contact`). `/` chuyển hướng tới `/vi`. Mỗi trang có metadata riêng; canonical và hreflang chỉ xuất khi có `SITE_URL`. `robots.txt` và `sitemap.xml` do route handler sinh ra (sitemap liệt kê từng trang theo cả hai ngôn ngữ).
+Trang công khai: `/vi/...` và `/en/...` (trang chủ, `stays`, `buildings/[id]`, `rooms/[id]`, `services`, `partners`, `about`, `journal`, `faq`, `contact`). `/` chuyển hướng vĩnh viễn (308) tới `/vi`. Mỗi trang có metadata riêng; canonical và hreflang chỉ xuất khi có `SITE_URL`. `robots.txt` và `sitemap.xml` do route handler sinh ra (sitemap liệt kê từng trang theo cả hai ngôn ngữ).
 
 API công khai:
 
@@ -79,7 +80,8 @@ API công khai:
 | --- | --- |
 | `POST /api/catalog-inquiries` | Form liên hệ/tư vấn. Kiểm tra origin, honeypot `website`, giới hạn 10/giờ/IP và 5/giờ/số điện thoại, body tối đa 10 KB, ngày theo giờ Việt Nam (tối đa 365 đêm). Lưu D1, báo Telegram, redirect `303`. |
 | `POST /api/partner-inquiries` | Form chủ tòa/đối tác. Cùng cơ chế bảo vệ như trên. |
-| `GET /api/catalog-images/[id]` | Ảnh từ R2; ảnh của mục chưa publish chỉ admin xem được. |
+| `GET /media/catalog/[id]` | Ảnh từ R2 (nằm ngoài `/api/` để `robots.txt` không chặn Google đọc ảnh). Cache dài + ETag; ảnh của mục chưa publish chỉ admin xem được. |
+| `GET /api/catalog-images/[id]` | Địa chỉ cũ: chuyển hướng 301 sang `/media/catalog/[id]`. |
 | `GET /api/travel-time` | Thời gian đi xe máy (HERE), cache 24 giờ trong D1. |
 
 API admin (cần cookie đăng nhập và `Origin` cùng site, nếu không `403`; đều là `POST`): `login`, `logout`, `catalog`, `catalog-images`, `catalog-inquiries`, `partner-inquiries`, `content`, `locations`, `contact-channels`.

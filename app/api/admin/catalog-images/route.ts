@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
+import { imageSize } from '@/lib/image-size';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { getEditableContent, contentSections, sampleContent, type ContentSection } from '@/lib/site-content';
 
@@ -28,6 +29,7 @@ async function storeImage(file: File, kind: string, sourceId: string, category: 
         ? bytes.slice(0, 4).join() === '137,80,78,71'
         : bytes.slice(0, 4).join() === '82,73,70,70' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
   if (!valid) return 'not a valid image file';
+  const size = imageSize(bytes);
   const id = crypto.randomUUID();
   const objectKey = `catalog/${kind}/${sourceId}/${id}`;
   const count = await env.DB!.prepare('SELECT COUNT(*) AS total FROM catalog_images WHERE owner_type = ? AND owner_id = ?')
@@ -37,9 +39,9 @@ async function storeImage(file: File, kind: string, sourceId: string, category: 
   await env.BUCKET!.put(objectKey, bytes, { httpMetadata: { contentType: file.type } });
   try {
     await env.DB!.prepare(
-      'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO catalog_images (id, owner_type, owner_id, object_key, mime, alt, position, category, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     )
-      .bind(id, kind, sourceId, objectKey, file.type, alt, count?.total || 0, category)
+      .bind(id, kind, sourceId, objectKey, file.type, alt, count?.total || 0, category, size?.width ?? null, size?.height ?? null)
       .run();
   } catch (error) {
     await env.BUCKET!.delete(objectKey);

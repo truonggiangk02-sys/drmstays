@@ -23,7 +23,7 @@ export STAYDESK_CATALOG_URL=https://staydesk-nine.vercel.app SITE_URL=https://dr
 # Only domains already Active in this Cloudflare account can be attached. When drmstays.com is added there,
 # append ",drmstays.com,www.drmstays.com" to both lines.
 export CUSTOM_DOMAINS=drmstays.vn,www.drmstays.vn REDIRECT_HOSTS=www.drmstays.vn
-unset PREVIEW_DEMO
+unset PREVIEW_DEMO STAGING
 # The public site shows a "coming soon" page until you deploy with --live (admin and APIs keep working).
 if [ "$LIVE" = 1 ]; then unset COMING_SOON; else export COMING_SOON=1; fi
 

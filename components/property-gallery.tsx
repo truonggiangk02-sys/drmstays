@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { imgSize, LOGO_SIZE } from '@/lib/image-url';
 
-type Photo = { id: string; url: string; alt: string };
+type Photo = { id: string; url: string; alt: string; width?: number; height?: number };
 
 export function PropertyGallery({ photos, name, lang, variant }: { photos: Photo[]; name: string; lang: 'vi' | 'en'; variant: 'building' | 'room' }) {
   const [active, setActive] = useState(0);
@@ -14,7 +15,7 @@ export function PropertyGallery({ photos, name, lang, variant }: { photos: Photo
 
   return <div className={`structure-property-gallery is-${variant}`} role="group" aria-label={`${name} — ${labels.photo.toLowerCase()}`}>
     <div className="structure-gallery-main">
-      <img src={images[index].url} alt={images[index].alt || name} />
+      <img src={images[index].url} alt={images[index].alt || name} {...(images[index].id === 'fallback' ? LOGO_SIZE : imgSize(images[index]))} />
       {images.length > 1 && <div className="structure-gallery-controls">
         <button type="button" aria-label={labels.previous} onClick={() => setActive((index - 1 + images.length) % images.length)}>‹</button>
         <span aria-live="polite">{index + 1} / {images.length}</span>
@@ -22,7 +23,7 @@ export function PropertyGallery({ photos, name, lang, variant }: { photos: Photo
       </div>}
     </div>
     {images.length > 1 && <div className="structure-gallery-thumbnails" role="group" aria-label={`${labels.photo} — ${name}`}>
-      {images.map((image, photoIndex) => <button key={image.id} type="button" aria-label={`${labels.choose} ${photoIndex + 1}: ${image.alt || name}`} aria-pressed={photoIndex === index} onClick={() => setActive(photoIndex)}><img src={image.url} alt="" loading="lazy" /></button>)}
+      {images.map((image, photoIndex) => <button key={image.id} type="button" aria-label={`${labels.choose} ${photoIndex + 1}: ${image.alt || name}`} aria-pressed={photoIndex === index} onClick={() => setActive(photoIndex)}><img src={image.url} alt="" loading="lazy" {...(image.id === 'fallback' ? LOGO_SIZE : imgSize(image))} /></button>)}
     </div>}
   </div>;
 }

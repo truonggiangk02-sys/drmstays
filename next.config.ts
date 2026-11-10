@@ -25,6 +25,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // By default only a few crawlers get <title>, meta description, canonical and og:* in the first <head>; everyone else gets
+  // them streamed into <body>. Match every client that sends a User-Agent so the tags are always in <head>.
+  htmlLimitedBots: /./,
   async headers() {
     // Skip in dev: the Vite dev server needs eval and websockets that this CSP forbids.
     if (process.env.NODE_ENV !== "production") return [];

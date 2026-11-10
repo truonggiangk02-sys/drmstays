@@ -1,5 +1,6 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
+// The language never depends on the browser (no Accept-Language logic), so this is a permanent move (308).
 export default function Home() {
-  redirect("/vi");
+  permanentRedirect("/vi");
 }

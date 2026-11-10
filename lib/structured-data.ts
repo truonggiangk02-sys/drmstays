@@ -43,3 +43,14 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
   }
   return null;
 }
+
+/** BreadcrumbList for a page: `items` run from the home page down to the page itself; `path` is the site path (e.g. `/vi/stays`). Null without SITE_URL. */
+export function breadcrumbData(items: Array<{ name: string; path: string }>): object | null {
+  const base = siteUrl();
+  if (!base || !items.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: `${base}${item.path}` })),
+  };
+}

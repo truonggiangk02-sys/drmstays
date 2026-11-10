@@ -153,11 +153,25 @@ D1_DATABASE_ID=<database_id> SITE_URL=https://<tên-miền> STAYDESK_CATALOG_URL
 
 Biến tùy chọn: `WORKER_NAME` (mặc định `drmstays`), `D1_DATABASE_NAME` (mặc định `drmstays-db`), `R2_BUCKET_NAME` (mặc định `drmstays-media`).
 
-`SITE_URL` và `STAYDESK_CATALOG_URL` không phải bí mật nên được ghi thẳng vào cấu hình. Mọi giá trị bí mật ở bước 5.
+`SITE_URL` là **bắt buộc** (https, chỉ là địa chỉ, không có đường dẫn): thiếu nó thì `pnpm deploy:config` dừng lại, vì site sẽ mất canonical, hreflang, `og:image` và JSON-LD. Lệnh in ra dòng cuối cho biết công cụ tìm kiếm có được lập chỉ mục site hay không; kiểm tra dòng đó trước khi deploy.
+
+Bản staging đặt thêm `STAGING=1` (và `SITE_URL` là địa chỉ `*.workers.dev` của nó) để luôn `noindex`. Production **không** đặt `STAGING`. Bộ biến theo từng môi trường:
+
+| Biến | Production | Staging |
+| --- | --- | --- |
+| `SITE_URL` | `https://drmstays.vn` | `https://drmstays-staging.truonggiangk02.workers.dev` |
+| `STAGING` | không đặt | `1` |
+| `COMING_SOON` | `1` cho tới khi mở site (`-Live`) | không đặt |
+| `PREVIEW_DEMO` | không đặt | không đặt (chỉ `1` cho bản dữ liệu mẫu) |
+| `CUSTOM_DOMAINS`, `REDIRECT_HOSTS` | `drmstays.vn,www.drmstays.vn` / `www.drmstays.vn` | không đặt |
+| `STAYDESK_CATALOG_URL` | địa chỉ Staydesk | địa chỉ Staydesk |
+| Secret: `ADMIN_PASSWORD`, `STAYDESK_CATALOG_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | có | có |
+
+`STAYDESK_CATALOG_URL` không phải bí mật nên được ghi thẳng vào cấu hình, cũng như `SITE_URL`. Mọi giá trị bí mật ở bước 5.
 
 ## 4. Áp migration lên database thật
 
-Database mới nên cần áp **toàn bộ** các file trong `drizzle/` (`0000` đến `0012`). Dùng lệnh migration của wrangler: nó ghi lại file nào đã chạy nên chạy lại không áp trùng.
+Database mới nên cần áp **toàn bộ** các file trong `drizzle/` (`0000` đến `0014`). Dùng lệnh migration của wrangler: nó ghi lại file nào đã chạy nên chạy lại không áp trùng.
 
 ```bash
 pnpm exec wrangler d1 migrations apply DB --remote --config dist/server/wrangler.deploy.json
