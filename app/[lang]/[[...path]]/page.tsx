@@ -159,7 +159,7 @@ function TypeRooms({ type, lang, dateQuery }: { type: RoomType; lang: Lang; date
 }
 function ContentCards({ items, lang, images }: { items: ContentItem[]; lang: Lang; images: Record<string, ContentImage[]> }) { return items.length ? <div className="structure-content-grid">{items.map(item => <article className="structure-content-card" key={item.id}>{images[item.id]?.[0] && <img className="structure-content-cover" src={images[item.id][0].url} alt={images[item.id][0].alt || contentTitle(item, lang)} {...imgSize(images[item.id][0])} />}<h2>{contentTitle(item, lang)}</h2><p>{contentBody(item, lang)}</p>{images[item.id]?.length > 1 && <div className="structure-content-gallery">{images[item.id].slice(1).map(image => <img key={image.id} src={image.url} alt={image.alt || contentTitle(item, lang)} {...imgSize(image)} />)}</div>}</article>)}</div> : <p>{copy[lang].empty}</p>; }
 
-async function catalog(checkIn: string | undefined, checkOut: string | undefined, lang: Lang) { try { return await getPublicCatalog(checkIn, checkOut, lang); } catch { return null; } }
+async function catalog(checkIn: string | undefined, checkOut: string | undefined, lang: Lang) { try { return await getPublicCatalog(checkIn, checkOut, lang); } catch (error) { console.error('Public catalog failed:', error instanceof Error ? `${error.name}: ${error.message}` : String(error)); return null; } }
 
 export default async function Page({ params, searchParams }: { params: Promise<{ lang: string; path?: string[] }>; searchParams: Promise<{ checkIn?: string; checkOut?: string; sent?: string }> }) {
   const { lang: input, path: segments = [] } = await params;
