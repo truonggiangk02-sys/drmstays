@@ -46,6 +46,7 @@ Chế độ xem thử không cần Staydesk: đặt `PREVIEW_DEMO=1`. Nó hiển
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | secret | Khuyến nghị | Nhận thông báo yêu cầu mới. Thiếu thì yêu cầu vẫn được lưu nhưng không có thông báo (admin hiện "No Telegram alert"). |
 | `SITE_URL` | biến | **Bắt buộc** khi deploy | Origin công khai, ví dụ `https://tên-miền` (https, không có đường dẫn, không có `/` cuối). Dùng cho canonical, hreflang, `og:image`, JSON-LD, sitemap. Thiếu thì các thẻ đó bị bỏ; `scripts/deploy-config.mjs` từ chối deploy nếu thiếu (đặt `ALLOW_MISSING_SITE_URL=1` để bỏ qua có chủ đích) và Worker ghi cảnh báo vào log. Chỉ host của `SITE_URL` được phép lập chỉ mục (xem `STAGING`). |
 | `STAGING` | biến | Staging: đặt `1` | Đánh dấu bản staging: mọi phản hồi có `X-Robots-Tag: noindex, nofollow`, mọi trang có `<meta name="robots" content="noindex, nofollow">`, `robots.txt` là `Disallow: /`. Địa chỉ `*.workers.dev`, localhost và mọi host khác `SITE_URL` cũng tự bị noindex. **Không** đặt ở production. |
+| `GA_MEASUREMENT_ID` | biến | Production: có | Mã đo lường Google Analytics 4 (dạng `G-XXXXXXXXXX`, không phải bí mật). Chỉ chạy trên website thật đã mở cho khách (`indexable`): không chạy ở staging, `COMING_SOON`, bản xem thử hay trang admin. Thiếu hoặc sai dạng thì không có gì chạy. |
 | `HERE_API_KEY` | secret | Không | Tính thời gian đi xe máy trên bản đồ. Cần tọa độ tòa chính xác. |
 | `OPENAI_API_KEY` | secret | Không | Dịch nội dung CMS Việt → Anh (chỉ admin kích hoạt, `store: false`). |
 | `PREVIEW_DEMO` | biến | Không | Xem mục trên. |

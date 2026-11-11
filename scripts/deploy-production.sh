@@ -20,6 +20,8 @@ done
 # Not secrets: names and ids only. The admin password, Staydesk secret and Telegram token are Cloudflare secrets.
 export D1_DATABASE_ID="$D1_ID" D1_DATABASE_NAME=drmstays-db WORKER_NAME=drmstays R2_BUCKET_NAME=drmstays-prod-media
 export STAYDESK_CATALOG_URL=https://staydesk-nine.vercel.app SITE_URL=https://drmstays.vn
+# Google Analytics (GA4) measurement ID: not a secret. It only runs once the site is live (never while COMING_SOON is set).
+export GA_MEASUREMENT_ID=G-Z2LGZVSCP5
 # Only domains already Active in this Cloudflare account can be attached. When drmstays.com is added there,
 # append ",drmstays.com,www.drmstays.com" to both lines.
 export CUSTOM_DOMAINS=drmstays.vn,www.drmstays.vn REDIRECT_HOSTS=www.drmstays.vn
