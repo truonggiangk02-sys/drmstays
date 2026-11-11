@@ -10,7 +10,7 @@ describe("migrations list", () => {
   });
   it("reports what the database has not applied yet", () => {
     const applied = EXPECTED_MIGRATIONS.slice(0, 13).map(name => `${name}.sql`);
-    expect(pendingMigrations(applied)).toEqual(["0013_room_types", "0014_seo_foundation"]);
+    expect(pendingMigrations(applied)).toEqual(["0013_room_types", "0014_seo_foundation", "0015_home_content"]);
     expect(pendingMigrations(EXPECTED_MIGRATIONS.map(name => `${name}.sql`))).toEqual([]);
   });
 });

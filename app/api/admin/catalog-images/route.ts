@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
 import { imageSize } from '@/lib/image-size';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
+import { HOME_SLOTS, isHomeSlot } from '@/lib/home-content';
 import { getEditableContent, contentSections, sampleContent, type ContentSection } from '@/lib/site-content';
 
 type ImageRow = {
@@ -18,7 +19,7 @@ const MAX_REQUEST_BYTES = 26_000_000; // a handful of photos per request; each o
 const MAX_PER_ITEM = 20;
 
 /** Validates and stores one image. Returns a short problem description, or null when it was saved. */
-async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string): Promise<string | null> {
+async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string, limit = MAX_PER_ITEM): Promise<string | null> {
   if (file.size > MAX_FILE_BYTES || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
     return 'use a JPG, PNG or WebP image under 5 MB';
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -35,7 +36,7 @@ async function storeImage(file: File, kind: string, sourceId: string, category: 
   const count = await env.DB!.prepare('SELECT COUNT(*) AS total FROM catalog_images WHERE owner_type = ? AND owner_id = ?')
     .bind(kind, sourceId)
     .first<{ total: number }>();
-  if ((count?.total || 0) >= MAX_PER_ITEM) return `maximum ${MAX_PER_ITEM} images per item`;
+  if ((count?.total || 0) >= limit) return `tối đa ${limit} ảnh cho mục này`;
   await env.BUCKET!.put(objectKey, bytes, { httpMetadata: { contentType: file.type } });
   try {
     await env.DB!.prepare(
@@ -62,11 +63,13 @@ export async function POST(request: NextRequest) {
   const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
   const kind = String(form.get('kind') || '');
   const sourceId = String(form.get('sourceId') || '');
-  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content'].includes(kind))
+  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+|home-[a-z]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content', 'home'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
   let exists = false;
   let parentId = sourceId;
-  if (kind === 'content') {
+  if (kind === 'home') {
+    exists = isHomeSlot(sourceId);
+  } else if (kind === 'content') {
     const sample = sampleContent.find(item => item.id === sourceId);
     const section = sample?.section || (await env.DB.prepare('SELECT section FROM site_content_items WHERE id = ? AND deleted = 0').bind(sourceId).first<{ section: string }>())?.section;
     if (section && contentSections.includes(section as ContentSection))
@@ -93,8 +96,14 @@ export async function POST(request: NextRequest) {
     const alt = String(form.get('alt') || '').trim().slice(0, 150);
     let uploaded = 0;
     const failed: string[] = [];
+    const limit = kind === 'home' && isHomeSlot(sourceId) ? HOME_SLOTS[sourceId].max : MAX_PER_ITEM;
+    if (kind === 'home' && limit === 1) {
+      // A single-photo area is replaced, not stacked: the previous photo goes away.
+      const old = await env.DB.prepare("SELECT id, object_key FROM catalog_images WHERE owner_type = 'home' AND owner_id = ?").bind(sourceId).all<{ id: string; object_key: string }>();
+      for (const row of old.results || []) { await env.DB.prepare('DELETE FROM catalog_images WHERE id = ?').bind(row.id).run(); await env.BUCKET.delete(row.object_key); }
+    }
     for (const file of files) {
-      const problem = await storeImage(file, kind, sourceId, category, alt);
+      const problem = await storeImage(file, kind, sourceId, category, alt, limit);
       if (problem) failed.push(`${file.name || 'image'}: ${problem}`); else uploaded += 1;
     }
     if (wantsJson) return NextResponse.json({ uploaded, failed }, { status: uploaded || !failed.length ? 200 : 400 });
@@ -132,6 +141,7 @@ export async function POST(request: NextRequest) {
       }
     }
   } else return new NextResponse('Invalid action', { status: 400 });
+  if (kind === 'home') return NextResponse.redirect(new URL(`/admin/home#${sourceId}`, request.url), 303);
   const returnTo = form.get('returnTo') === 'media' || kind === 'content' ? 'media' : 'catalog';
   const destination = new URL(`/admin/${returnTo}`, request.url);
   if (returnTo === 'media') { destination.searchParams.set('open', sourceId); destination.hash = `item-${sourceId}`; }

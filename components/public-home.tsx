@@ -1,5 +1,6 @@
 import { imgSize } from '@/lib/image-url';
 import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
+import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
 
@@ -14,50 +15,18 @@ type Building = {
   types?: Array<{ images: Photo[]; priceFrom: number; rooms: unknown[] }>;
 };
 
-const text = {
-  vi: {
-    hero: 'Một nơi ở vừa vặn với nhịp sống của bạn.',
-    heroLead: 'Khám phá những căn hộ dịch vụ tại Đà Nẵng. Xem từng tòa, từng phòng và liên hệ trực tiếp khi bạn tìm thấy nơi phù hợp.',
-    explore: 'Khám phá tòa nhà & phòng',
-    introLabel: 'Cách chúng tôi giới thiệu nơi ở',
-    introTitle: 'Xem rõ không gian trước khi quyết định.',
-    introBody: 'DRM Stays giúp bạn xem hình ảnh, trang bị và thông tin thuê của từng phòng trong cùng một nơi. Khi cần thêm chi tiết, đội ngũ sẽ kiểm tra và tư vấn trực tiếp.',
-    detailOne: 'Xem từng phòng', detailOneBody: 'Ảnh, diện tích, vật dụng và tiện ích được trình bày theo từng loại phòng.',
-    detailTwo: 'Tìm theo tòa', detailTwoBody: 'So sánh khu vực, vị trí tham khảo và các lựa chọn trong cùng một tòa nhà.',
-    detailThree: 'Hỏi trước khi thuê', detailThreeBody: 'Gửi ngày dự kiến và nhu cầu của bạn để được xác nhận tình trạng phòng.',
-    collection: 'Những tòa nhà đang giới thiệu', collectionLead: 'Từ không gian đến khu vực xung quanh, bắt đầu tìm nơi ở phù hợp với bạn.',
-    view: 'Xem tòa nhà', from: 'Từ', month: 'tháng', rooms: 'loại phòng',
-    gallery: 'Một cái nhìn gần hơn', galleryLead: 'Khám phá hình ảnh không gian và từng phòng trước khi liên hệ.',
-    journalLabel: 'DRM STAYS / CẨM NANG', journalTitle: 'Cẩm nang lưu trú', journalLead: 'Những điều nên biết trước khi chọn phòng và sắp xếp buổi xem thực tế.', journalAll: 'Xem tất cả bài viết', journalRead: 'Đọc bài viết',
-    contactTitle: 'Bắt đầu từ một cuộc trò chuyện.', contactBody: 'Cho chúng tôi biết bạn muốn ở khu vực nào, thời gian dự kiến và kiểu phòng phù hợp. Đội ngũ sẽ liên hệ để xác nhận thông tin thực tế.', contact: 'Gửi yêu cầu tư vấn',
-  },
-  en: {
-    hero: 'A place that fits the way you live.',
-    heroLead: 'Explore serviced apartments in Da Nang. See every building and room, then contact us directly when you find the right fit.',
-    explore: 'Explore buildings & rooms',
-    introLabel: 'How we present each stay',
-    introTitle: 'See the space before you decide.',
-    introBody: 'DRM Stays brings each room’s photos, equipment and rental details together. When you need more information, our team will check and help you directly.',
-    detailOne: 'Explore each room', detailOneBody: 'Photos, size, furniture and amenities are shown for each room type.',
-    detailTwo: 'Browse by building', detailTwoBody: 'Compare neighborhoods, approximate locations and options within each building.',
-    detailThree: 'Ask before you rent', detailThreeBody: 'Share your preferred dates and needs so our team can confirm availability.',
-    collection: 'Buildings to explore', collectionLead: 'From the interior to the neighborhood, start finding a stay that fits.',
-    view: 'View building', from: 'From', month: 'month', rooms: 'room types',
-    gallery: 'A closer look', galleryLead: 'Explore the spaces and individual rooms before getting in touch.',
-    journalLabel: 'DRM STAYS / JOURNAL', journalTitle: 'The stay journal', journalLead: 'Useful details to consider before choosing a room and arranging a viewing.', journalAll: 'View all articles', journalRead: 'Read article',
-    contactTitle: 'Start with a conversation.', contactBody: 'Tell us your preferred area, dates and room type. Our team will contact you to confirm the details.', contact: 'Send an inquiry',
-  },
-} as const;
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 const displayName = (name: string) => name.toLowerCase().replace(/\s+/g, '') === 'doraemonland' ? 'Doraemon Land' : name;
 
-export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[] }) {
-  const t = text[lang];
+export function PublicHome({ lang, buildings, journal, home }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent }) {
+  const t = home.text;
   const photos = [...new Map(buildings.flatMap(buildingPhotos).map(photo => [photo.url, photo])).values()];
-  const heroPhoto = photos[0];
-  const introPhoto = photos[2] || photos[1] || heroPhoto;
-  const galleryPhotos = photos.slice(1, 5);
+  // The owner's own home page photos win; otherwise photos of the buildings are used.
+  const heroPhoto = home.images['home-hero'][0] || photos[0];
+  const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
+  const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
+  const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
@@ -95,6 +64,6 @@ export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; bu
 
     {journal.length > 0 && <section className="editorial-journal structure-section" aria-labelledby="editorial-journal-title"><div className="editorial-section-head"><div><span className="editorial-section-label">{t.journalLabel}</span><h2 id="editorial-journal-title">{t.journalTitle}</h2></div><p>{t.journalLead}</p></div><div className="editorial-journal-grid">{journal.slice(0, 3).map((item, index) => <Link key={item.id} href={`/${lang}/journal/${item.id}`} className="editorial-journal-card"><span>{String(index + 1).padStart(2, '0')} / {t.journalTitle}</span><h3>{lang === 'vi' ? item.title_vi : item.title_en}</h3><p>{lang === 'vi' ? item.body_vi : item.body_en}</p><strong>{t.journalRead} <span aria-hidden="true">↗</span></strong></Link>)}</div><Link className="editorial-text-link" href={`/${lang}/journal`}>{t.journalAll}<span aria-hidden="true">↗</span></Link></section>}
 
-    <section className="editorial-contact"><div><span className="editorial-section-label">DRM STAYS / CONTACT</span><h2>{t.contactTitle}</h2><p>{t.contactBody}</p><Link className="editorial-primary-link" href={`/${lang}/contact`}>{t.contact}<span aria-hidden="true">↗</span></Link></div>{photos[2] && <img src={photos[2].url} alt={photos[2].alt || 'DRM Stays apartment'} loading="lazy" {...imgSize(photos[2])} />}</section>
+    <section className="editorial-contact"><div><span className="editorial-section-label">DRM STAYS / CONTACT</span><h2>{t.contactTitle}</h2><p>{t.contactBody}</p><Link className="editorial-primary-link" href={`/${lang}/contact`}>{t.contact}<span aria-hidden="true">↗</span></Link></div>{contactPhoto && <img src={contactPhoto.url} alt={contactPhoto.alt || 'DRM Stays apartment'} loading="lazy" {...imgSize(contactPhoto)} />}</section>
   </div>;
 }
