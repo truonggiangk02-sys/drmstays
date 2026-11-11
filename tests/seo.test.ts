@@ -37,12 +37,18 @@ describe("structuredData", () => {
 
   it("lists the business phone, email and address on the home page", () => {
     setEnv({ SITE_URL: "https://drmstays.test" });
-    const org = (structuredData("home", "vi") as { "@graph": Json[] })["@graph"][0];
+    const org = (structuredData("home", "vi", undefined, undefined, { sameAs: ["https://www.facebook.com/profile.php?id=61589018612745"] }) as { "@graph": Json[] })["@graph"][0];
     expect(org.telephone).toBe("+84869900000");
     expect(org.email).toBe("drmstayshome@gmail.com");
     expect(org.sameAs).toEqual(["https://www.facebook.com/profile.php?id=61589018612745"]);
     expect(org.knowsLanguage).toEqual(["vi", "en", "ja", "ko", "zh", "ru"]);
     expect(org.address).toMatchObject({ "@type": "PostalAddress", streetAddress: "K234/29-31 Đỗ Bá", addressLocality: "Đà Nẵng", addressCountry: "VN" });
+  });
+
+  it("leaves sameAs out when there are no social profiles", () => {
+    setEnv({ SITE_URL: "https://drmstays.vn" });
+    const org = (structuredData("home", "vi") as { "@graph": Json[] })["@graph"][0];
+    expect(org).not.toHaveProperty("sameAs");
   });
 
   it("describes a building with an address, coordinates and absolute image URLs", () => {

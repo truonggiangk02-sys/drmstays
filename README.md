@@ -54,7 +54,7 @@ Khai báo kiểu ở `cloudflare-env.d.ts`. **Local:** `pnpm start` đọc biế
 
 ## Database và migration
 
-Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0014`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
+Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0015`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
 
 Chạy trên D1 local (sau `pnpm build`):
 

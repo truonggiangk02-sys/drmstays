@@ -10,7 +10,7 @@ const clean = <T extends Record<string, unknown>>(value: T): T =>
 const images = (photos: Photo[]) => photos.map(photo => absoluteUrl(photo.url)).filter((url): url is string => !!url).slice(0, 5);
 
 /** JSON-LD for the page, or null when the public origin (SITE_URL) is unknown: structured data needs absolute URLs. */
-export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData): object | null {
+export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData, extra: { sameAs?: string[] } = {}): object | null {
   const base = siteUrl();
   if (!base) return null;
   if (kind === 'home') return {
@@ -18,7 +18,7 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
     '@graph': [
       {
         '@type': 'LodgingBusiness', '@id': `${base}/#org`, name: SITE_NAME, url: base, logo: `${base}/drm-stay-logo.png`, image: `${base}/drm-stay-logo.png`,
-        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', sameAs: [CONTACT.facebook],
+        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', ...(extra.sameAs?.length ? { sameAs: extra.sameAs } : {}),
         description: lang === 'vi' ? 'Đơn vị tư vấn phát triển, thiết kế và vận hành bất động sản cho thuê tại Đà Nẵng.' : 'Consultancy for the development, design and operation of rental property in Da Nang.',
         knowsLanguage: ['vi', 'en', 'ja', 'ko', 'zh', 'ru'],
         address: { '@type': 'PostalAddress', streetAddress: CONTACT.street, addressLocality: CONTACT.city, addressRegion: CONTACT.district, addressCountry: 'VN' },

@@ -171,7 +171,7 @@ Bản staging đặt thêm `STAGING=1` (và `SITE_URL` là địa chỉ `*.worke
 
 ## 4. Áp migration lên database thật
 
-Database mới nên cần áp **toàn bộ** các file trong `drizzle/` (`0000` đến `0014`). Dùng lệnh migration của wrangler: nó ghi lại file nào đã chạy nên chạy lại không áp trùng.
+Database mới nên cần áp **toàn bộ** các file trong `drizzle/` (`0000` đến `0015`). Dùng lệnh migration của wrangler: nó ghi lại file nào đã chạy nên chạy lại không áp trùng.
 
 ```bash
 pnpm exec wrangler d1 migrations apply DB --remote --config dist/server/wrangler.deploy.json
