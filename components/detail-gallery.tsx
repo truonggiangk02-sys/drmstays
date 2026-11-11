@@ -36,7 +36,7 @@ export function DetailGallery({ photos, name, lang }: { photos: Photo[]; name: s
   }, [images.length]);
 
   return <div className={`dv-gallery has-${shown.length}`} role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
-    {shown.map((image, position) => <button key={image.id} type="button" className="dv-tile" aria-label={`${w.open} ${position + 1}`} onClick={() => open(position)}>
+    {shown.map((image, position) => <button key={image.id} type="button" className="dv-tile" style={{ '--i': position } as React.CSSProperties} aria-label={`${w.open} ${position + 1}`} onClick={() => open(position)}>
       <img src={image.url} alt={image.alt || name} loading={position === 0 ? 'eager' : 'lazy'} {...size(image)} />
     </button>)}
     {images.length > 1 && <button type="button" className="dv-all" onClick={() => open(0)}>{w.all(images.length)}</button>}

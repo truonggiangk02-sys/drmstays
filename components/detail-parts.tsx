@@ -12,7 +12,7 @@ export function DetailBlock({ title, children }: { title: string; children: Reac
 export function FactRows({ rows }: { rows: Array<[string, string | number | undefined]> }) {
   const visible = rows.filter(([, value]) => value !== undefined && value !== '' && value !== 0);
   if (!visible.length) return null;
-  return <dl className="dv-facts">{visible.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;
+  return <dl className="dv-facts">{visible.map(([label, value], i) => <div key={label} style={{ '--i': i } as React.CSSProperties}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;
 }
 
 /** Amenities and furniture with a check mark each; long lists fold the rest behind "show more". */
@@ -20,7 +20,7 @@ export function FeatureGrid({ items, more }: { items: string[]; more: (count: nu
   if (!items.length) return null;
   // fold only a real tail: showing "3 more" is not worth an extra click
   const limit = items.length > 11 ? 9 : items.length, head = items.slice(0, limit), rest = items.slice(limit);
-  const list = (entries: string[]) => <ul className="dv-features">{entries.map(item => <li key={item}><Check /><span>{item}</span></li>)}</ul>;
+  const list = (entries: string[]) => <ul className="dv-features">{entries.map((item, i) => <li key={item} style={{ '--i': i } as React.CSSProperties}><Check /><span>{item}</span></li>)}</ul>;
   return <>{list(head)}{rest.length > 0 && <details className="dv-more"><summary>{more(rest.length)}</summary>{list(rest)}</details>}</>;
 }
 
@@ -28,5 +28,5 @@ export function FeatureGrid({ items, more }: { items: string[]; more: (count: nu
 export function RuleRows({ text }: { text: string }) {
   const rows = splitLines(text);
   if (!rows.length) return null;
-  return <ul className="dv-rules">{rows.map(row => <li key={row}><Dot /><span>{row}</span></li>)}</ul>;
+  return <ul className="dv-rules">{rows.map((row, i) => <li key={row} style={{ '--i': i } as React.CSSProperties}><Dot /><span>{row}</span></li>)}</ul>;
 }
