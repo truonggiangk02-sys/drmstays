@@ -12,6 +12,7 @@ import { DetailBlock, FactRows, FeatureGrid, RuleRows, StatTiles } from '@/compo
 import { Ico, type Accent, type IconName } from '@/components/detail-icons';
 import { ScrollReveal } from '@/components/scroll-reveal';
 import { PageTransition } from '@/components/page-transition';
+import { BuildingMap } from '@/components/building-map';
 import { EnquirySheet } from '@/components/enquiry-sheet';
 import { DateRangeSearch } from '@/components/date-range-search';
 import { CatalogContactForm } from '@/components/catalog-contact-form';
@@ -46,7 +47,7 @@ const copy = {
     partnerTitle: 'Dành cho chủ đầu tư', partnerProperty: 'Tòa nhà / khu vực', partnerSend: 'Gửi thông tin hợp tác',
     noBuildings: 'Chưa có tòa nhà được công khai.', noRooms: 'Chưa có phòng được công khai trong tòa này.', noResults: 'Danh sách hiện chưa sẵn sàng. Vui lòng thử lại sau.',
     demo: 'BẢN XEM TRƯỚC · Nội dung, ảnh và giá đang là mẫu. Lịch trống thật từ Staydesk chưa kết nối.',
-    roomTypes: 'Loại phòng', otherRooms: 'Phòng khác', fromPrice: 'Từ', roomsOfType: 'Phòng thuộc loại này', viewType: 'Xem loại phòng', roomsCount: 'phòng', roomsFree: 'phòng còn trống', noFreeRooms: 'Hết phòng theo ngày chọn', viewByFloor: 'Tầng', floorsUnit: 'tầng', openMap: 'Xem trên bản đồ', highlights: 'Điểm nổi bật', totalRooms: 'Tổng số phòng', roomTypesLabel: 'Loại phòng', priceHint: 'Giá thuê theo tháng', info: 'Thông tin chi tiết', showMore: 'Xem thêm', aboutBuilding: 'Về tòa nhà', home: 'Trang chủ',
+    locationTitle: 'Vị trí & bản đồ', roomTypes: 'Loại phòng', otherRooms: 'Phòng khác', fromPrice: 'Từ', roomsOfType: 'Phòng thuộc loại này', viewType: 'Xem loại phòng', roomsCount: 'phòng', roomsFree: 'phòng còn trống', noFreeRooms: 'Hết phòng theo ngày chọn', viewByFloor: 'Tầng', floorsUnit: 'tầng', openMap: 'Xem trên bản đồ', highlights: 'Điểm nổi bật', totalRooms: 'Tổng số phòng', roomTypesLabel: 'Loại phòng', priceHint: 'Giá thuê theo tháng', info: 'Thông tin chi tiết', showMore: 'Xem thêm', aboutBuilding: 'Về tòa nhà', home: 'Trang chủ',
     received: 'Đã nhận thông tin. Đội ngũ sẽ liên hệ lại.', empty: 'Nội dung đang được cập nhật.', backJournal: 'Về danh sách bài viết', selectedDates: 'Ngày bạn đang xem', dateSeparator: 'đến', changeDates: 'Đổi ngày',
   },
   en: {
@@ -60,7 +61,7 @@ const copy = {
     partnerTitle: 'For investors', partnerProperty: 'Building / area', partnerSend: 'Send partnership inquiry',
     noBuildings: 'No buildings have been published yet.', noRooms: 'No rooms have been published in this building yet.', noResults: 'The catalog is temporarily unavailable. Please try again later.',
     demo: 'PREVIEW · Content, photos and prices are samples. Live Staydesk availability is not connected.',
-    roomTypes: 'Room types', otherRooms: 'Other rooms', fromPrice: 'From', roomsOfType: 'Rooms of this type', viewType: 'View room type', roomsCount: 'rooms', roomsFree: 'rooms available', noFreeRooms: 'Fully booked for the selected dates', viewByFloor: 'Floor', floorsUnit: 'floors', openMap: 'Open in Maps', highlights: 'Highlights', totalRooms: 'Total rooms', roomTypesLabel: 'Room types', priceHint: 'Monthly rent', info: 'Details', showMore: 'Show', aboutBuilding: 'About the building', home: 'Home',
+    locationTitle: 'Location & map', roomTypes: 'Room types', otherRooms: 'Other rooms', fromPrice: 'From', roomsOfType: 'Rooms of this type', viewType: 'View room type', roomsCount: 'rooms', roomsFree: 'rooms available', noFreeRooms: 'Fully booked for the selected dates', viewByFloor: 'Floor', floorsUnit: 'floors', openMap: 'Open in Maps', highlights: 'Highlights', totalRooms: 'Total rooms', roomTypesLabel: 'Room types', priceHint: 'Monthly rent', info: 'Details', showMore: 'Show', aboutBuilding: 'About the building', home: 'Home',
     received: 'Your inquiry has been received. Our team will contact you.', empty: 'Content is being updated.', backJournal: 'Back to journal', selectedDates: 'Your selected dates', dateSeparator: 'to', changeDates: 'Change dates',
   },
 } as const;
@@ -190,7 +191,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   if (id && !['buildings', 'rooms', 'types', 'journal'].includes(section)) notFound();
   const needsCatalog = !section || ['stays', 'buildings', 'rooms', 'types', 'contact'].includes(section);
   const data = needsCatalog ? await catalog(dateQuery ? q.checkIn : undefined, dateQuery ? q.checkOut : undefined, lang) : null;
-  const landmarks = section === 'stays' ? await getPublicLandmarks() : [];
+  const landmarks = section === 'stays' || section === 'buildings' ? await getPublicLandmarks() : [];
   const building = section === 'buildings' ? data?.buildings.find(item => item.id === id) : undefined;
   const room = section === 'rooms' ? data?.buildings.flatMap(item => item.rooms).find(item => item.id === id) : undefined;
   const roomType = section === 'types' ? data?.buildings.flatMap(item => item.types.map(entry => ({ ...entry, building: item }))).find(item => item.id === id) : undefined;
@@ -230,6 +231,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       card={<><h2>{t.aboutBuilding}</h2>{(() => { const price = buildingFromPrice(building); return price > 0 ? <div className="dv-card-price">{t.fromPrice} <strong>{money(price)} ₫</strong><span>/ {t.month}</span></div> : null; })()}<FactRows rows={[[t.propertyType, building.propertyType], [t.floors, building.floorCount], [t.totalRooms, buildingRoomCount(building)], [t.roomTypesLabel, building.types.length], [t.buildingArea, building.areaSqm ? `${building.areaSqm} m²` : '']]} />{building.address && <p className="dv-card-address">{building.address}{' '}<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(building.latitude !== null && building.longitude !== null ? `${building.latitude},${building.longitude}` : building.address)}`} target="_blank" rel="noopener noreferrer">{t.openMap} ↗</a></p>}{building.amenities.length > 0 && <><h3 className="dv-card-sub">{t.highlights}</h3><ul className="dv-card-list">{building.amenities.slice(0, 4).map(item => <li key={item}>{item}</li>)}</ul></>}<a className="dv-button" href="#dv-types">{t.roomTypes}</a><Link className="dv-button is-ghost" href={`/${lang}/contact`}>{t.navContact}</Link></>}
       after={<>{building.types.length > 0 && <section className="dv-list" id="dv-types"><h2 data-reveal><Ico name="home" accent="green" size="sm" />{t.roomTypes}</h2><div className="structure-grid">{building.types.map(item => <TypeCard key={item.id} type={item} lang={lang} dateQuery={dateQuery} />)}</div></section>}{building.rooms.length > 0 && <section className="dv-list"><h2 data-reveal><Ico name="key" accent="amber" size="sm" />{building.types.length ? t.otherRooms : t.rooms}</h2><div className="structure-grid">{building.rooms.map(item => <RoomCard key={item.id} room={item} lang={lang} dateQuery={dateQuery} />)}</div></section>}{!building.rooms.length && !building.types.length && <p>{t.noRooms}</p>}</>}>
       <DetailBlock title={t.info} icon="info" accent="blue"><StatTiles items={[{ icon: 'home', accent: 'green', label: t.propertyType, value: building.propertyType }, { icon: 'area', accent: 'blue', label: t.buildingArea, value: building.areaSqm ? `${building.areaSqm} m²` : '' }, { icon: 'plan', accent: 'violet', label: t.floors, value: building.floorCount }]} /></DetailBlock>
+      <DetailBlock title={t.locationTitle} icon="pin" accent="pink"><BuildingMap lang={lang} name={title} address={building.address} latitude={building.latitude} longitude={building.longitude} approximate={building.coordinateApproximate} places={landmarks.filter(place => !place.buildingIds.length || place.buildingIds.includes(building.id)).map(place => ({ id: place.id, name: lang === 'vi' ? place.nameVi : place.nameEn || place.nameVi, latitude: place.latitude, longitude: place.longitude }))} /></DetailBlock>
       {building.amenities.length > 0 && <DetailBlock title={t.amenities} icon="sparkle" accent="teal"><FeatureGrid items={building.amenities} more={n => `${t.showMore} ${n}`} /></DetailBlock>}
       {building.services.length > 0 && <DetailBlock title={t.services} icon="key" accent="amber"><FeatureGrid items={building.services} more={n => `${t.showMore} ${n}`} /></DetailBlock>}
       {building.rules && <DetailBlock title={t.rules} icon="shield" accent="green"><RuleRows text={building.rules} /></DetailBlock>}
