@@ -51,3 +51,9 @@
 .cx-danger{display:flex;align-items:center;gap:14px;margin-top:22px;padding:14px 16px;border:1px solid #e3c2bb;background:#fbf1ee}
 .cx-danger button{min-height:40px;padding:0 18px;background:#a33f33;color:#fff;border:0;font-weight:700;cursor:pointer}.cx-danger small{color:#7f382c}
 #cx-t-rooms:checked~form.cx-sec-rooms{display:block}
+
+/* Home page editor */
+.hm-form{display:grid;gap:22px}.hm-card{background:#fff;border:1px solid #dce4da;padding:24px;margin:18px 0}
+.hm-card h2,.hm-card h3{margin:0 0 4px;font:400 26px/1.2 'Playfair Display',Georgia,serif}.hm-title{margin:36px 0 0;font:400 32px 'Playfair Display',Georgia,serif}
+.hm-hint{margin:0 0 18px;font-size:14px;color:#4f6054}.hm-card .cx-field textarea,.hm-card .cx-field input{min-height:0}
+.hm-card .cx-field input::placeholder,.hm-card .cx-field textarea::placeholder{color:#8a9a8e;opacity:1}
