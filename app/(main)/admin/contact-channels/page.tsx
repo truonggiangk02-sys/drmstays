@@ -27,7 +27,7 @@ export default async function ContactChannelsAdmin({ searchParams }: { searchPar
       <button type="submit">Lưu các kênh liên hệ</button>
     </form>
     <h2>Mạng xã hội</h2>
-    <p className="admin-hint">Hiện ở chân trang và trang Liên hệ, và được khai cho Google. Facebook nhập ở mục "Facebook / Messenger" phía trên. Để trống hoặc bỏ bật để ẩn.</p>
+    <p className="admin-hint">Hiện ở chân trang và trang Liên hệ, và được khai cho Google. Facebook nhập ở mục &ldquo;Facebook / Messenger&rdquo; phía trên. Để trống hoặc bỏ bật để ẩn.</p>
     {status.socialSaved === '1' && <p role="status" className="contact-admin-success">Đã lưu các mạng xã hội.</p>}
     {status.socialError === 'invalid' && <p role="alert" className="translation-error">Kiểm tra lại link và mạng đã bật. Link phải dùng HTTPS và đúng nền tảng.</p>}
     <form className="contact-admin-form" action="/api/admin/social-links" method="post">
