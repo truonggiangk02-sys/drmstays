@@ -22,7 +22,7 @@
 .structure-footer .structure-footer-bottom nav{flex-direction:row;flex-wrap:wrap;gap:6px 18px;margin:0;font-size:inherit}.structure-footer-bottom nav a{color:inherit}
 @media(max-width:700px){.structure-footer-bottom{flex-direction:column;align-items:flex-start}}
 .structure-policy{max-width:none}.structure-policy>*{max-width:760px}.structure-policy .structure-detail-block{margin-bottom:28px}.structure-policy p{line-height:1.8}
-.structure-type-floor h3{margin:14px 0 6px;font:700 12px/1 'Poppins',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#4f6054}
+.structure-type-floor h3{margin:14px 0 6px;font:700 12px/1 'Be Vietnam Pro',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#4f6054}
 .structure-room-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .structure-room-chips li{display:inline-flex;align-items:baseline;gap:8px;padding:8px 14px;border:1px solid #cdd9cf;background:#fff;font-size:14px}
 .structure-room-chips li small,.structure-room-chips li span{font-size:12px;color:#4f6054}

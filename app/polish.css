@@ -1,0 +1,167 @@
+/*
+ * Front-end polish, loaded after every other stylesheet. Only motion, touch comfort, type wrapping and the
+ * floating contact bar are tuned here; page structure, headings and SEO content are left as they are.
+ */
+
+/* ---- Motion ---------------------------------------------------------------- */
+html { scroll-padding-top: 84px; }
+@media (prefers-reduced-motion: reduce) { html:root { scroll-behavior: auto; } }
+
+/* Shorter, lighter entrances (opacity + transform only, so they stay on the compositor). */
+body .page-enter { animation-duration: .5s; }
+body [data-reveal] { transition-duration: .6s; }
+html.reveal-ready body [data-reveal]:not(.is-in) { transform: translateY(16px); }
+
+/* ---- Touch comfort --------------------------------------------------------- */
+a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+.structure-button, .editorial-primary-link, .dv-button, .quick-contact-link {
+  transition-property: transform, box-shadow, background-color, color;
+}
+.structure-button:active, .editorial-primary-link:active, .dv-button:active, .quick-contact-link:active {
+  transform: scale(.97);
+}
+
+/* Hover lifts stay for mouse users; on touch screens they would stick after a tap. */
+@media (hover: none) {
+  body .quick-contact .quick-contact-link:hover, body .structure-card:hover, body .dv-tile:hover img { transform: none; }
+}
+
+/* ---- Type ------------------------------------------------------------------ */
+.structure-site h1, .structure-site h2, .structure-site h3 { text-wrap: balance; }
+.structure-site p, .structure-site li { text-wrap: pretty; }
+
+/* ---- Floating contact bar -------------------------------------------------- */
+/* Desktop: a slim icon rail; the channel name appears beside the icon on hover or keyboard focus. */
+@media (min-width: 701px) {
+  body .quick-contact { gap: 8px; }
+  body .quick-contact .quick-contact-link {
+    position: relative;
+    justify-content: center;
+    width: 48px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  body .quick-contact .quick-contact-mark { width: 36px; height: 36px; border-radius: 50%; }
+  body .quick-contact .quick-contact-name {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: #17372d;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(6px, -50%);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  body .quick-contact .quick-contact-link:hover .quick-contact-name,
+  body .quick-contact .quick-contact-link:focus-visible .quick-contact-name { opacity: 1; transform: translate(0, -50%); }
+  body .quick-contact .quick-contact-link:hover { transform: translateX(-3px); }
+}
+
+/* Mobile: a lower bar that no longer covers the hero button, with room left under the footer. */
+@media (max-width: 700px) {
+  body .quick-contact { padding: 5px; gap: 4px; border-radius: 16px; }
+  body .quick-contact .quick-contact-link { min-height: 56px; min-width: 0; gap: 1px; }
+  body .quick-contact .quick-contact-mark { width: 26px; height: 26px; font-size: 13px; }
+  body .quick-contact .quick-contact-link.is-unconfigured small { display: none; }
+  .structure-site footer { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+}
+
+/* ---- Mobile header: one swipeable row instead of two wrapped rows ------------ */
+@media (max-width: 700px) {
+  body .structure-site .structure-header nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 2px;
+    margin: 0 -5vw;
+    padding: 0 5vw;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, #000 90%, transparent);
+  }
+  body .structure-site .structure-header nav::-webkit-scrollbar { display: none; }
+  body .structure-site .structure-header nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 10px;
+  }
+}
+
+/* ---- Centering: tab switch, chips and pills keep their text in the middle ------------------------------- */
+.map-mobile-switch { display: flex; gap: 4px; }
+.map-mobile-switch button {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.dv-chips span, .dv-pill { justify-content: center; line-height: 1.25; }
+
+/* ---- Chips: style only the pill itself, not the icon tile nested inside it -------------------------------- */
+.dv-chips span { padding: 0; background: none; border-radius: 0; font-size: inherit; font-weight: inherit; animation: none; }
+.dv-chips > span {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 16px 7px 10px; border-radius: 99px;
+  background: var(--bg, #e8efe8); color: var(--fg, #315d50);
+  font-size: 15px; font-weight: 700; line-height: 1.25;
+  animation: rise .5s var(--ease) backwards;
+}
+.dv-chips > span:nth-child(2) { animation-delay: .05s; }
+.dv-chips > span:nth-child(3) { animation-delay: .1s; }
+.dv-chips > span:nth-child(4) { animation-delay: .15s; }
+.dv-chips .dv-ico { background: transparent; }
+@media (prefers-reduced-motion: reduce) { .dv-chips > span { animation: none; } }
+
+/* ---- Hero: text readable at once, no slow staggered fade -------------------------------------------------- */
+.editorial-hero-content > * { animation-duration: .4s; }
+.editorial-hero-content > :nth-child(2) { animation-delay: .04s; }
+.editorial-hero-content > :nth-child(3) { animation-delay: .08s; }
+.editorial-hero-content > :nth-child(4) { animation-delay: .12s; }
+.editorial-hero-content > :nth-child(5) { animation-delay: .16s; }
+body .editorial-hero-image { animation-duration: 1.2s; }
+
+/* ---- Floating contact button: one line, never wraps -------------------------------------------------------- */
+.quick-contact-fallback { white-space: nowrap; }
+
+/* ---- Navigation feedback: thin progress bar while the next page loads --------------------------------------- */
+.nav-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100; pointer-events: none;
+  background: linear-gradient(90deg, #315d50, #ae815d); transform-origin: left; transform: scaleX(0);
+  animation: nav-progress 8s cubic-bezier(.1, .6, .2, 1) forwards;
+}
+@keyframes nav-progress { to { transform: scaleX(.9); } }
+@media (prefers-reduced-motion: reduce) { .nav-progress { animation: none; transform: scaleX(.6); } }
+
+/* ---- Map section ------------------------------------------------------------------------------------------- */
+/* The desktop contact rail sits on the right edge: keep the section heading's counters clear of it. */
+@media (min-width: 701px) { .map-explorer { padding-right: max(4%, 76px); } }
+/* A smaller place card leaves more of the map (and its pins) visible. */
+@media (min-width: 701px) { body .map-place-detail { width: min(320px, calc(100% - 36px)); max-height: min(420px, calc(100% - 175px)); padding: 18px; } }
+/* Channel-name labels only ever show on real hover or keyboard focus. */
+@media (min-width: 701px) { body .quick-contact .quick-contact-name { opacity: 0; } }
+@media (min-width: 701px) and (hover: hover) { body .quick-contact .quick-contact-link:hover .quick-contact-name { opacity: 1; } }
+
+/* ---- Vietnamese headings: stacked tone marks need air (tight tracking and 1.05 line height made them collide) ---- */
+html[lang="vi"] .structure-site :is(h1, h2, h3) { letter-spacing: -.015em; line-height: 1.22; }
+html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; line-height: 1.16; }
+
+/* ---- Hero on desktop: with looser Vietnamese lines the title wrapped to 4 lines and pushed up under the header ---- */
+@media (min-width: 1001px) {
+  .editorial-hero { padding-top: 72px; }
+  .editorial-hero-content { width: min(980px, 90%); }
+  html[lang="vi"] .editorial-hero h1 { max-width: 960px; font-size: clamp(46px, 5.6vw, 84px); }
+}

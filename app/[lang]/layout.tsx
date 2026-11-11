@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Analytics } from "@/components/analytics";
 import { generateMetadata as rootMetadata } from "../(main)/layout";
+import { FontLinks } from "@/components/font-links";
 import "../globals.css";
 import "../cms.css";
 import "../catalog.css";
@@ -13,6 +14,7 @@ import "../quick-contact-fallback.css";
 import "../contact-admin.css";
 import "../editorial.css";
 import "../detail.css";
+import "../polish.css";
 
 // A second root layout so the page language is declared on <html> (the main layout is fixed to Vietnamese).
 export const generateMetadata = rootMetadata;
@@ -22,6 +24,7 @@ export default async function LangLayout({ children, params }: { children: React
   if (lang !== "vi" && lang !== "en") notFound();
   return (
     <html lang={lang}>
+      <head><FontLinks /></head>
       <body className="antialiased">{children}<Analytics /></body>
     </html>
   );

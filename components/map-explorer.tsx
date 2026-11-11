@@ -294,7 +294,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
 
   return <section className="map-explorer" aria-label={t.heading}>
     <div className="map-explorer-intro"><div><h2>{t.heading}</h2><p>{t.subtitle}</p></div><span>{buildings.length} {t.buildings.toLowerCase()} <i aria-hidden="true">/</i> {landmarks.length} {t.allPlaces}</span></div>
-    <div className="map-mobile-switch" role="group" aria-label={t.heading}><button type="button" aria-pressed={mobileView === 'list'} className={mobileView === 'list' ? 'active' : ''} onClick={() => setMobileView('list')}>{t.buildings} & {t.places}</button><button type="button" aria-pressed={mobileView === 'map'} className={mobileView === 'map' ? 'active' : ''} onClick={() => setMobileView('map')}>{t.map}</button></div>
+    <div className="map-mobile-switch" role="group" aria-label={t.heading}><button type="button" aria-pressed={mobileView === 'list'} className={mobileView === 'list' ? 'active' : ''} onClick={() => setMobileView('list')}>{lang === 'vi' ? 'Tòa nhà & địa điểm' : 'Buildings & places'}</button><button type="button" aria-pressed={mobileView === 'map'} className={mobileView === 'map' ? 'active' : ''} onClick={() => setMobileView('map')}>{t.map}</button></div>
     <div className="map-explorer-body">
       <div className={`map-explorer-list ${mobileView === 'map' ? 'mobile-hidden' : ''}`}>
         <div className="map-list-heading"><h3 ref={listHeading} tabIndex={-1}>{t.buildings}</h3><span>{buildings.length}</span></div>

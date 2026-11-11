@@ -6,7 +6,7 @@ export function QuickContact({ lang, channels, preview = false }: { lang: 'vi' |
   const vi = lang === 'vi';
   const available = channels.filter((channel): channel is Channel & { url: string } => !!channel.url);
 
-  if (!available.length && !preview) return <a className="quick-contact quick-contact-fallback" href={`/${lang}/contact`}><MessageCircle size={20} aria-hidden="true" />{vi ? 'Liên hệ DRM Stays' : 'Contact DRM Stays'}</a>;
+  if (!available.length && !preview) return <a className="quick-contact quick-contact-fallback" href={`/${lang}/contact`}><MessageCircle size={20} aria-hidden="true" />{vi ? 'Liên hệ' : 'Contact'}</a>;
 
   return <aside className="quick-contact" aria-label={vi ? 'Liên hệ nhanh' : 'Quick contact'}>
     {channels.filter(channel => preview || !!channel.url).map(channel => channel.url
