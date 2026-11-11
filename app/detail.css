@@ -161,3 +161,19 @@
 .dv-button{background:linear-gradient(135deg,#17372d,#1f6b4a);border-color:#17372d}.dv-button:hover{background:linear-gradient(135deg,#1f6b4a,#17372d)}.dv-button.is-ghost{background:transparent;color:#17372d}
 @media(max-width:960px){.dv-card::before{margin:-26px -22px 20px;border-radius:22px 22px 0 0}.dv-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dv-stats li{padding:16px}}
 @media(prefers-reduced-motion:reduce){.dv-pill.is-ok i,.structure-room-chips li.is-available i{animation:none}.dv-ico,.dv-stats li{transition:none!important}}
+
+/* ---- Calmer palette: only the brand green and a soft brass. Colour is kept for status (free / booked) ---- */
+.is-green,.is-blue,.is-violet,.is-teal{--fg:#2f5d4a;--bg:#e8efe8}
+.is-amber,.is-pink{--fg:#8a5f33;--bg:#f4ece0}
+.dv-stats li{background:#f1f4ee;border:1px solid #e1e8de}
+.dv-stats li:hover{box-shadow:0 14px 30px #18372d14}
+.dv-stats .dv-ico.is-lg{background:#fff;color:#2f5d4a}
+.dv-stats span:not(.dv-ico){color:#8a5f33}
+.dv-card::before{height:4px;background:#8a5f33}
+.dv-button,.dv-button:hover{background:#17372d}.dv-button:hover{background:#244d3d}.dv-button.is-ghost,.dv-button.is-ghost:hover{background:transparent}.dv-button.is-ghost:hover{background:#17372d}
+.dv-pill.is-info{background:#eef2ea;color:#315d50}
+.dv-card-sub{margin:18px 0 8px;font:700 12px/1.2 'Poppins',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8a5f33}
+.dv-card-list{margin:0 0 14px;padding:0;list-style:none}.dv-card-list li{position:relative;padding:5px 0 5px 22px;font-size:15px;line-height:1.5;color:#33463c}
+.dv-card-list li::before{content:'';position:absolute;left:2px;top:12px;width:7px;height:7px;border-radius:50%;background:#8a5f33}
+.dv-card-address a{margin-left:4px;color:#8a5f33;font-weight:700;text-decoration:none;white-space:nowrap}.dv-card-address a:hover{text-decoration:underline}
+.dv-card .dv-facts{margin-bottom:12px}
