@@ -165,3 +165,41 @@ html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; lin
   .editorial-hero-content { width: min(980px, 90%); }
   html[lang="vi"] .editorial-hero h1 { max-width: 960px; font-size: clamp(46px, 5.6vw, 84px); }
 }
+
+/* ======================================================================================================
+   Bigger photos, tighter pages
+   ====================================================================================================== */
+
+/* ---- Building / room page: a taller, wider photo mosaic --------------------------------------------- */
+.structure-section.dv { max-width: 1440px; }
+.dv-gallery { height: clamp(340px, 52vw, 700px); gap: 6px; border-radius: 16px; margin-top: 18px; }
+.dv-gallery.has-5 { grid-template-columns: 2.1fr 1fr 1fr; }
+.dv-gallery.has-3 { grid-template-columns: 2.1fr 1fr; }
+.dv-all { box-shadow: 0 6px 20px rgba(13, 25, 19, .22); }
+@media (max-width: 960px) {
+  .dv-gallery { height: auto; }
+  .dv-gallery .dv-tile:first-child { aspect-ratio: 4 / 3; }
+}
+
+/* ---- Home gallery: no empty cell, whatever the number of photos ------------------------------------- */
+.editorial-home .editorial-gallery { padding-top: clamp(60px, 7vw, 96px); padding-bottom: clamp(70px, 8vw, 110px); }
+.editorial-gallery-grid { grid-template-columns: 1.5fr 1fr 1fr; grid-template-rows: repeat(2, clamp(200px, 21vw, 320px)); gap: 8px; }
+.editorial-gallery-item { border-radius: 4px; }
+/* 4 photos: the fourth stretches across the two right-hand columns */
+.editorial-gallery-item:nth-child(4):last-child { grid-column: 2 / 4; }
+/* 3 photos: one tall + two stacked */
+.editorial-gallery-grid:has(.editorial-gallery-item:last-child:nth-child(3)) { grid-template-columns: 1.6fr 1fr; }
+@media (max-width: 700px) {
+  .editorial-gallery-grid, .editorial-gallery-grid:has(.editorial-gallery-item:last-child:nth-child(3)) { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-rows: 160px; }
+  .editorial-gallery-item-1 { grid-column: 1 / -1; grid-row: auto; height: 240px; }
+  .editorial-gallery-item:nth-child(4):last-child { grid-column: auto; }
+}
+
+/* ---- Home: less empty air between sections ------------------------------------------------------------ */
+.editorial-home .editorial-intro { padding-top: clamp(56px, 6vw, 96px); padding-bottom: clamp(44px, 5vw, 80px); }
+.editorial-intro-photo img { height: clamp(360px, 42vw, 620px); }
+.editorial-details { padding-bottom: clamp(40px, 5vw, 64px); }
+.editorial-details > div { padding-top: 22px; }
+.editorial-details h3 { margin-top: 16px; }
+.editorial-home .editorial-collection { padding-top: clamp(40px, 5vw, 70px); }
+@media (max-width: 700px) { .editorial-details > div { padding: 18px 0 12px; border-left: 0; } }

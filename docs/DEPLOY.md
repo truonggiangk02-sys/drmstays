@@ -312,3 +312,36 @@ scripts\deploy-production.cmd -D1Id <database_id> -Migrate
 Script hỏi gõ `DEPLOY` rồi pull, build, áp migration, gắn tên miền và deploy. Lần sau không cần `-Migrate` nếu không có file mới trong `drizzle/`.
 
 Biến liên quan: `SITE_URL` (địa chỉ chính), `CUSTOM_DOMAINS` (tên miền gắn vào Worker), `REDIRECT_HOSTS` (tên miền chuyển hướng về `SITE_URL`). Không đặt `PREVIEW_DEMO`.
+
+## Làm việc trên máy Mac
+
+Các script Windows (`.cmd`, `.ps1`) không chạy trên Mac. Dùng bản `.sh` tương ứng, chạy trong Terminal ở thư mục gốc của repo.
+
+**Cài một lần:**
+
+```bash
+# Node.js >= 22.13 (ví dụ: brew install node), rồi:
+git clone https://github.com/truonggiangk02-sys/drmstays.git && cd drmstays
+npx pnpm@11.19.0 install
+npx wrangler login
+```
+
+Máy Mac mới cần có `git`. Nếu Terminal hỏi cài "Command Line Tools" thì đồng ý.
+
+**Deploy staging** (không cần `-Migrate` trừ khi `drizzle/` có file mới):
+
+```bash
+git checkout <nhánh cần thử> && git pull
+scripts/deploy-staging.sh --skip-pull
+```
+
+Bỏ `--skip-pull` thì script chạy `git pull <remote> main` và build bản `main`.
+
+**Deploy production** (hỏi gõ `DEPLOY`; thêm `--live` mới mở cho khách, `--migrate` khi có migration mới):
+
+```bash
+git checkout main && git pull
+scripts/deploy-production.sh --d1-id b28245d3-977f-4855-b461-d561256c96dd --skip-pull
+```
+
+Các lệnh `wrangler` trong tài liệu này dùng `npx wrangler …` trên Mac (không cần `npx.cmd`). Secret Cloudflare nằm trên tài khoản, nên không phải nhập lại khi đổi máy.
