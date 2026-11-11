@@ -158,3 +158,10 @@ body .editorial-hero-image { animation-duration: 1.2s; }
 /* ---- Vietnamese headings: stacked tone marks need air (tight tracking and 1.05 line height made them collide) ---- */
 html[lang="vi"] .structure-site :is(h1, h2, h3) { letter-spacing: -.015em; line-height: 1.22; }
 html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; line-height: 1.16; }
+
+/* ---- Hero on desktop: with looser Vietnamese lines the title wrapped to 4 lines and pushed up under the header ---- */
+@media (min-width: 1001px) {
+  .editorial-hero { padding-top: 72px; }
+  .editorial-hero-content { width: min(980px, 90%); }
+  html[lang="vi"] .editorial-hero h1 { max-width: 960px; font-size: clamp(46px, 5.6vw, 84px); }
+}
