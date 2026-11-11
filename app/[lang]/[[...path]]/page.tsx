@@ -207,7 +207,8 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const article = section === 'journal' && id ? content.find(item => item.id === id) : undefined;
   if (section === 'journal' && id && !article) notFound();
   const sectionTitles: Record<string,string> = { privacy: policies[lang].privacy.title, cancellation: policies[lang].cancellation.title, terms: policies[lang].terms.title, stays: t.navStays, services: t.navServices, partners: t.partnerTitle, about: t.navAbout, journal: t.navJournal, faq: t.navFaq, contact: t.navContact };
-  const title = building ? propertyName(building.name) : roomType ? roomType.name : room?.name || (article ? contentTitle(article, lang) : sectionTitles[section || ''] || '');
+  const sectionH1 = section && section in pageMeta[lang] ? pageMeta[lang][section as keyof typeof pageMeta['vi']].h1 : undefined;
+  const title = building ? propertyName(building.name) : roomType ? roomType.name : room?.name || (article ? contentTitle(article, lang) : sectionH1 || sectionTitles[section || ''] || '');
   const homeContent = !section ? await getHomeContent(lang) : null;
   const contactChannels = await getContactChannels();
   const socialLinks = publicSocialLinks(contactChannels, await getSocialLinks());

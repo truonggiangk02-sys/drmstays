@@ -26,6 +26,16 @@ describe("page titles and descriptions", () => {
   });
 });
 
+describe("page headings (H1)", () => {
+  it("describe the page, differ from each other and are not just the short menu name", () => {
+    for (const lang of langs) {
+      const all = Object.values(pageMeta[lang]).map(item => item.h1);
+      expect(new Set(all).size).toBe(all.length);
+      for (const h1 of all) { expect(h1.length).toBeGreaterThanOrEqual(20); expect(h1.length).toBeLessThanOrEqual(70); }
+    }
+  });
+});
+
 describe("default site content", () => {
   it("has Vietnamese and English text for every item", () => {
     for (const item of sampleContent) {
