@@ -110,4 +110,38 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
   text-wrap: balance;
 }
 .dv-chips span, .dv-pill { justify-content: center; line-height: 1.25; }
-.dv-chips span:not(:has(.dv-ico)) { padding-left: 16px; }
+
+/* ---- Chips: style only the pill itself, not the icon tile nested inside it -------------------------------- */
+.dv-chips span { padding: 0; background: none; border-radius: 0; font-size: inherit; font-weight: inherit; animation: none; }
+.dv-chips > span {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 16px 7px 10px; border-radius: 99px;
+  background: var(--bg, #e8efe8); color: var(--fg, #315d50);
+  font-size: 15px; font-weight: 700; line-height: 1.25;
+  animation: rise .5s var(--ease) backwards;
+}
+.dv-chips > span:nth-child(2) { animation-delay: .05s; }
+.dv-chips > span:nth-child(3) { animation-delay: .1s; }
+.dv-chips > span:nth-child(4) { animation-delay: .15s; }
+.dv-chips .dv-ico { background: transparent; }
+@media (prefers-reduced-motion: reduce) { .dv-chips > span { animation: none; } }
+
+/* ---- Hero: text readable at once, no slow staggered fade -------------------------------------------------- */
+.editorial-hero-content > * { animation-duration: .4s; }
+.editorial-hero-content > :nth-child(2) { animation-delay: .04s; }
+.editorial-hero-content > :nth-child(3) { animation-delay: .08s; }
+.editorial-hero-content > :nth-child(4) { animation-delay: .12s; }
+.editorial-hero-content > :nth-child(5) { animation-delay: .16s; }
+body .editorial-hero-image { animation-duration: 1.2s; }
+
+/* ---- Floating contact button: one line, never wraps -------------------------------------------------------- */
+.quick-contact-fallback { white-space: nowrap; }
+
+/* ---- Navigation feedback: thin progress bar while the next page loads --------------------------------------- */
+.nav-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 100; pointer-events: none;
+  background: linear-gradient(90deg, #315d50, #ae815d); transform-origin: left; transform: scaleX(0);
+  animation: nav-progress 8s cubic-bezier(.1, .6, .2, 1) forwards;
+}
+@keyframes nav-progress { to { transform: scaleX(.9); } }
+@media (prefers-reduced-motion: reduce) { .nav-progress { animation: none; transform: scaleX(.6); } }
