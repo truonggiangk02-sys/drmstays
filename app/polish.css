@@ -154,3 +154,7 @@ body .editorial-hero-image { animation-duration: 1.2s; }
 /* Channel-name labels only ever show on real hover or keyboard focus. */
 @media (min-width: 701px) { body .quick-contact .quick-contact-name { opacity: 0; } }
 @media (min-width: 701px) and (hover: hover) { body .quick-contact .quick-contact-link:hover .quick-contact-name { opacity: 1; } }
+
+/* ---- Vietnamese headings: stacked tone marks need air (tight tracking and 1.05 line height made them collide) ---- */
+html[lang="vi"] .structure-site :is(h1, h2, h3) { letter-spacing: -.015em; line-height: 1.22; }
+html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; line-height: 1.16; }
