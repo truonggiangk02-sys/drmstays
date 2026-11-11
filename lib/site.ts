@@ -3,6 +3,16 @@ import { env } from "cloudflare:workers";
 export const SITE_NAME = "DRM Stays";
 export const SITE_TITLE = "DRM Stays | Apartments and Monthly Stays in Da Nang";
 export const SITE_DESCRIPTION = "Explore DRM Stays buildings and individual rooms in Da Nang, with photos, monthly rent, amenities and inquiry support.";
+/** The business's public contact details: shown in the footer and contact page, and repeated in the structured data (they must match). */
+export const CONTACT = {
+  phone: "0869900000",
+  phoneIntl: "+84869900000",
+  email: "drmstayshome@gmail.com",
+  street: "K234/29-31 Đỗ Bá",
+  district: "Ngũ Hành Sơn",
+  city: "Đà Nẵng",
+  address: "K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng",
+} as const;
 export const LANGS = ["vi", "en"] as const;
 export type SiteLang = (typeof LANGS)[number];
 

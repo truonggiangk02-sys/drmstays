@@ -1,4 +1,4 @@
-import { absoluteUrl, SITE_NAME, siteUrl } from './site';
+import { absoluteUrl, CONTACT, SITE_NAME, siteUrl } from './site';
 
 type Lang = 'vi' | 'en';
 type Photo = { url: string };
@@ -16,7 +16,11 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
   if (kind === 'home') return {
     '@context': 'https://schema.org',
     '@graph': [
-      { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, url: base, logo: `${base}/drm-stay-logo.png`, areaServed: 'Da Nang, Vietnam' },
+      {
+        '@type': 'LodgingBusiness', '@id': `${base}/#org`, name: SITE_NAME, url: base, logo: `${base}/drm-stay-logo.png`, image: `${base}/drm-stay-logo.png`,
+        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam',
+        address: { '@type': 'PostalAddress', streetAddress: CONTACT.street, addressLocality: CONTACT.city, addressRegion: CONTACT.district, addressCountry: 'VN' },
+      },
       { '@type': 'WebSite', '@id': `${base}/#site`, name: SITE_NAME, url: `${base}/${lang}`, inLanguage: lang, publisher: { '@id': `${base}/#org` } },
     ],
   };

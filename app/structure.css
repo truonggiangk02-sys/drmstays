@@ -30,3 +30,5 @@
 
 /* <img> carries width/height so the page reserves its space; let the height follow the width unless a rule above sets it. */
 :where(.structure-site img[width][height]){height:auto}
+
+.structure-address{display:grid;gap:4px;margin:14px 0 0;font-style:normal;font-size:14px;line-height:1.5}.structure-address b{font-weight:600;margin-right:6px}.structure-address a{text-decoration:underline;text-underline-offset:3px}

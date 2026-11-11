@@ -31,8 +31,16 @@ describe("structuredData", () => {
   it("describes the organisation and site on the home page", () => {
     setEnv({ SITE_URL: "https://drmstays.test/" });
     const data = structuredData("home", "en") as { "@graph": Array<{ "@type": string; url: string }> };
-    expect(data["@graph"].map(item => item["@type"])).toEqual(["Organization", "WebSite"]);
+    expect(data["@graph"].map(item => item["@type"])).toEqual(["LodgingBusiness", "WebSite"]);
     expect(data["@graph"][1].url).toBe("https://drmstays.test/en");
+  });
+
+  it("lists the business phone, email and address on the home page", () => {
+    setEnv({ SITE_URL: "https://drmstays.test" });
+    const org = (structuredData("home", "vi") as { "@graph": Json[] })["@graph"][0];
+    expect(org.telephone).toBe("+84869900000");
+    expect(org.email).toBe("drmstayshome@gmail.com");
+    expect(org.address).toMatchObject({ "@type": "PostalAddress", streetAddress: "K234/29-31 Đỗ Bá", addressLocality: "Đà Nẵng", addressCountry: "VN" });
   });
 
   it("describes a building with an address, coordinates and absolute image URLs", () => {
