@@ -23,7 +23,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        {/* The root layout cannot read the [lang] param, so keep <html lang> in step with the URL. */}
+        <script dangerouslySetInnerHTML={{ __html: "var m=location.pathname.match(/^\\/(vi|en)(\\/|$)/);if(m)document.documentElement.lang=m[1];" }} />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );

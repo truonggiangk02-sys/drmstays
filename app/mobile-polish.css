@@ -209,3 +209,57 @@
     min-height: 420px;
   }
 }
+
+/* Legibility and contrast (all viewports). Muted palette values raised to meet WCAG AA (4.5:1). */
+.structure-site .eyebrow,
+.structure-site .map-selected-eyebrow {
+  font-size: 12px;
+  color: #8a5a36;
+}
+
+.structure-site .structure-brand small {
+  font-size: 10px;
+  color: #546b5f;
+}
+
+.structure-site .structure-languages span {
+  color: #5f6f65;
+}
+
+.structure-site .structure-form small {
+  color: #52645a;
+}
+
+@media (max-width: 700px) {
+  .structure-site .structure-languages a {
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  .structure-site .structure-arrow,
+  .structure-site .structure-back,
+  .structure-site .map-building-link,
+  .structure-site .map-selected-content a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .structure-site .structure-arrow {
+    margin-top: 6px;
+    padding-bottom: 0;
+    border-bottom: 0;
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+}
+
+@media (min-width: 701px) {
+  .structure-site .structure-header nav a,
+  .structure-site .structure-languages a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 4px;
+  }
+}

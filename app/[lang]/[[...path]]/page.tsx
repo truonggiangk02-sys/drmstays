@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { env } from 'cloudflare:workers';
@@ -66,6 +67,37 @@ function ContactForm({ lang, roomId }: { lang: Lang; roomId: string }) { const t
 function ContentCards({ items, lang, images }: { items: ContentItem[]; lang: Lang; images: Record<string, ContentImage[]> }) { return items.length ? <div className="structure-content-grid">{items.map(item => <article className="structure-content-card" key={item.id}>{images[item.id]?.[0] && <img className="structure-content-cover" src={images[item.id][0].url} alt={images[item.id][0].alt || contentTitle(item, lang)} />}<h2>{contentTitle(item, lang)}</h2><p>{contentBody(item, lang)}</p>{images[item.id]?.length > 1 && <div className="structure-content-gallery">{images[item.id].slice(1).map(image => <img key={image.id} src={image.url} alt={image.alt || contentTitle(item, lang)} />)}</div>}</article>)}</div> : <p>{copy[lang].empty}</p>; }
 
 async function catalog(checkIn: string | undefined, checkOut: string | undefined, lang: Lang) { try { return await getPublicCatalog(checkIn, checkOut, lang); } catch { return null; } }
+
+const siteName = 'DRM Stays';
+const pageDescription: Record<Lang, string> = {
+  vi: 'DRM Stays giới thiệu tòa nhà và từng phòng cho thuê tháng tại Đà Nẵng: hình ảnh, diện tích, trang bị, giá và thông tin liên hệ.',
+  en: 'DRM Stays presents buildings and individual rooms for monthly rent in Da Nang: photos, size, equipment, rent and contact details.',
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ lang: string; path?: string[] }> }): Promise<Metadata> {
+  const { lang: input, path: segments = [] } = await params;
+  if (input !== 'vi' && input !== 'en') return {};
+  const lang: Lang = input, t = copy[lang], [section, id] = segments;
+  const sectionTitles: Record<string, string> = { stays: t.navStays, services: t.navServices, partners: t.partnerTitle, about: t.navAbout, journal: t.navJournal, faq: t.navFaq, contact: t.navContact };
+  let title = sectionTitles[section || ''] || '';
+  try {
+    if (section === 'buildings' || section === 'rooms') {
+      const data = await catalog(undefined, undefined, lang);
+      const building = section === 'buildings' ? data?.buildings.find(item => item.id === id) : undefined;
+      const room = section === 'rooms' ? data?.buildings.flatMap(item => item.rooms).find(item => item.id === id) : undefined;
+      title = building ? propertyName(building.name) : room?.name || t.navStays;
+    } else if (section === 'journal' && id) {
+      const article = (await getContentItems('journal')).find(item => item.id === id);
+      if (article) title = contentTitle(article, lang);
+    }
+  } catch { /* fall back to the section title */ }
+  const rest = segments.length ? `/${segments.join('/')}` : '';
+  return {
+    title: title ? `${title} | ${siteName}` : lang === 'vi' ? `${siteName} | Căn hộ và phòng thuê tháng tại Đà Nẵng` : `${siteName} | Apartments and Monthly Stays in Da Nang`,
+    description: pageDescription[lang],
+    alternates: { canonical: `/${lang}${rest}`, languages: { vi: `/vi${rest}`, en: `/en${rest}` } },
+  };
+}
 
 export default async function Page({ params, searchParams }: { params: Promise<{ lang: string; path?: string[] }>; searchParams: Promise<{ checkIn?: string; checkOut?: string; sent?: string }> }) {
   const { lang: input, path: segments = [] } = await params;
