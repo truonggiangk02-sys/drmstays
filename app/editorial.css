@@ -1,4 +1,4 @@
-.structure-site{--ink:#17372d;--muted:#4f6054;--paper:#f8f8f4;--line:#dce2d9;background:var(--paper);color:var(--ink);font-family:'Poppins',Arial,sans-serif;font-size:16px}
+.structure-site{--ink:#17372d;--muted:#4f6054;--paper:#f8f8f4;--line:#dce2d9;background:var(--paper);color:var(--ink);font-family:'Be Vietnam Pro',Arial,sans-serif;font-size:16px}
 .structure-header{display:grid;grid-template-columns:minmax(185px,1fr) auto minmax(75px,1fr);align-items:center;gap:28px;min-height:86px;padding:12px clamp(22px,5vw,88px);border-bottom:1px solid #e5e9e2;background:#fff;z-index:30}
 .structure-header .structure-brand{gap:11px;font-size:15px;letter-spacing:.045em;font-weight:700}
 .structure-header .structure-brand small{margin-top:4px;color:#4f6054;font-size:9px;letter-spacing:.11em}

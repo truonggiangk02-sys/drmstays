@@ -1,4 +1,4 @@
-.quick-contact{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:50;display:flex;flex-direction:column;gap:9px;font-family:'Poppins',Arial,sans-serif}
+.quick-contact{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:max(20px,env(safe-area-inset-bottom));z-index:50;display:flex;flex-direction:column;gap:9px;font-family:'Be Vietnam Pro',Arial,sans-serif}
 .quick-contact-link{display:flex;align-items:center;gap:11px;min-width:152px;min-height:49px;padding:7px 16px 7px 8px;border:1px solid #d8e5d9;border-radius:15px;background:#fffefa;color:#18372d;box-shadow:0 8px 24px #112f2529;font-size:13px;font-weight:700;touch-action:manipulation;transition:transform .18s ease,box-shadow .18s ease}
 .quick-contact-link:hover{transform:translateX(-3px);box-shadow:0 12px 29px #112f253a}
 .quick-contact-mark{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:#e7eee8;color:#214b3e;font-size:16px;font-weight:800}

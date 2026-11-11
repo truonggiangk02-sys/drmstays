@@ -96,3 +96,18 @@ a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation
     padding: 0 10px;
   }
 }
+
+/* ---- Centering: tab switch, chips and pills keep their text in the middle ------------------------------- */
+.map-mobile-switch { display: flex; gap: 4px; }
+.map-mobile-switch button {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.dv-chips span, .dv-pill { justify-content: center; line-height: 1.25; }
+.dv-chips span:not(:has(.dv-ico)) { padding-left: 16px; }

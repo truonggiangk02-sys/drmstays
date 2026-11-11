@@ -14,7 +14,7 @@
 .dv-tile{position:relative;display:block;min-width:0;min-height:0;padding:0;border:0;background:#e3eae1;cursor:zoom-in;overflow:hidden}
 .dv-tile img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .9s var(--ease)}
 .dv-tile:hover img{transform:scale(1.05)}.dv-tile:focus-visible{outline:3px solid #7d5636;outline-offset:-3px}
-.dv-all{position:absolute;right:14px;bottom:14px;z-index:2;padding:11px 20px;border:0;border-radius:99px;background:#fffefa;color:#17372d;font:700 15px/1 'Poppins',sans-serif;box-shadow:0 6px 20px #17372d33;cursor:pointer;transition:transform .25s}.dv-all:hover{transform:translateY(-2px)}
+.dv-all{position:absolute;right:14px;bottom:14px;z-index:2;padding:11px 20px;border:0;border-radius:99px;background:#fffefa;color:#17372d;font:700 15px/1 'Be Vietnam Pro',sans-serif;box-shadow:0 6px 20px #17372d33;cursor:pointer;transition:transform .25s}.dv-all:hover{transform:translateY(-2px)}
 
 .dv-viewer{width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#0d1913f4;color:#fff}
 .dv-viewer[open]{display:grid;grid-template-rows:minmax(0,1fr) auto auto;animation:dv-fade .35s ease}.dv-viewer::backdrop{background:#0d1913}
@@ -51,7 +51,7 @@
 .dv-card .structure-form{gap:12px;max-width:none;width:100%}.dv-card .structure-form label{min-width:0}.dv-card .structure-form input,.dv-card .structure-form textarea{box-sizing:border-box;width:100%;min-width:0}.dv-card .structure-form-pair{grid-template-columns:repeat(2,minmax(0,1fr))}.dv-card .structure-form label{font-size:14px}.dv-card .structure-form input,.dv-card .structure-form textarea{font-size:16px}
 .dv-card .structure-availability{margin:12px 0 0;font-size:15px}
 .dv-card-address{margin:0 0 14px!important;font-size:16px!important}
-.dv-button{display:flex;align-items:center;justify-content:center;min-height:52px;margin-top:10px;padding:0 22px;border:2px solid #17372d;background:#17372d;color:#fff;font:700 15px/1 'Poppins',sans-serif;letter-spacing:.04em;text-decoration:none;transition:background .2s,color .2s,transform .2s}
+.dv-button{display:flex;align-items:center;justify-content:center;min-height:52px;margin-top:10px;padding:0 22px;border:2px solid #17372d;background:#17372d;color:#fff;font:700 15px/1 'Be Vietnam Pro',sans-serif;letter-spacing:.04em;text-decoration:none;transition:background .2s,color .2s,transform .2s}
 .dv-button:hover{background:#2a5443;transform:translateY(-1px)}.dv-button.is-ghost{background:transparent;color:#17372d}.dv-button.is-ghost:hover{background:#17372d;color:#fff}
 .dv-list{margin-top:44px}.dv-list .structure-grid{margin-top:0}
 .dv-bar{display:none}
@@ -144,7 +144,7 @@
 .dv-stats span:not(.dv-ico){font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--fg)}
 
 .dv-pills{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0!important}
-.dv-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;font:700 14px/1.2 'Poppins',sans-serif}
+.dv-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;font:700 14px/1.2 'Be Vietnam Pro',sans-serif}
 .dv-pill i{width:9px;height:9px;border-radius:50%;background:currentColor}
 .dv-pill.is-ok{background:#e0f3e8;color:#17744a}.dv-pill.is-bad{background:#fde3e3;color:#a33232}.dv-pill.is-info{background:#e2edfc;color:#2a5db0}
 .dv-pill.is-ok i{animation:pulse 2s ease-out infinite}
@@ -172,7 +172,7 @@
 .dv-card::before{height:4px;background:#8a5f33}
 .dv-button,.dv-button:hover{background:#17372d}.dv-button:hover{background:#244d3d}.dv-button.is-ghost,.dv-button.is-ghost:hover{background:transparent}.dv-button.is-ghost:hover{background:#17372d}
 .dv-pill.is-info{background:#eef2ea;color:#315d50}
-.dv-card-sub{margin:18px 0 8px;font:700 12px/1.2 'Poppins',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8a5f33}
+.dv-card-sub{margin:18px 0 8px;font:700 12px/1.2 'Be Vietnam Pro',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#8a5f33}
 .dv-card-list{margin:0 0 14px;padding:0;list-style:none}.dv-card-list li{position:relative;padding:5px 0 5px 22px;font-size:15px;line-height:1.5;color:#33463c}
 .dv-card-list li::before{content:'';position:absolute;left:2px;top:12px;width:7px;height:7px;border-radius:50%;background:#8a5f33}
 .dv-card-address a{margin-left:4px;color:#8a5f33;font-weight:700;text-decoration:none;white-space:nowrap}.dv-card-address a:hover{text-decoration:underline}
