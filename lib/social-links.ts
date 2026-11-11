@@ -51,7 +51,7 @@ export async function getSocialLinks(): Promise<SocialLinks> {
       if (safeUrl) links[network] = { url: safeUrl, published: row.published === 1 };
     }
   } catch (error) {
-    // The social_links table comes with migration 0015; until it is applied the site simply shows no extra profiles.
+    // The social_links table comes with migration 0016; until it is applied the site simply shows no extra profiles.
     console.error('Social links unavailable', error instanceof Error ? error.name : 'unknown');
   }
   return links;

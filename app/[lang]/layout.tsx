@@ -11,6 +11,7 @@ import "../quick-contact.css";
 import "../quick-contact-fallback.css";
 import "../contact-admin.css";
 import "../editorial.css";
+import "../detail.css";
 
 // A second root layout so the page language is declared on <html> (the main layout is fixed to Vietnamese).
 export const generateMetadata = rootMetadata;

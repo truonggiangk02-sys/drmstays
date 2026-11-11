@@ -55,3 +55,5 @@ next-env.d.ts
 
 # SEO audit output (local only)
 drmstays.vn-audit/
+
+site-check-report.md
