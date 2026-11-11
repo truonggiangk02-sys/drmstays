@@ -1,4 +1,5 @@
 import { imgSize } from '@/lib/image-url';
+import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
 
@@ -10,6 +11,7 @@ type Building = {
   propertyType: string;
   images: Photo[];
   rooms: Array<{ monthlyPrice: number; images: Photo[] }>;
+  types?: Array<{ images: Photo[]; priceFrom: number; rooms: unknown[] }>;
 };
 
 const text = {
@@ -52,7 +54,7 @@ const displayName = (name: string) => name.toLowerCase().replace(/\s+/g, '') ===
 
 export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[] }) {
   const t = text[lang];
-  const photos = [...new Map(buildings.flatMap(building => [...building.images, ...building.rooms.flatMap(room => room.images)]).map(photo => [photo.url, photo])).values()];
+  const photos = [...new Map(buildings.flatMap(buildingPhotos).map(photo => [photo.url, photo])).values()];
   const heroPhoto = photos[0];
   const introPhoto = photos[2] || photos[1] || heroPhoto;
   const galleryPhotos = photos.slice(1, 5);
@@ -79,11 +81,11 @@ export function PublicHome({ lang, buildings, journal }: { lang: 'vi' | 'en'; bu
     <section className="editorial-collection structure-section" aria-labelledby="editorial-collection-title">
       <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / COLLECTION</span><h2 id="editorial-collection-title">{t.collection}</h2></div><p>{t.collectionLead}</p></div>
       {buildings.length ? <div className="editorial-property-grid">{buildings.map((building) => {
-        const photo = building.images[0] || building.rooms[0]?.images[0];
-        const prices = building.rooms.map(room => room.monthlyPrice).filter(price => price > 0);
+        const photo = buildingPhotos(building)[0];
+        const fromPrice = buildingFromPrice(building);
         return <Link className="editorial-property" href={`/${lang}/buildings/${building.id}`} key={building.id}>
           <div className="editorial-property-image">{photo ? <img src={photo.url} alt={photo.alt || building.name} loading="lazy" {...imgSize(photo)} /> : <div className="editorial-property-placeholder">DRM Stays</div>}<span className="editorial-property-arrow" aria-hidden="true">↗</span></div>
-          <div className="editorial-property-meta"><div><h3>{displayName(building.name)}</h3><p>{building.address}</p></div><div className="editorial-property-facts"><span>{building.propertyType || `${building.rooms.length} ${t.rooms}`}</span>{prices.length > 0 && <strong>{t.from} {money(Math.min(...prices))} ₫ / {t.month}</strong>}</div></div>
+          <div className="editorial-property-meta"><div><h3>{displayName(building.name)}</h3><p>{building.address}</p></div><div className="editorial-property-facts"><span>{building.propertyType || `${(building.types?.length || 0) + building.rooms.length} ${t.rooms}`}</span>{fromPrice > 0 && <strong>{t.from} {money(fromPrice)} ₫ / {t.month}</strong>}</div></div>
         </Link>;
       })}</div> : <p>{lang === 'vi' ? 'Các tòa nhà đang được cập nhật.' : 'Buildings are being updated.'}</p>}
       <Link className="editorial-text-link" href={`/${lang}/stays`}>{lang === 'vi' ? 'Xem tất cả tòa nhà & phòng' : 'Explore all buildings & rooms'}<span aria-hidden="true">↗</span></Link>
