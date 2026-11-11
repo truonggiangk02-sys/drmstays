@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Analytics } from "@/components/analytics";
 import { generateMetadata as rootMetadata } from "../(main)/layout";
 import "../globals.css";
 import "../cms.css";
@@ -21,7 +22,7 @@ export default async function LangLayout({ children, params }: { children: React
   if (lang !== "vi" && lang !== "en") notFound();
   return (
     <html lang={lang}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">{children}<Analytics /></body>
     </html>
   );
 }

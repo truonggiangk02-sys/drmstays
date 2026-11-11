@@ -10,6 +10,7 @@
 // COMING_SOON=1 shows the "coming soon" page on every public URL (admin and APIs keep working).
 // PREVIEW_DEMO=1 turns on sample data (staging only, never for the real site).
 // STAGING=1 marks a staging copy: it is never indexed (X-Robots-Tag, meta robots, robots.txt Disallow: /). *.workers.dev addresses count as staging too.
+// GA_MEASUREMENT_ID (G-XXXXXXXXXX) turns on Google Analytics; it only runs on the real site, never on staging, preview or coming-soon.
 // SITE_URL is required (the public address, https, no path); ALLOW_MISSING_SITE_URL=1 skips that check on purpose.
 // NO_R2=1 leaves out the photo bucket (fine for a demo/staging copy: admin photo upload then won't work).
 // Secrets (ADMIN_PASSWORD, tokens...) are never written here; set them with `wrangler secret put`.
@@ -56,7 +57,7 @@ config.r2_buckets = process.env.NO_R2 === "1"
   : [{ binding: "BUCKET", bucket_name: process.env.R2_BUCKET_NAME?.trim() || "drmstays-media" }];
 
 const vars = { ...(config.vars || {}) };
-for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS", "COMING_SOON", "STAGING"]) {
+for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS", "COMING_SOON", "STAGING", "GA_MEASUREMENT_ID"]) {
   const value = process.env[key]?.trim();
   if (value) vars[key] = value;
 }

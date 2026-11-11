@@ -3,7 +3,7 @@ export type PolicySection = (typeof policySections)[number];
 type Block = { heading: string; paragraphs: string[] };
 type Policy = { title: string; intro: string; blocks: Block[] };
 
-export const POLICIES_UPDATED = '2026-11-01';
+export const POLICIES_UPDATED = '2026-11-11';
 
 // DRAFT wording: the owner reviews and approves it before the site goes live. It deliberately states no refund
 // percentages, deadlines or legal entity details; those are agreed per room and in the written agreement.
@@ -27,7 +27,10 @@ export const policies: Record<'vi' | 'en', Record<PolicySection, Policy>> = {
         ] },
         { heading: 'Thời gian lưu trữ', paragraphs: ['Thông tin được giữ trong thời gian cần thiết để xử lý yêu cầu và các nghĩa vụ liên quan, sau đó được xóa hoặc ẩn danh.'] },
         { heading: 'Quyền của bạn', paragraphs: ['Bạn có quyền yêu cầu xem, sửa, xóa thông tin cá nhân của mình hoặc rút lại sự đồng ý bất cứ lúc nào bằng cách liên hệ với chúng tôi qua trang Liên hệ.'] },
-        { heading: 'Cookie', paragraphs: ['Website công khai không dùng cookie quảng cáo hay theo dõi. Cookie chỉ được dùng cho phiên đăng nhập của quản trị viên.'] },
+        { heading: 'Cookie và thống kê truy cập', paragraphs: [
+          'Website dùng Google Analytics để thống kê lượt truy cập: trang được xem, nguồn truy cập, loại thiết bị và khu vực chung. Google Analytics dùng cookie và không cho chúng tôi biết danh tính của bạn. Chúng tôi dùng số liệu này để cải thiện website, không dùng cookie quảng cáo.',
+          'Bạn có thể tắt cookie trong trình duyệt hoặc cài tiện ích chặn Google Analytics. Cookie cũng được dùng cho phiên đăng nhập của quản trị viên.',
+        ] },
       ],
     },
     cancellation: {
@@ -73,7 +76,10 @@ export const policies: Record<'vi' | 'en', Record<PolicySection, Policy>> = {
         ] },
         { heading: 'How long we keep it', paragraphs: ['For as long as needed to handle your enquiry and related obligations, after which it is deleted or anonymised.'] },
         { heading: 'Your rights', paragraphs: ['You may ask to see, correct or delete your personal information, or withdraw your consent at any time, by contacting us through the Contact page.'] },
-        { heading: 'Cookies', paragraphs: ['The public website does not use advertising or tracking cookies. Cookies are used only for the administrator login session.'] },
+        { heading: 'Cookies and visit statistics', paragraphs: [
+          'The website uses Google Analytics to count visits: pages viewed, where visitors come from, device type and general region. Google Analytics uses cookies and does not tell us who you are. We use these figures to improve the website; we do not use advertising cookies.',
+          'You can turn off cookies in your browser or install a Google Analytics blocking add-on. Cookies are also used for the administrator login session.',
+        ] },
       ],
     },
     cancellation: {
