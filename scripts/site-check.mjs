@@ -10,7 +10,8 @@
 // Exit code 1 when anything FAILS, so it can gate a release.
 import { writeFileSync } from 'node:fs';
 
-const SEED = ['/', '/vi', '/en', '/vi/stays', '/en/stays', '/vi/services', '/vi/about', '/vi/journal', '/vi/faq', '/vi/contact', '/vi/partners', '/vi/privacy', '/vi/cancellation', '/vi/terms'];
+// /vi/journal is left out on purpose: the journal stays hidden (404) until it has its first article. Once it has posts, the crawler finds the page through the links.
+const SEED = ['/', '/vi', '/en', '/vi/stays', '/en/stays', '/vi/services', '/vi/about', '/vi/faq', '/vi/contact', '/vi/partners', '/vi/privacy', '/vi/cancellation', '/vi/terms'];
 const SOFT_ERRORS = ["couldn't load", 'couldn’t load', 'Danh sách hiện chưa sẵn sàng', 'The catalog is temporarily unavailable', 'Các tòa nhà đang được cập nhật', 'Buildings are being updated', 'Internal Server Error'];
 
 /** Facts about one HTML page, read with plain patterns (enough for health checks, no DOM needed). */
