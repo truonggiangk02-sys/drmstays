@@ -263,3 +263,32 @@
     padding: 0 4px;
   }
 }
+
+/* Layout balance: cards fill the row instead of leaving empty grid columns. */
+.structure-site .structure-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+.structure-site .structure-links > a h2 {
+  margin: 8px 0;
+}
+
+.structure-site .structure-links > a p {
+  margin: 0 0 4px;
+}
+
+/* Logo blocks: compact mark instead of a large empty white box. */
+.structure-site .structure-promo img {
+  justify-self: center;
+  width: min(100%, 360px);
+  max-height: 220px;
+  padding: 24px;
+}
+
+.structure-site .structure-footer img {
+  width: 120px;
+}
+
+.structure-site .structure-languages {
+  align-items: center;
+}
