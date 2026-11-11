@@ -1,4 +1,4 @@
-import { absoluteUrl, CONTACT, SITE_NAME, siteUrl } from './site';
+import { absoluteUrl, CONTACT, propertyName, SITE_NAME, siteUrl } from './site';
 
 type Lang = 'vi' | 'en';
 type Photo = { url: string };
@@ -18,7 +18,9 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
     '@graph': [
       {
         '@type': 'LodgingBusiness', '@id': `${base}/#org`, name: SITE_NAME, url: base, logo: `${base}/drm-stay-logo.png`, image: `${base}/drm-stay-logo.png`,
-        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam',
+        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', sameAs: [CONTACT.facebook],
+        description: lang === 'vi' ? 'Đơn vị tư vấn phát triển, thiết kế và vận hành bất động sản cho thuê tại Đà Nẵng.' : 'Consultancy for the development, design and operation of rental property in Da Nang.',
+        knowsLanguage: ['vi', 'en', 'ja', 'ko', 'zh', 'ru'],
         address: { '@type': 'PostalAddress', streetAddress: CONTACT.street, addressLocality: CONTACT.city, addressRegion: CONTACT.district, addressCountry: 'VN' },
       },
       { '@type': 'WebSite', '@id': `${base}/#site`, name: SITE_NAME, url: `${base}/${lang}`, inLanguage: lang, publisher: { '@id': `${base}/#org` } },
@@ -27,7 +29,7 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
   if (kind === 'building' && data) {
     const b = data as BuildingData;
     return clean({
-      '@context': 'https://schema.org', '@type': 'ApartmentComplex', name: b.name, description: b.description, url: `${base}/${lang}/buildings/${b.id}`,
+      '@context': 'https://schema.org', '@type': 'ApartmentComplex', name: propertyName(b.name), description: b.description, url: `${base}/${lang}/buildings/${b.id}`,
       image: images(b.images),
       address: b.address ? { '@type': 'PostalAddress', streetAddress: b.address, addressLocality: 'Da Nang', addressCountry: 'VN' } : undefined,
       geo: b.latitude !== null && b.longitude !== null ? { '@type': 'GeoCoordinates', latitude: b.latitude, longitude: b.longitude } : undefined,
@@ -41,7 +43,7 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
       floorSize: r.areaSqm ? { '@type': 'QuantitativeValue', value: r.areaSqm, unitCode: 'MTK' } : undefined,
       occupancy: r.maxGuests ? { '@type': 'QuantitativeValue', maxValue: r.maxGuests } : undefined,
       numberOfBedrooms: r.beds,
-      containedInPlace: building ? { '@type': 'ApartmentComplex', name: building.name, url: `${base}/${lang}/buildings/${building.id}` } : undefined,
+      containedInPlace: building ? { '@type': 'ApartmentComplex', name: propertyName(building.name), url: `${base}/${lang}/buildings/${building.id}` } : undefined,
       offers: r.monthlyPrice > 0 ? { '@type': 'Offer', price: r.monthlyPrice, priceCurrency: 'VND', url: `${base}/${lang}/${kind === 'type' ? 'types' : 'rooms'}/${r.id}` } : undefined,
     });
   }

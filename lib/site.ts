@@ -1,8 +1,8 @@
 import { env } from "cloudflare:workers";
 
 export const SITE_NAME = "DRM Stays";
-export const SITE_TITLE = "DRM Stays | Apartments and Monthly Stays in Da Nang";
-export const SITE_DESCRIPTION = "Explore DRM Stays buildings and individual rooms in Da Nang, with photos, monthly rent, amenities and inquiry support.";
+export const SITE_TITLE = "DRM Stays | Rental Property Operations in Da Nang";
+export const SITE_DESCRIPTION = "DRM Stays advises on the development, design and operation of rental property in Da Nang, and rents rooms in the buildings it operates.";
 /** The business's public contact details: shown in the footer and contact page, and repeated in the structured data (they must match). */
 export const CONTACT = {
   phone: "0869900000",
@@ -12,7 +12,12 @@ export const CONTACT = {
   district: "Ngũ Hành Sơn",
   city: "Đà Nẵng",
   address: "K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng",
+  facebook: "https://www.facebook.com/profile.php?id=61589018612745",
 } as const;
+/** Official spelling of the Doraemon's Land buildings, whatever the source calls them ("Doraemon Land", "doraemonland"...). */
+export function propertyName(name: string): string {
+  return name.replace(/doraemon['’]?s?\s*land/i, "Doraemon's Land");
+}
 export const LANGS = ["vi", "en"] as const;
 export type SiteLang = (typeof LANGS)[number];
 

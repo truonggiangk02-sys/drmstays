@@ -6,7 +6,7 @@ import { getPublicCatalog } from '@/lib/public-catalog';
 import { getContentItems, getContentImages, contentSections, type ContentItem, type ContentSection, type ContentImage } from '@/lib/site-content';
 import { getPublicLandmarks } from '@/lib/landmarks';
 import { MapExplorer } from '@/components/map-explorer';
-import { absoluteUrl, CONTACT, siteUrl, summarize } from '@/lib/site';
+import { absoluteUrl, CONTACT, propertyName, siteUrl, summarize } from '@/lib/site';
 import { PropertyGallery } from '@/components/property-gallery';
 import { DateRangeSearch } from '@/components/date-range-search';
 import { CatalogContactForm } from '@/components/catalog-contact-form';
@@ -18,6 +18,7 @@ import { breadcrumbData, structuredData } from '@/lib/structured-data';
 import { groupByFloor } from '@/lib/catalog-progress';
 import { jsonLd } from '@/lib/site';
 import { imgSize, LOGO_SIZE } from '@/lib/image-url';
+import { homeMeta, pageMeta } from '@/lib/page-meta';
 
 export const dynamic = 'force-dynamic';
 type Lang = 'vi' | 'en';
@@ -56,7 +57,7 @@ const copy = {
   },
 } as const;
 
-const homeTitle = { vi: 'DRM Stays | Căn hộ và phòng thuê tháng tại Đà Nẵng', en: 'DRM Stays | Apartments and Monthly Stays in Da Nang' } as const;
+const homeTitle = { vi: homeMeta.vi.title, en: homeMeta.en.title } as const;
 const sectionTitle = {
   vi: { stays: 'Tòa nhà & phòng', services: 'Dịch vụ', partners: 'Chủ tòa & đối tác', about: 'Về DRM Stays', journal: 'Cẩm nang', faq: 'Câu hỏi thường gặp', contact: 'Liên hệ', privacy: policies.vi.privacy.title, cancellation: policies.vi.cancellation.title, terms: policies.vi.terms.title },
   en: { stays: 'Buildings & rooms', services: 'Services', partners: 'Owners & partners', about: 'About DRM Stays', journal: 'Journal', faq: 'FAQ', contact: 'Contact', privacy: policies.en.privacy.title, cancellation: policies.en.cancellation.title, terms: policies.en.terms.title },
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   if (input !== 'vi' && input !== 'en') return { robots: { index: false } };
   const lang: Lang = input, [section, id] = segments;
   const path = segments.length ? `/${segments.join('/')}` : '';
-  let title: string | undefined, description: string = copy[lang].heroText, image: string | undefined, imageSize: { width?: number; height?: number } = {};
+  let title: string | undefined, description: string = homeMeta[lang].description, image: string | undefined, imageSize: { width?: number; height?: number } = {};
   if (!section) { title = homeTitle[lang]; }
   else if (section === 'buildings' || section === 'rooms' || section === 'types') {
     const data = await catalog(undefined, undefined, lang);
@@ -80,12 +81,23 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     description = summarize(found.description || description);
     image = found.images[0]?.url;
     imageSize = imgSize(found.images[0]);
+  } else if (section === 'journal' && !id) {
+    // The journal stays hidden (and out of search results) until its first article is published.
+    if (!(await getContentItems('journal')).length) return { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } };
+    title = pageMeta[lang].journal.title; description = pageMeta[lang].journal.description;
   } else if (section === 'journal' && id) {
     const article = (await getContentItems('journal')).find(item => item.id === id);
     if (!article) return { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } };
     title = contentTitle(article, lang);
     description = summarize(contentBody(article, lang) || description);
-  } else if (section in sectionTitle[lang]) title = sectionTitle[lang][section as keyof typeof sectionTitle['vi']];
+  } else if (section in pageMeta[lang]) {
+    const meta = pageMeta[lang][section as keyof typeof pageMeta['vi']];
+    title = meta.title; description = meta.description;
+  } else if (section in sectionTitle[lang]) {
+    title = sectionTitle[lang][section as keyof typeof sectionTitle['vi']];
+    const policy = policies[lang][section as PolicySection];
+    if (policy) description = summarize(policy.intro);
+  }
   const ogImage = absoluteUrl(image || '/drm-stay-logo.png');
   return {
     ...(title ? { title: section ? title : { absolute: title } } : {}),
@@ -109,20 +121,19 @@ function selectedDateQuery(checkIn?: string, checkOut?: string) {
 const minMonthlyPrice = (rooms: Array<{ monthlyPrice: number }>) => { const prices = rooms.map(room => room.monthlyPrice).filter(price => price > 0); return prices.length ? Math.min(...prices) : null; };
 const contentTitle = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.title_vi : item.title_en;
 const contentBody = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.body_vi : item.body_en;
-const propertyName = (name: string) => name.toLowerCase().replace(/\s+/g, '') === 'doraemonland' ? 'Doraemon Land' : name;
 
-function Header({ lang, segments, dateQuery }: { lang: Lang; segments: string[]; dateQuery: string }) {
+function Header({ lang, segments, dateQuery, showJournal }: { lang: Lang; segments: string[]; dateQuery: string; showJournal: boolean }) {
   const t = copy[lang], suffix = segments.length ? `/${segments.join('/')}` : '';
-  const links = [['stays', t.navStays], ['services', t.navServices], ['journal', t.navJournal], ['about', t.navAbout], ['contact', t.navContact]] as const;
-  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'KHÔNG GIAN LƯU TRÚ' : 'STAY WITH CARE'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link><span>/</span><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link></div></header>;
+  const links = [['stays', t.navStays], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['contact', t.navContact]] as const;
+  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link><span>/</span><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link></div></header>;
 }
 function ContactDetails({ lang }: { lang: Lang }) {
   const vi = lang === 'vi';
-  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phone}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {CONTACT.address}</span></address>;
+  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phone}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {CONTACT.address}</span><span><b>Facebook</b> <a href={CONTACT.facebook} target="_blank" rel="noopener noreferrer">DRM Stays Da Nang</a></span></address>;
 }
-function Footer({ lang }: { lang: Lang }) {
+function Footer({ lang, showJournal }: { lang: Lang; showJournal: boolean }) {
   const t = copy[lang];
-  return <footer className="structure-footer"><div className="structure-footer-intro"><strong className="structure-footer-brand">DRM Stays</strong><p>Your Stay, Our Care.</p><span>{lang === 'vi' ? 'Khám phá nơi ở phù hợp tại Đà Nẵng.' : 'Explore stays that fit in Da Nang.'}</span><ContactDetails lang={lang} /></div><nav aria-label={lang === 'vi' ? 'Khám phá' : 'Explore'}><Link href={`/${lang}/stays`}>{t.navStays}</Link><Link href={`/${lang}/services`}>{t.navServices}</Link><Link href={`/${lang}/about`}>{t.navAbout}</Link><Link href={`/${lang}/journal`}>{t.navJournal}</Link></nav><nav aria-label={lang === 'vi' ? 'Thông tin' : 'Information'}><Link href={`/${lang}/partners`}>{t.navPartners}</Link><Link href={`/${lang}/faq`}>{t.navFaq}</Link><Link href={`/${lang}/contact`}>{t.navContact}</Link></nav><div className="structure-footer-bottom"><span>© {new Date().getFullYear()} DRM Stays</span><nav aria-label={lang === 'vi' ? 'Chính sách' : 'Policies'}>{policySections.map(p => <Link key={p} href={`/${lang}/${p}`}>{policies[lang][p].title}</Link>)}</nav><Link href={`/${lang}/contact`}>{t.navContact} ↗</Link></div></footer>;
+  return <footer className="structure-footer"><div className="structure-footer-intro"><strong className="structure-footer-brand">DRM Stays</strong><p>Your Stay, Our Care.</p><span>{lang === 'vi' ? 'Tư vấn và vận hành bất động sản cho thuê tại Đà Nẵng.' : 'Rental property consulting and operations in Da Nang.'}</span><ContactDetails lang={lang} /></div><nav aria-label={lang === 'vi' ? 'Khám phá' : 'Explore'}><Link href={`/${lang}/stays`}>{t.navStays}</Link><Link href={`/${lang}/services`}>{t.navServices}</Link><Link href={`/${lang}/about`}>{t.navAbout}</Link>{showJournal && <Link href={`/${lang}/journal`}>{t.navJournal}</Link>}</nav><nav aria-label={lang === 'vi' ? 'Thông tin' : 'Information'}><Link href={`/${lang}/partners`}>{t.navPartners}</Link><Link href={`/${lang}/faq`}>{t.navFaq}</Link><Link href={`/${lang}/contact`}>{t.navContact}</Link></nav><div className="structure-footer-bottom"><span>© {new Date().getFullYear()} DRM Stays</span><nav aria-label={lang === 'vi' ? 'Chính sách' : 'Policies'}>{policySections.map(p => <Link key={p} href={`/${lang}/${p}`}>{policies[lang][p].title}</Link>)}</nav><Link href={`/${lang}/contact`}>{t.navContact} ↗</Link></div></footer>;
 }
 function Price({ room, lang }: { room: Room; lang: Lang }) { return room.monthlyPrice > 0 ? <p className="structure-price">{money(room.monthlyPrice)} ₫ / {copy[lang].month}</p> : null; }
 function SelectedDates({ lang, checkIn, checkOut }: { lang: Lang; checkIn?: string; checkOut?: string }) {
@@ -169,6 +180,9 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   }
   if ((section === 'buildings' && data && !building) || (section === 'rooms' && data && !room) || (section === 'types' && data && !roomType)) notFound();
   const content = !section || isContent ? await getContentItems((section || 'journal') as ContentSection) : [];
+  const journalItems = !section || section === 'journal' ? content : await getContentItems('journal').catch(() => [] as ContentItem[]);
+  const showJournal = journalItems.length > 0;
+  if (section === 'journal' && !showJournal) notFound();
   const contentImages = isContent ? await getContentImages(content) : {};
   const article = section === 'journal' && id ? content.find(item => item.id === id) : undefined;
   if (section === 'journal' && id && !article) notFound();
@@ -185,7 +199,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     : room ? breadcrumbData([homeCrumb, staysCrumb, ...(roomBuilding ? [buildingCrumb(roomBuilding)] : []), { name: title, path: `/${lang}/rooms/${room.id}` }])
     : roomType ? breadcrumbData([homeCrumb, staysCrumb, buildingCrumb(roomType.building), { name: title, path: `/${lang}/types/${roomType.id}` }])
     : article ? breadcrumbData([homeCrumb, { name: t.navJournal, path: `/${lang}/journal` }, { name: title, path: `/${lang}/journal/${article.id}` }]) : null;
-  return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} />
+  return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
     <main id="main-content">
     {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={content} />}
     {section === 'stays' && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS</span><h1>{title}</h1><DateRangeSearch lang={lang} checkIn={q.checkIn} checkOut={q.checkOut} /></section>{data?.buildings.length ? <MapExplorer lang={lang} dateQuery={dateQuery} buildings={data.buildings.map(item => ({ id: item.id, name: propertyName(item.name), address: item.address, imageUrl: item.images[0]?.url || item.rooms[0]?.images[0]?.url || '/drm-stay-logo.png', imageAlt: item.images[0]?.alt || item.rooms[0]?.images[0]?.alt || propertyName(item.name), imageIsIllustrative: (item.images[0]?.id || item.rooms[0]?.images[0]?.id || '').startsWith('demo-'), photos: (item.images.length ? item.images : item.rooms.flatMap(room => room.images).slice(0, 3)).map(image => ({ url: image.url, alt: image.alt || propertyName(item.name) })), roomCount: item.rooms.length, monthlyPrice: minMonthlyPrice(item.rooms), latitude: item.latitude, longitude: item.longitude, coordinateApproximate: item.coordinateApproximate }))} landmarks={landmarks.map(place => ({ id: place.id, name: lang === 'vi' ? place.nameVi : place.nameEn || place.nameVi, description: lang === 'vi' ? place.descriptionVi : place.descriptionEn || place.descriptionVi, latitude: place.latitude, longitude: place.longitude, buildingIds: place.buildingIds }))} /> : <section className="structure-section"><p>{data ? t.noBuildings : t.noResults}</p></section>}</>}
@@ -195,7 +209,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     {['about','services','partners','journal','faq','contact'].includes(section || '') && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS</span><h1>{title}</h1>{section === 'partners' && <p>{lang === 'vi' ? 'Chia sẻ thông tin tòa nhà và nhu cầu hợp tác. Chúng tôi sẽ liên hệ để trao đổi phương án phù hợp.' : 'Share your building details and partnership goals. Our team will contact you to discuss a suitable approach.'}</p>}</section><section className="structure-section structure-content">{section === 'about' && <img className="structure-logo-large" src="/drm-stay-logo.png" alt="DRM STAY — Your Stay Our Care" {...LOGO_SIZE} />}{section === 'journal' ? article ? <><Link className="structure-back" href={`/${lang}/journal`}>← {t.backJournal}</Link><ContentCards items={[article]} lang={lang} images={contentImages} /></> : content.length ? <div>{content.map(item => <Link className="structure-article-link" key={item.id} href={`/${lang}/journal/${item.id}`}>{contentImages[item.id]?.[0] && <img src={contentImages[item.id][0].url} alt={contentImages[item.id][0].alt || contentTitle(item,lang)} {...imgSize(contentImages[item.id][0])} />}<strong>{contentTitle(item,lang)}</strong><span>{contentBody(item,lang).slice(0,180)}…</span></Link>)}</div> : <p>{t.empty}</p> : isContent && <ContentCards items={content} lang={lang} images={contentImages} />}{section === 'partners' && <>{q.sent === '1' && <p role="status">{t.received}</p>}<form className="structure-form" action="/api/partner-inquiries" method="post"><input type="hidden" name="lang" value={lang} /><label>{t.name}<input name="name" required maxLength={100} /></label><label>{t.phone}<input name="phone" required maxLength={24} /></label><label>{t.email}<input name="email" type="email" maxLength={254} /></label><label>{t.partnerProperty}<input name="property" maxLength={200} /></label><label>{t.message}<textarea name="message" rows={5} maxLength={2000} /></label><label className="honeypot" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label><button>{t.partnerSend}</button><small><Link href={`/${lang}/privacy`}>{lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy'}</Link></small></form></>}{section === 'contact' && <><ContactDetails lang={lang} />{q.sent === '1' && <p role="status">{t.received}</p>}<p>{t.contactText}</p><ContactForm lang={lang} roomId="" />{contactPhoto && <img className="editorial-contact-photo" src={contactPhoto.url} alt={contactPhoto.alt || "DRM Stays apartment"} loading="lazy" {...imgSize(contactPhoto)} />}</>}</section></>}
     {isPolicy && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS</span><h1>{policies[lang][section as PolicySection].title}</h1><p>{policies[lang][section as PolicySection].intro}</p></section><section className="structure-section structure-content structure-policy">{policies[lang][section as PolicySection].blocks.map(block => <section className="structure-detail-block" key={block.heading}><h2>{block.heading}</h2>{block.paragraphs.map(text => <p key={text}>{text}</p>)}</section>)}<p><small>{lang === 'vi' ? 'Cập nhật' : 'Last updated'}: {POLICIES_UPDATED}</small></p></section></>}
     </main>
-    <Footer lang={lang} />
+    <Footer lang={lang} showJournal={showJournal} />
     <QuickContact lang={lang} preview={env.PREVIEW_DEMO === '1'} channels={[
       { name: 'WhatsApp', mark: 'W', url: contactChannels.whatsapp.published ? contactChannels.whatsapp.url : undefined },
       { name: 'Telegram', mark: 'T', url: contactChannels.telegram.published ? contactChannels.telegram.url : undefined },

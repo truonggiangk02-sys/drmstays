@@ -40,6 +40,8 @@ describe("structuredData", () => {
     const org = (structuredData("home", "vi") as { "@graph": Json[] })["@graph"][0];
     expect(org.telephone).toBe("+84869900000");
     expect(org.email).toBe("drmstayshome@gmail.com");
+    expect(org.sameAs).toEqual(["https://www.facebook.com/profile.php?id=61589018612745"]);
+    expect(org.knowsLanguage).toEqual(["vi", "en", "ja", "ko", "zh", "ru"]);
     expect(org.address).toMatchObject({ "@type": "PostalAddress", streetAddress: "K234/29-31 Đỗ Bá", addressLocality: "Đà Nẵng", addressCountry: "VN" });
   });
 

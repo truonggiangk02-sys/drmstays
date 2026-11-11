@@ -5,7 +5,7 @@ import { getPublicCatalog } from "@/lib/public-catalog";
 import { siteUrl } from "@/lib/site";
 import { absoluteImage, buildSitemap, toLastmod, type SitemapEntry } from "@/lib/sitemap";
 
-const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/journal", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
+const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;
@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
       }
     } catch { /* The catalog source is down: still list the static pages. */ }
     try {
-      // Journal posts have no "last changed" date yet, so they are listed without <lastmod>.
-      for (const item of await getContentItems("journal")) entries.push({ path: `/journal/${item.id}` });
+      // The journal is hidden until it has an article. Posts have no "last changed" date yet, so they are listed without <lastmod>.
+      const posts = await getContentItems("journal");
+      if (posts.length) entries.push({ path: "/journal" });
+      for (const item of posts) entries.push({ path: `/journal/${item.id}` });
     } catch { /* Journal is optional. */ }
   }
   return new Response(buildSitemap(origin, entries), { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=600" } });
