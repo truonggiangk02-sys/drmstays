@@ -1,0 +1,98 @@
+/*
+ * Front-end polish, loaded after every other stylesheet. Only motion, touch comfort, type wrapping and the
+ * floating contact bar are tuned here; page structure, headings and SEO content are left as they are.
+ */
+
+/* ---- Motion ---------------------------------------------------------------- */
+html { scroll-padding-top: 84px; }
+@media (prefers-reduced-motion: reduce) { html:root { scroll-behavior: auto; } }
+
+/* Shorter, lighter entrances (opacity + transform only, so they stay on the compositor). */
+body .page-enter { animation-duration: .5s; }
+body [data-reveal] { transition-duration: .6s; }
+html.reveal-ready body [data-reveal]:not(.is-in) { transform: translateY(16px); }
+
+/* ---- Touch comfort --------------------------------------------------------- */
+a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+.structure-button, .editorial-primary-link, .dv-button, .quick-contact-link {
+  transition-property: transform, box-shadow, background-color, color;
+}
+.structure-button:active, .editorial-primary-link:active, .dv-button:active, .quick-contact-link:active {
+  transform: scale(.97);
+}
+
+/* Hover lifts stay for mouse users; on touch screens they would stick after a tap. */
+@media (hover: none) {
+  body .quick-contact .quick-contact-link:hover, body .structure-card:hover, body .dv-tile:hover img { transform: none; }
+}
+
+/* ---- Type ------------------------------------------------------------------ */
+.structure-site h1, .structure-site h2, .structure-site h3 { text-wrap: balance; }
+.structure-site p, .structure-site li { text-wrap: pretty; }
+
+/* ---- Floating contact bar -------------------------------------------------- */
+/* Desktop: a slim icon rail; the channel name appears beside the icon on hover or keyboard focus. */
+@media (min-width: 701px) {
+  body .quick-contact { gap: 8px; }
+  body .quick-contact .quick-contact-link {
+    position: relative;
+    justify-content: center;
+    width: 48px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  body .quick-contact .quick-contact-mark { width: 36px; height: 36px; border-radius: 50%; }
+  body .quick-contact .quick-contact-name {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: #17372d;
+    color: #fff;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(6px, -50%);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  body .quick-contact .quick-contact-link:hover .quick-contact-name,
+  body .quick-contact .quick-contact-link:focus-visible .quick-contact-name { opacity: 1; transform: translate(0, -50%); }
+  body .quick-contact .quick-contact-link:hover { transform: translateX(-3px); }
+}
+
+/* Mobile: a lower bar that no longer covers the hero button, with room left under the footer. */
+@media (max-width: 700px) {
+  body .quick-contact { padding: 5px; gap: 4px; border-radius: 16px; }
+  body .quick-contact .quick-contact-link { min-height: 56px; min-width: 0; gap: 1px; }
+  body .quick-contact .quick-contact-mark { width: 26px; height: 26px; font-size: 13px; }
+  body .quick-contact .quick-contact-link.is-unconfigured small { display: none; }
+  .structure-site footer { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+}
+
+/* ---- Mobile header: one swipeable row instead of two wrapped rows ------------ */
+@media (max-width: 700px) {
+  body .structure-site .structure-header nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 2px;
+    margin: 0 -5vw;
+    padding: 0 5vw;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, #000 90%, transparent);
+  }
+  body .structure-site .structure-header nav::-webkit-scrollbar { display: none; }
+  body .structure-site .structure-header nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 10px;
+  }
+}

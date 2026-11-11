@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { FontLinks } from "@/components/font-links";
 import "../globals.css";
 import "../cms.css";
 import "../catalog.css";
@@ -35,6 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
+      <head><FontLinks /></head>
       <body className="antialiased">{children}</body>
     </html>
   );
