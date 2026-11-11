@@ -109,3 +109,5 @@
 @media(max-width:900px){.editorial-journal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.editorial-journal{padding-top:70px;padding-bottom:80px}.editorial-journal-grid{grid-template-columns:1fr}.editorial-journal-card{min-height:260px}}
 @media(prefers-reduced-motion:reduce){.editorial-hero-image,.editorial-hero-content,.editorial-property{animation:none}.editorial-property-image img,.editorial-primary-link,.editorial-text-link,.editorial-journal-card,.structure-header nav a::after{transition:none}}
+
+.editorial-investors{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px 48px;padding-top:clamp(40px,5vw,70px);padding-bottom:clamp(40px,5vw,70px);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.editorial-investors h2{max-width:620px;margin:14px 0 14px;font:400 clamp(28px,3vw,42px)/1.15 'Playfair Display',Georgia,serif;letter-spacing:-.03em;text-wrap:balance}.editorial-investors p{max-width:560px;margin:0;color:var(--muted);font-size:16px;line-height:1.8}

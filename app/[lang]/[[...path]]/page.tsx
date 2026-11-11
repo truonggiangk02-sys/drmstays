@@ -36,28 +36,28 @@ type Room = Building['rooms'][number];
 
 const copy = {
   vi: {
-    navStays: 'Tòa nhà & phòng', navServices: 'Dịch vụ', navPartners: 'Chủ tòa & đối tác', navAbout: 'Về DRM Stays', navJournal: 'Cẩm nang', navContact: 'Liên hệ', navFaq: 'Câu hỏi thường gặp',
+    navStays: 'Tòa nhà & phòng', navServices: 'Dịch vụ', navPartners: 'Dành cho chủ đầu tư', navAbout: 'Về DRM Stays', navJournal: 'Cẩm nang', navContact: 'Liên hệ', navFaq: 'Câu hỏi thường gặp',
     hero: 'Không gian lưu trú phù hợp với bạn.', heroText: 'DRM Stays giới thiệu các tòa nhà và từng phòng với hình ảnh, diện tích, trang bị, giá tháng và thông tin cần biết trước khi liên hệ.',
     explore: 'Khám phá tòa nhà', featured: 'Tòa nhà đang giới thiệu', from: 'Từ', month: 'tháng', viewBuilding: 'Xem tòa nhà', viewRoom: 'Xem phòng', allBuildings: 'Tất cả tòa nhà', rooms: 'Phòng trong tòa',
     checkIn: 'Ngày nhận phòng', checkOut: 'Ngày trả phòng', search: 'Xem phòng', available: 'Còn trống theo ngày chọn', unavailable: 'Không còn trống theo ngày chọn',
     propertyType: 'Loại hình', buildingArea: 'Diện tích khuôn viên', floors: 'Số tầng', roomType: 'Loại phòng', floor: 'Tầng', area: 'Diện tích', beds: 'Giường', bathrooms: 'WC', guests: 'Sức chứa', deposit: 'Tiền cọc', minStay: 'Thuê tối thiểu',
     amenities: 'Tiện ích', services: 'Dịch vụ', furniture: 'Nội thất & vật dụng', serviceFees: 'Phí dịch vụ', rules: 'Quy định', floorplan: 'Sơ đồ mặt bằng',
     contactTitle: 'Gửi yêu cầu tư vấn', contactText: 'Để lại thông tin. Nhân viên sẽ liên hệ để xác nhận phòng, điều kiện thuê và lịch xem.', name: 'Họ tên', phone: 'Số điện thoại / WhatsApp', email: 'Email (không bắt buộc)', message: 'Nội dung yêu cầu', send: 'Gửi yêu cầu', note: 'Gửi form chưa phải là đặt phòng hoặc thanh toán.',
-    partnerTitle: 'Dành cho chủ tòa và đối tác', partnerProperty: 'Tòa nhà / khu vực', partnerSend: 'Gửi thông tin hợp tác',
+    partnerTitle: 'Dành cho chủ đầu tư', partnerProperty: 'Tòa nhà / khu vực', partnerSend: 'Gửi thông tin hợp tác',
     noBuildings: 'Chưa có tòa nhà được công khai.', noRooms: 'Chưa có phòng được công khai trong tòa này.', noResults: 'Danh sách hiện chưa sẵn sàng. Vui lòng thử lại sau.',
     demo: 'BẢN XEM TRƯỚC · Nội dung, ảnh và giá đang là mẫu. Lịch trống thật từ Staydesk chưa kết nối.',
     roomTypes: 'Loại phòng', otherRooms: 'Phòng khác', fromPrice: 'Từ', roomsOfType: 'Phòng thuộc loại này', viewType: 'Xem loại phòng', roomsCount: 'phòng', roomsFree: 'phòng còn trống', noFreeRooms: 'Hết phòng theo ngày chọn', viewByFloor: 'Tầng', floorsUnit: 'tầng', openMap: 'Xem trên bản đồ', highlights: 'Điểm nổi bật', totalRooms: 'Tổng số phòng', roomTypesLabel: 'Loại phòng', priceHint: 'Giá thuê theo tháng', info: 'Thông tin chi tiết', showMore: 'Xem thêm', aboutBuilding: 'Về tòa nhà', home: 'Trang chủ',
     received: 'Đã nhận thông tin. Đội ngũ sẽ liên hệ lại.', empty: 'Nội dung đang được cập nhật.', backJournal: 'Về danh sách bài viết', selectedDates: 'Ngày bạn đang xem', dateSeparator: 'đến', changeDates: 'Đổi ngày',
   },
   en: {
-    navStays: 'Buildings & rooms', navServices: 'Services', navPartners: 'Owners & partners', navAbout: 'About DRM Stays', navJournal: 'Journal', navContact: 'Contact', navFaq: 'FAQ',
+    navStays: 'Buildings & rooms', navServices: 'Services', navPartners: 'For investors', navAbout: 'About DRM Stays', navJournal: 'Journal', navContact: 'Contact', navFaq: 'FAQ',
     hero: 'Find a stay that fits your life.', heroText: 'DRM Stays presents buildings and individual rooms with photos, size, equipment, monthly rent and details to review before getting in touch.',
     explore: 'Explore buildings', featured: 'Featured buildings', from: 'From', month: 'month', viewBuilding: 'View building', viewRoom: 'View room', allBuildings: 'All buildings', rooms: 'Rooms in this building',
     checkIn: 'Check-in', checkOut: 'Check-out', search: 'Explore rooms', available: 'Available for selected dates', unavailable: 'Unavailable for selected dates',
     propertyType: 'Property type', buildingArea: 'Site area', floors: 'Floors', roomType: 'Room type', floor: 'Floor', area: 'Area', beds: 'Beds', bathrooms: 'Bathrooms', guests: 'Capacity', deposit: 'Deposit', minStay: 'Minimum stay',
     amenities: 'Amenities', services: 'Services', furniture: 'Furniture & equipment', serviceFees: 'Service fees', rules: 'House rules', floorplan: 'Floor plans',
     contactTitle: 'Ask about this stay', contactText: 'Leave your details. Our team will contact you to confirm availability, rental terms and a viewing.', name: 'Your name', phone: 'Phone / WhatsApp', email: 'Email (optional)', message: 'Your request', send: 'Send request', note: 'This is an inquiry, not a reservation or payment.',
-    partnerTitle: 'For building owners and partners', partnerProperty: 'Building / area', partnerSend: 'Send partnership inquiry',
+    partnerTitle: 'For investors', partnerProperty: 'Building / area', partnerSend: 'Send partnership inquiry',
     noBuildings: 'No buildings have been published yet.', noRooms: 'No rooms have been published in this building yet.', noResults: 'The catalog is temporarily unavailable. Please try again later.',
     demo: 'PREVIEW · Content, photos and prices are samples. Live Staydesk availability is not connected.',
     roomTypes: 'Room types', otherRooms: 'Other rooms', fromPrice: 'From', roomsOfType: 'Rooms of this type', viewType: 'View room type', roomsCount: 'rooms', roomsFree: 'rooms available', noFreeRooms: 'Fully booked for the selected dates', viewByFloor: 'Floor', floorsUnit: 'floors', openMap: 'Open in Maps', highlights: 'Highlights', totalRooms: 'Total rooms', roomTypesLabel: 'Room types', priceHint: 'Monthly rent', info: 'Details', showMore: 'Show', aboutBuilding: 'About the building', home: 'Home',
@@ -133,12 +133,12 @@ const contentBody = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.body
 
 function Header({ lang, segments, dateQuery, showJournal }: { lang: Lang; segments: string[]; dateQuery: string; showJournal: boolean }) {
   const t = copy[lang], suffix = segments.length ? `/${segments.join('/')}` : '';
-  const links = [['stays', t.navStays], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['contact', t.navContact]] as const;
+  const links = [['stays', t.navStays], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['partners', t.navPartners], ['contact', t.navContact]] as const;
   return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link><span>/</span><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link></div></header>;
 }
 function ContactDetails({ lang, socials }: { lang: Lang; socials: SocialLink[] }) {
   const vi = lang === 'vi';
-  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phone}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {CONTACT.address}</span>{socials.length > 0 && <span><b>{vi ? 'Mạng xã hội' : 'Social'}</b> {socials.map((link, index) => <span key={link.name}>{index > 0 && ' · '}<a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a></span>)}</span>}</address>;
+  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {CONTACT.address}</span>{socials.length > 0 && <span><b>{vi ? 'Mạng xã hội' : 'Social'}</b> {socials.map((link, index) => <span key={link.name}>{index > 0 && ' · '}<a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a></span>)}</span>}</address>;
 }
 function Footer({ lang, showJournal, socials }: { lang: Lang; showJournal: boolean; socials: SocialLink[] }) {
   const t = copy[lang];

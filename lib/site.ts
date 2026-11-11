@@ -1,11 +1,12 @@
 import { env } from "cloudflare:workers";
 
 export const SITE_NAME = "DRM Stays";
-export const SITE_TITLE = "DRM Stays | Rental Property Operations in Da Nang";
-export const SITE_DESCRIPTION = "DRM Stays advises on the development, design and operation of rental property in Da Nang, and rents rooms in the buildings it operates.";
+export const SITE_TITLE = "DRM Stays | Apartments for Rent in An Thượng, Da Nang";
+export const SITE_DESCRIPTION = "Furnished apartments near An Thượng, Mỹ An, Da Nang. Short and long stays, with support in Vietnamese, English, Japanese, Korean, Chinese and Russian.";
 /** The business's public contact details: shown in the footer and contact page, and repeated in the structured data (they must match). */
 export const CONTACT = {
   phone: "0869900000",
+  phoneDisplay: "0869 900 000",
   phoneIntl: "+84869900000",
   email: "drmstayshome@gmail.com",
   street: "K234/29-31 Đỗ Bá",
