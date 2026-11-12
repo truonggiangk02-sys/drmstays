@@ -37,6 +37,7 @@ const paths = {
   plan: 'M4 4h16v16H4zM4 10h7M11 10v10M15 4v6h5',
   home: 'M4 11l8-7 8 7M6 10v10h12V10M10 20v-5h4v5',
   check: 'M4 12l5 5 11-11',
+  pin: 'M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21zM12 12a2.5 2.5 0 100-5 2.5 2.5 0 000 5',
 } as const;
 export type IconName = keyof typeof paths;
 
