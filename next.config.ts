@@ -10,6 +10,8 @@ const csp = [
   "img-src 'self' data: blob: https://images.unsplash.com https://tile.openstreetmap.org https://www.google-analytics.com https://www.googletagmanager.com",
   // Google Analytics (GA4) sends its measurements to these hosts.
   "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+  // The office location is a Google Maps embed.
+  "frame-src https://www.google.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

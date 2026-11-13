@@ -167,7 +167,8 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
       map.current = instance;
       const points: Leaflet.LatLngExpression[] = [];
       for (const building of buildings.filter(isPositioned)) {
-        const icon = L.divIcon({ className: `drm-map-pin${building.coordinateApproximate ? ' is-approximate' : ''}`, html: '<span class="drm-map-pin-core"></span>', iconSize: [38, 44], iconAnchor: [19, 41] });
+        const label = building.monthlyPrice ? `${(building.monthlyPrice / 1_000_000).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { maximumFractionDigits: 1 })}${lang === 'vi' ? 'tr' : 'M'}` : '';
+        const icon = L.divIcon({ className: `drm-map-pin drm-price-pin${building.coordinateApproximate ? ' is-approximate' : ''}`, html: `<span class="drm-price-pin-core">${label || '<i></i>'}</span>`, iconSize: [72, 40], iconAnchor: [36, 40] });
         const marker = L.marker([building.latitude, building.longitude], { icon, title: building.name }).addTo(instance);
         marker.on('click', () => chooseBuilding(building.id));
         buildingMarkers.set(building.id, marker);
