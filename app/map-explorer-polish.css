@@ -229,3 +229,21 @@
 .map-card-close { position: absolute; z-index: 3; top: 8px; right: 8px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .94); color: var(--map-ink); font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 2px 10px rgba(24, 42, 37, .25); }
 .map-card-close:hover { background: #fff; }
 .map-card-close:focus-visible { outline: 3px solid var(--map-copper); outline-offset: 2px; }
+
+/* ---- Listing-style map: price pills for buildings, rounded cards on the list ---- */
+.drm-price-pin { background: none; border: 0; }
+.drm-price-pin-core { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 58px; height: 32px; padding: 0 14px; border-radius: 99px; background: #fff; color: #17372d; font: 700 14px/1 'Be Vietnam Pro', Arial, sans-serif; box-shadow: 0 6px 18px rgba(17, 47, 37, .28); transition: transform .2s cubic-bezier(.2, .7, .2, 1), background .2s, color .2s; white-space: nowrap; }
+.drm-price-pin-core::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
+.drm-price-pin-core i { width: 10px; height: 10px; border-radius: 50%; background: #315d50; }
+.drm-price-pin.is-selected { z-index: 900 !important; }
+.drm-price-pin.is-selected .drm-price-pin-core, .drm-price-pin:hover .drm-price-pin-core { background: #17372d; color: #fff; transform: scale(1.12) translateY(-2px); }
+.drm-price-pin.is-approximate .drm-price-pin-core { outline: 2px dashed #b17d55; outline-offset: -2px; }
+
+@media (min-width: 701px) {
+  .map-explorer-list { padding: 10px 12px 18px; background: #f3f5f1; }
+  .map-building { margin: 0 0 12px; padding: 12px; border: 1px solid transparent; border-radius: 16px; background: #fff; box-shadow: 0 2px 10px rgba(23, 55, 45, .06); transition: box-shadow .25s, transform .25s, border-color .25s; }
+  .map-building:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 28px rgba(23, 55, 45, .12); }
+  .map-building.is-selected { background: #fff; border-color: #315d50; box-shadow: 0 10px 28px rgba(23, 55, 45, .14); }
+  .map-building-select img { width: 150px; height: 124px; border-radius: 12px; }
+  .map-building-link { margin: 4px 0 0 166px; min-height: 36px; }
+}

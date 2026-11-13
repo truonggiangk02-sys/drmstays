@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
 import type { Testimonial } from '@/lib/testimonials';
 import { Carousel, FaqList, StoryText } from '@/components/home-motion';
+import { OfficeMap } from '@/components/office-map';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 type Building = {
@@ -104,6 +105,8 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     {journal.length > 0 && <section className="editorial-journal structure-section" aria-labelledby="editorial-journal-title"><div className="editorial-section-head"><div><span className="editorial-section-label">{t.journalLabel}</span><h2 id="editorial-journal-title">{t.journalTitle}</h2></div><p>{t.journalLead}</p></div><div className="editorial-journal-grid">{journal.slice(0, 3).map((item, index) => <Link key={item.id} href={`/${lang}/journal/${item.id}`} className="editorial-journal-card"><span>{String(index + 1).padStart(2, '0')} / {t.journalTitle}</span><h3>{lang === 'vi' ? item.title_vi : item.title_en}</h3><p>{lang === 'vi' ? item.body_vi : item.body_en}</p><strong>{t.journalRead} <span aria-hidden="true">↗</span></strong></Link>)}</div><Link className="editorial-text-link" href={`/${lang}/journal`}>{t.journalAll}<span aria-hidden="true">↗</span></Link></section>}
 
     <section className="editorial-investors structure-section" aria-labelledby="editorial-investors-title"><div><span className="editorial-section-label">{t.investorsLabel}</span><h2 id="editorial-investors-title">{t.investorsTitle}</h2><p>{t.investorsBody}</p></div><Link className="editorial-text-link" href={`/${lang}/partners`}>{t.investors}<span aria-hidden="true">↗</span></Link></section>
+
+    <OfficeMap lang={lang} />
 
     <section className="editorial-contact home-cta"><div><span className="editorial-section-label">DRM STAYS / CONTACT</span><h2>{t.contactTitle}</h2><p>{t.contactBody}</p><Link className="editorial-primary-link" href={`/${lang}/contact`}>{t.contact}<span aria-hidden="true">↗</span></Link></div>{contactPhoto && <img src={contactPhoto.url} alt={contactPhoto.alt || 'DRM Stays apartment'} loading="lazy" {...imgSize(contactPhoto)} />}<div className="home-wordmark" aria-hidden="true">DRM Stays</div></section>
   </div>;

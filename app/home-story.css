@@ -88,3 +88,16 @@
 }
 
 .editorial-home .editorial-details { padding-top: clamp(40px, 5vw, 70px); }
+
+/* ---- Office map ---- */
+.office-map { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(24px, 5vw, 70px); align-items: center; padding-top: clamp(50px, 6vw, 90px); padding-bottom: clamp(50px, 6vw, 90px); }
+.office-map h2 { margin: 14px 0 14px; font: 400 clamp(30px, 3.4vw, 48px)/1.15 'Playfair Display', Georgia, serif; text-wrap: balance; }
+.office-map-info > p { margin: 0 0 22px; max-width: 460px; color: #4f6054; font-size: 16px; line-height: 1.75; }
+.office-map dl { display: grid; gap: 0; margin: 0 0 26px; }
+.office-map dl > div { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #dce2d9; font-size: 15px; }
+.office-map dt { color: #6a7a6f; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; padding-top: 2px; }
+.office-map dd { margin: 0; color: #17372d; font-weight: 500; }
+.office-map-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.office-map-frame { position: relative; aspect-ratio: 4 / 3.2; overflow: hidden; border: 1px solid #dce2d9; border-radius: 18px; background: #e6ebe3; box-shadow: 0 24px 60px #17372d1f; }
+.office-map-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; filter: saturate(.9) contrast(1.02); }
+@media (max-width: 900px) { .office-map { grid-template-columns: 1fr; } .office-map-frame { aspect-ratio: 4 / 3; } .office-map dl > div { grid-template-columns: 90px 1fr; } }
