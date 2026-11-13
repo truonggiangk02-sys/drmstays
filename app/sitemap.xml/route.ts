@@ -5,7 +5,7 @@ import { getPublicCatalog } from "@/lib/public-catalog";
 import { siteUrl } from "@/lib/site";
 import { absoluteImage, buildSitemap, toLastmod, type SitemapEntry } from "@/lib/sitemap";
 
-const staticPaths = ["", "/stays", "/services", "/partners", "/about", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
+const staticPaths = ["", "/stays", "/room-types", "/services", "/partners", "/about", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;

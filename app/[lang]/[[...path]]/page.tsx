@@ -37,7 +37,7 @@ type Room = Building['rooms'][number];
 
 const copy = {
   vi: {
-    navStays: 'Tòa nhà & phòng', navServices: 'Dịch vụ', navPartners: 'Dành cho chủ đầu tư', navAbout: 'Về DRM Stays', navJournal: 'Cẩm nang', navContact: 'Liên hệ', navFaq: 'Câu hỏi thường gặp',
+    navStays: 'Tòa nhà & phòng', navRoomTypes: 'Phòng tiêu biểu', navServices: 'Dịch vụ', navPartners: 'Dành cho chủ đầu tư', navAbout: 'Về DRM Stays', navJournal: 'Cẩm nang', navContact: 'Liên hệ', navFaq: 'Câu hỏi thường gặp',
     hero: 'Không gian lưu trú phù hợp với bạn.', heroText: 'DRM Stays giới thiệu các tòa nhà và từng phòng với hình ảnh, diện tích, trang bị, giá tháng và thông tin cần biết trước khi liên hệ.',
     explore: 'Khám phá tòa nhà', featured: 'Tòa nhà đang giới thiệu', from: 'Từ', month: 'tháng', viewBuilding: 'Xem tòa nhà', viewRoom: 'Xem phòng', allBuildings: 'Tất cả tòa nhà', rooms: 'Phòng trong tòa',
     checkIn: 'Ngày nhận phòng', checkOut: 'Ngày trả phòng', search: 'Xem phòng', available: 'Còn trống theo ngày chọn', unavailable: 'Không còn trống theo ngày chọn',
@@ -51,7 +51,7 @@ const copy = {
     received: 'Đã nhận thông tin. Đội ngũ sẽ liên hệ lại.', empty: 'Nội dung đang được cập nhật.', backJournal: 'Về danh sách bài viết', selectedDates: 'Ngày bạn đang xem', dateSeparator: 'đến', changeDates: 'Đổi ngày',
   },
   en: {
-    navStays: 'Buildings & rooms', navServices: 'Services', navPartners: 'For investors', navAbout: 'About DRM Stays', navJournal: 'Journal', navContact: 'Contact', navFaq: 'FAQ',
+    navStays: 'Buildings & rooms', navRoomTypes: 'Featured rooms', navServices: 'Services', navPartners: 'For investors', navAbout: 'About DRM Stays', navJournal: 'Journal', navContact: 'Contact', navFaq: 'FAQ',
     hero: 'Find a stay that fits your life.', heroText: 'DRM Stays presents buildings and individual rooms with photos, size, equipment, monthly rent and details to review before getting in touch.',
     explore: 'Explore buildings', featured: 'Featured buildings', from: 'From', month: 'month', viewBuilding: 'View building', viewRoom: 'View room', allBuildings: 'All buildings', rooms: 'Rooms in this building',
     checkIn: 'Check-in', checkOut: 'Check-out', search: 'Explore rooms', available: 'Available for selected dates', unavailable: 'Unavailable for selected dates',
@@ -68,8 +68,8 @@ const copy = {
 
 const homeTitle = { vi: homeMeta.vi.title, en: homeMeta.en.title } as const;
 const sectionTitle = {
-  vi: { stays: 'Tòa nhà & phòng', services: 'Dịch vụ', partners: 'Chủ tòa & đối tác', about: 'Về DRM Stays', journal: 'Cẩm nang', faq: 'Câu hỏi thường gặp', contact: 'Liên hệ', privacy: policies.vi.privacy.title, cancellation: policies.vi.cancellation.title, terms: policies.vi.terms.title },
-  en: { stays: 'Buildings & rooms', services: 'Services', partners: 'Owners & partners', about: 'About DRM Stays', journal: 'Journal', faq: 'FAQ', contact: 'Contact', privacy: policies.en.privacy.title, cancellation: policies.en.cancellation.title, terms: policies.en.terms.title },
+  vi: { stays: 'Tòa nhà & phòng', 'room-types': 'Phòng tiêu biểu', services: 'Dịch vụ', partners: 'Chủ tòa & đối tác', about: 'Về DRM Stays', journal: 'Cẩm nang', faq: 'Câu hỏi thường gặp', contact: 'Liên hệ', privacy: policies.vi.privacy.title, cancellation: policies.vi.cancellation.title, terms: policies.vi.terms.title },
+  en: { stays: 'Buildings & rooms', 'room-types': 'Featured rooms', services: 'Services', partners: 'Owners & partners', about: 'About DRM Stays', journal: 'Journal', faq: 'FAQ', contact: 'Contact', privacy: policies.en.privacy.title, cancellation: policies.en.cancellation.title, terms: policies.en.terms.title },
 } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string; path?: string[] }> }): Promise<Metadata> {
@@ -134,7 +134,7 @@ const contentBody = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.body
 
 function Header({ lang, segments, dateQuery, showJournal }: { lang: Lang; segments: string[]; dateQuery: string; showJournal: boolean }) {
   const t = copy[lang], suffix = segments.length ? `/${segments.join('/')}` : '';
-  const links = [['stays', t.navStays], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['partners', t.navPartners], ['contact', t.navContact]] as const;
+  const links = [['stays', t.navStays], ['room-types', t.navRoomTypes], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['partners', t.navPartners], ['contact', t.navContact]] as const;
   return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link><span>/</span><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link></div></header>;
 }
 function ContactDetails({ lang, socials }: { lang: Lang; socials: SocialLink[] }) {
@@ -186,10 +186,10 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const dateQuery = selectedDateQuery(q.checkIn, q.checkOut);
   const isPolicy = policySections.includes(section as PolicySection);
   const isContent = contentSections.includes(section as ContentSection);
-  if (segments.length > 2 || (section && !['stays', 'buildings', 'rooms', 'types', 'contact', 'faq', ...contentSections, ...policySections].includes(section))) notFound();
+  if (segments.length > 2 || (section && !['stays', 'room-types', 'buildings', 'rooms', 'types', 'contact', 'faq', ...contentSections, ...policySections].includes(section))) notFound();
   if ((section === 'buildings' || section === 'rooms' || section === 'types') && !id) notFound();
   if (id && !['buildings', 'rooms', 'types', 'journal'].includes(section)) notFound();
-  const needsCatalog = !section || ['stays', 'buildings', 'rooms', 'types', 'contact'].includes(section);
+  const needsCatalog = !section || ['stays', 'room-types', 'buildings', 'rooms', 'types', 'contact'].includes(section);
   const data = needsCatalog ? await catalog(dateQuery ? q.checkIn : undefined, dateQuery ? q.checkOut : undefined, lang) : null;
   const landmarks = section === 'stays' || section === 'buildings' ? await getPublicLandmarks() : [];
   const building = section === 'buildings' ? data?.buildings.find(item => item.id === id) : undefined;
@@ -207,7 +207,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const contentImages = isContent ? await getContentImages(content) : {};
   const article = section === 'journal' && id ? content.find(item => item.id === id) : undefined;
   if (section === 'journal' && id && !article) notFound();
-  const sectionTitles: Record<string,string> = { privacy: policies[lang].privacy.title, cancellation: policies[lang].cancellation.title, terms: policies[lang].terms.title, stays: t.navStays, services: t.navServices, partners: t.partnerTitle, about: t.navAbout, journal: t.navJournal, faq: t.navFaq, contact: t.navContact };
+  const sectionTitles: Record<string,string> = { privacy: policies[lang].privacy.title, cancellation: policies[lang].cancellation.title, terms: policies[lang].terms.title, stays: t.navStays, 'room-types': t.navRoomTypes, services: t.navServices, partners: t.partnerTitle, about: t.navAbout, journal: t.navJournal, faq: t.navFaq, contact: t.navContact };
   const sectionH1 = section && section in pageMeta[lang] ? pageMeta[lang][section as keyof typeof pageMeta['vi']].h1 : undefined;
   const title = building ? propertyName(building.name) : roomType ? roomType.name : room?.name || (article ? contentTitle(article, lang) : sectionH1 || sectionTitles[section || ''] || '');
   const homeContent = !section ? await getHomeContent(lang) : null;
@@ -226,6 +226,11 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
     <main id="main-content"><PageTransition>
     {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={content} home={homeContent!} />}
+    {section === 'room-types' && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS / {lang === 'vi' ? 'PHÒNG TIÊU BIỂU' : 'FEATURED ROOMS'}</span><h1>{title}</h1><p>{lang === 'vi' ? 'Chọn kiểu phòng hợp với bạn: diện tích, số giường, giá và tòa nhà. Bấm vào từng loại để xem ảnh, tiện ích và các phòng đang có.' : 'Pick the room style that suits you: size, beds, price and building. Open any type for photos, amenities and the rooms available.'}</p></section>
+      <section className="structure-section dv-roomtypes">{data?.buildings.some(item => item.types.length) ? <>
+        <nav className="dv-roomtypes-filter" aria-label={lang === 'vi' ? 'Lọc theo tòa nhà' : 'Filter by building'}>{data.buildings.filter(item => item.types.length).map(item => <a key={item.id} href={`#building-${item.id}`}>{propertyName(item.name)} <small>{item.types.length}</small></a>)}</nav>
+        {data.buildings.filter(item => item.types.length).map(item => <section className="dv-roomtypes-group" id={`building-${item.id}`} key={item.id}><div className="dv-roomtypes-head"><h2>{propertyName(item.name)}</h2>{item.address && <p>{item.address}</p>}<Link href={`/${lang}/buildings/${item.id}${dateQuery}`}>{lang === 'vi' ? 'Xem tòa nhà' : 'View building'} →</Link></div><div className="structure-grid">{item.types.map(type => <TypeCard key={type.id} type={type} lang={lang} dateQuery={dateQuery} />)}</div></section>)}
+      </> : <p>{t.empty}</p>}</section></>}
     {section === 'stays' && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS</span><h1>{title}</h1><DateRangeSearch lang={lang} checkIn={q.checkIn} checkOut={q.checkOut} /></section>{data?.buildings.length ? <MapExplorer lang={lang} dateQuery={dateQuery} buildings={data.buildings.map(item => ({ id: item.id, name: propertyName(item.name), address: item.address, imageUrl: buildingPhotos(item)[0]?.url || '/drm-stay-logo.png', imageAlt: buildingPhotos(item)[0]?.alt || propertyName(item.name), imageIsIllustrative: (buildingPhotos(item)[0] as { id?: string } | undefined)?.id?.startsWith('demo-') ?? false, photos: buildingPhotos(item).slice(0, 3).map(image => ({ url: image.url, alt: image.alt || propertyName(item.name) })), roomCount: buildingRoomCount(item), monthlyPrice: buildingFromPrice(item) || null, latitude: item.latitude, longitude: item.longitude, coordinateApproximate: item.coordinateApproximate }))} landmarks={landmarks.map(place => ({ id: place.id, name: lang === 'vi' ? place.nameVi : place.nameEn || place.nameVi, description: lang === 'vi' ? place.descriptionVi : place.descriptionEn || place.descriptionVi, latitude: place.latitude, longitude: place.longitude, buildingIds: place.buildingIds }))} /> : <section className="structure-section"><p>{data ? t.noBuildings : t.noResults}</p></section>}</>}
     {section === 'buildings' && (building ? <DetailShell lang={lang} crumbs={[[t.navStays, `/${lang}/stays${dateQuery}`]]} title={title} chips={[building.address ? { icon: 'home', text: building.address } : null, building.propertyType ? { icon: 'key', text: building.propertyType } : null, building.floorCount ? { icon: 'area', text: `${building.floorCount} ${t.floorsUnit}` } : null]} dates={<SelectedDates lang={lang} checkIn={q.checkIn} checkOut={q.checkOut} />} photos={building.images.length ? building.images : building.types[0]?.images || building.rooms[0]?.images || []} name={title} lead={building.description}
       card={<><h2>{t.aboutBuilding}</h2>{(() => { const price = buildingFromPrice(building); return price > 0 ? <div className="dv-card-price">{t.fromPrice} <strong>{money(price)} ₫</strong><span>/ {t.month}</span></div> : null; })()}<FactRows rows={[[t.propertyType, building.propertyType], [t.floors, building.floorCount], [t.totalRooms, buildingRoomCount(building)], [t.roomTypesLabel, building.types.length], [t.buildingArea, building.areaSqm ? `${building.areaSqm} m²` : '']]} />{building.address && <p className="dv-card-address">{building.address}{' '}<a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(building.latitude !== null && building.longitude !== null ? `${building.latitude},${building.longitude}` : building.address)}`} target="_blank" rel="noopener noreferrer">{t.openMap} ↗</a></p>}{building.amenities.length > 0 && <><h3 className="dv-card-sub">{t.highlights}</h3><ul className="dv-card-list">{building.amenities.slice(0, 4).map(item => <li key={item}>{item}</li>)}</ul></>}<a className="dv-button" href="#dv-types">{t.roomTypes}</a><Link className="dv-button is-ghost" href={`/${lang}/contact`}>{t.navContact}</Link></>}

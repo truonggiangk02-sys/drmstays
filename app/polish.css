@@ -253,3 +253,15 @@ html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; lin
 .dv-map-places ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 28px; margin: 0; padding: 0; list-style: none; }
 .dv-map-places li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #e7ebe4; font-size: 14px; }
 .dv-map-places li a { flex: none; font-size: 13px; font-weight: 600; color: #315d50; }
+
+/* ---- Featured room types page --------------------------------------------------------------------------- */
+.dv-roomtypes { max-width: 1280px; padding-top: 8px; }
+.dv-roomtypes-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+.dv-roomtypes-filter a { display: inline-flex; gap: 8px; align-items: center; padding: 9px 16px; border: 1px solid #cddbd0; border-radius: 99px; background: #fff; color: #17372d; font-size: 14px; font-weight: 600; transition: background .2s, color .2s, border-color .2s; }
+.dv-roomtypes-filter a:hover { background: #17372d; color: #fff; border-color: #17372d; }
+.dv-roomtypes-filter small { opacity: .6; }
+.dv-roomtypes-group { padding: 12px 0 36px; scroll-margin-top: 96px; }
+.dv-roomtypes-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin: 0 0 18px; padding-top: 22px; border-top: 1px solid #dce2d9; }
+.dv-roomtypes-head h2 { margin: 0; font: 400 clamp(26px, 3vw, 36px)/1.2 'Playfair Display', Georgia, serif; }
+.dv-roomtypes-head p { margin: 0; color: #5b6d61; font-size: 14px; }
+.dv-roomtypes-head a { margin-left: auto; font-size: 14px; font-weight: 700; color: #7d5636; }
