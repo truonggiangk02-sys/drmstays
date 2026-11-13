@@ -52,12 +52,15 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
+    <div className="editorial-hero-scroll">
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
       {heroPhoto && <img className="editorial-hero-image" src={heroPhoto.url} alt={heroPhoto.alt || 'DRM Stays'} fetchPriority="high" {...imgSize(heroPhoto)} />}
       <div className="editorial-hero-shade" aria-hidden="true" />
+      <div className="editorial-hero-wordmark" aria-hidden="true">{Array.from('DRM Stays').map((letter, index) => <span key={index} style={{ '--k': index } as React.CSSProperties}>{letter === ' ' ? '\u00a0' : letter}</span>)}</div>
       <div className="editorial-hero-content"><span className="editorial-kicker">DRM STAYS <span aria-hidden="true">/</span> {lang === 'vi' ? 'ĐÀ NẴNG' : 'DA NANG'}</span><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
+    </div>
 
     <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Khu An Thượng, Mỹ An' : 'An Thượng, Mỹ An area', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
