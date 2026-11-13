@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 type Image = { id: string; owner_type: string; owner_id: string; alt: string; category: string };
 
-const sectionNames = { about: 'Giới thiệu', services: 'Dịch vụ', partners: 'Chủ tòa', journal: 'Bài viết', faq: 'Câu hỏi thường gặp' } as const;
+const sectionNames = { about: 'Giới thiệu', services: 'Dịch vụ', partners: 'Chủ tòa', journal: 'Bài viết', faq: 'Câu hỏi thường gặp', reviews: 'Đánh giá khách' } as const;
 
 function Gallery({ kind, id, images }: { kind: 'building' | 'room' | 'content'; id: string; images: Image[] }) {
   return <div className="media-gallery">

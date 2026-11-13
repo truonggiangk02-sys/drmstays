@@ -4,8 +4,8 @@ import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
-import type { Testimonial } from '@/lib/testimonials';
-import { Carousel, FaqList, StoryText } from '@/components/home-motion';
+import { Carousel, FaqList, ReviewSlider, StoryText } from '@/components/home-motion';
+import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
@@ -24,7 +24,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 export type HomeRoomType = { id: string; name: string; building: string; image?: Photo; priceFrom: number; areaSqm: number; beds: number; maxGuests: number };
 
-export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], testimonials = [] }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; testimonials?: Testimonial[] }) {
+export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [] }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[] }) {
   const vi = lang === 'vi';
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
@@ -33,6 +33,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const heroPhoto = home.images['home-hero'][0] || photos[0];
   const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
   const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
+  const marqueePhotos = [...new Map([...galleryPhotos, ...photos].map(photo => [photo.url, photo])).values()].slice(0, 12);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
@@ -42,6 +43,8 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div className="editorial-hero-content"><span className="editorial-kicker">DRM STAYS <span aria-hidden="true">/</span> {lang === 'vi' ? 'ĐÀ NẴNG' : 'DA NANG'}</span><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
+
+    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{['YOUR STAY, OUR CARE', vi ? 'ĐÀ NẴNG' : 'DA NANG', vi ? 'CĂN HỘ CÓ SẴN NỘI THẤT' : 'FURNISHED APARTMENTS', 'DRM STAYS'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
       <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
@@ -72,9 +75,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <Link className="editorial-text-link" href={`/${lang}/room-types`}>{vi ? 'Xem tất cả loại phòng' : 'See all room types'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {testimonials.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
-      <div className="editorial-section-head"><div><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2></div></div>
-      <Carousel label={vi ? 'Đánh giá của khách' : 'Guest reviews'} prev={vi ? 'Trước' : 'Previous'} next={vi ? 'Sau' : 'Next'}>{testimonials.map(item => <figure key={item.id} className="home-quote"><span aria-hidden="true">“</span><blockquote>{vi ? item.quote_vi : item.quote_en}</blockquote><figcaption><strong>{item.name}</strong><small>{vi ? item.detail_vi : item.detail_en}</small></figcaption></figure>)}</Carousel>
+    {reviews.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
+      <div className="home-testimonials-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2><p>{vi ? 'Những chia sẻ về thời gian ở và cách đội ngũ DRM Stays hỗ trợ.' : 'Notes on their stay and how the DRM Stays team looked after them.'}</p></div>
+      <ReviewSlider prev={vi ? 'Đánh giá trước' : 'Previous review'} next={vi ? 'Đánh giá tiếp' : 'Next review'} items={reviews.map(item => ({ id: item.id, name: pick(item).title, quote: pick(item).body }))} />
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>
@@ -84,9 +87,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     </section>
 
     <section className="home-stats structure-section" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
-      <div><strong>3</strong><span>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</span></div>
-      <div><strong>10+</strong><span>{vi ? 'dự án đã tư vấn' : 'projects advised'}</span></div>
-      <div><strong>6</strong><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
+      <div><CountUp to={3} /><span>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</span></div>
+      <div><CountUp to={10} suffix="+" /><span>{vi ? 'dự án đã tư vấn' : 'projects advised'}</span></div>
+      <div><CountUp to={6} /><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
     </section>
 
     {services.length > 0 && <section className="home-services structure-section" aria-labelledby="home-services-title" data-reveal>
@@ -95,7 +98,10 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem chi tiết dịch vụ và chi phí' : 'See services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {galleryPhotos.length >= 2 && <section className="editorial-gallery structure-section" aria-labelledby="editorial-gallery-title"><div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="editorial-gallery-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div><div className="editorial-gallery-grid">{galleryPhotos.map((photo, index) => <img key={photo.url} className={`editorial-gallery-item editorial-gallery-item-${index + 1}`} src={photo.url} alt={photo.alt || `${t.gallery} ${index + 1}`} loading="lazy" {...imgSize(photo)} />)}</div></section>}
+    {marqueePhotos.length >= 2 && <section className="home-photos" aria-labelledby="home-photos-title">
+      <div className="editorial-section-head structure-section"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
+      {[marqueePhotos, [...marqueePhotos].reverse()].map((row, rowIndex) => (rowIndex === 0 || marqueePhotos.length >= 5) && <div key={rowIndex} className={`home-photo-row${rowIndex ? ' is-reverse' : ''}`} aria-hidden={rowIndex ? 'true' : undefined}><div className="home-photo-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{row.map((photo, index) => <img key={`${photo.url}-${index}`} src={photo.url} alt={copy || rowIndex ? '' : photo.alt || `${t.gallery} ${index + 1}`} loading="lazy" {...imgSize(photo)} />)}</div>)}</div></div>)}
+    </section>}
 
     {faq.length > 0 && <section className="home-faq structure-section" aria-labelledby="home-faq-title" data-reveal>
       <div><span className="editorial-section-label">FAQ</span><h2 id="home-faq-title">{vi ? 'Bạn có câu hỏi? Chúng tôi sẵn sàng giải đáp.' : 'Got questions? We are here to help.'}</h2><Link className="editorial-text-link" href={`/${lang}/faq`}>{vi ? 'Xem tất cả câu hỏi' : 'See all questions'}<span aria-hidden="true">↗</span></Link></div>
