@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   if (!contentSections.includes(section)) return new NextResponse('Invalid section', { status: 400 });
   const action = String(form.get('action') || '');
   const id = action === 'create' ? crypto.randomUUID() : String(form.get('id') || '');
-  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+)$/i.test(id)) return new NextResponse('Invalid item', { status: 400 });
+  if (!/^(?:[0-9a-f-]{36}|(?:sample|review)-[a-z0-9-]+)$/i.test(id)) return new NextResponse('Invalid item', { status: 400 });
   if (action === 'delete') {
     const sample = sampleContent.find(item => item.id === id && item.section === section);
     if (sample) {

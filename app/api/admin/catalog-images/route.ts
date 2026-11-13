@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
   const kind = String(form.get('kind') || '');
   const sourceId = String(form.get('sourceId') || '');
-  if (!/^(?:[0-9a-f-]{36}|sample-[a-z0-9-]+|home-[a-z]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content', 'home'].includes(kind))
+  if (!/^(?:[0-9a-f-]{36}|(?:sample|review)-[a-z0-9-]+|home-[a-z]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content', 'home'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
   let exists = false;
   let parentId = sourceId;
