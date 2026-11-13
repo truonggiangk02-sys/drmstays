@@ -30,10 +30,12 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
   const photos = [...new Map(buildings.flatMap(buildingPhotos).map(photo => [photo.url, photo])).values()];
+  // Photos taken in turn from every building (first of each, then second of each...), so a strip never shows only one building.
+  const perBuilding = buildings.map(buildingPhotos);
+  const mixedPhotos = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
   // The owner's own home page photos win; otherwise photos of the buildings are used.
   const heroPhoto = home.images['home-hero'][0] || photos[0];
   const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
-  const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
   // Guest reviews are shown in their original (English) wording. Each card gets its own photo if one was uploaded in the admin,
   // otherwise a photo of the buildings, so a photo always sits beside the review.
   const reviewCards: ReviewCard[] = reviews.map((item, index) => {
@@ -42,11 +44,11 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     const note = /\(([^)]*)\)/.exec(sourcePart)?.[1] || '';
     const date = sourcePart.replace(/\(.*?\)/g, '').replace(/^(airbnb|google review|google)[,\s]*/i, '').trim();
     const own = reviewImages[item.id]?.[0];
-    const fallback = photos.length ? photos[index % photos.length] : undefined;
+    const fallback = mixedPhotos.length ? mixedPhotos[index % mixedPhotos.length] : undefined;
     const image = own || fallback;
     return { id: item.id, name: parts[0], detail: parts.slice(1).filter(part => part !== sourcePart).join(' · '), source: /airbnb/i.test(sourcePart) ? 'Airbnb' : /google/i.test(sourcePart) ? 'Google' : '', date, note: note ? note.replace(/^./, c => c.toUpperCase()) : '', stars: item.id.startsWith('review-'), quote: item.body_en || item.body_vi, image: image ? { url: image.url, alt: image.alt || '', width: image.width, height: image.height } : undefined };
   });
-  const marqueePhotos = [...new Map([...galleryPhotos, ...photos].map(photo => [photo.url, photo])).values()].slice(0, 12);
+  const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
