@@ -59,7 +59,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
 
-    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{['YOUR STAY, OUR CARE', vi ? 'ĐÀ NẴNG' : 'DA NANG', vi ? 'CĂN HỘ CÓ SẴN NỘI THẤT' : 'FURNISHED APARTMENTS', 'DRM STAYS'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
+    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Khu An Thượng, Mỹ An' : 'An Thượng, Mỹ An area', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
       <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
