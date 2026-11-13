@@ -1,8 +1,10 @@
 import { env } from 'cloudflare:workers';
 import { catalogImageUrl } from './image-url';
 
-export const contentSections = ['about', 'services', 'partners', 'journal', 'faq'] as const;
+export const contentSections = ['about', 'services', 'partners', 'journal', 'faq', 'reviews'] as const;
 export type ContentSection = typeof contentSections[number];
+/** Sections that have a page of their own; guest reviews only appear on the home page. */
+export const pageSections = contentSections.filter(section => section !== 'reviews');
 export type ContentItem = {
   id: string; section: ContentSection; title_vi: string; title_en: string;
   body_vi: string; body_en: string; published: number; deleted: number; position: number;

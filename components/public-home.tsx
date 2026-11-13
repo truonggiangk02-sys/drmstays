@@ -4,8 +4,8 @@ import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
-import type { Testimonial } from '@/lib/testimonials';
 import { Carousel, FaqList, StoryText } from '@/components/home-motion';
+import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
@@ -24,7 +24,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 export type HomeRoomType = { id: string; name: string; building: string; image?: Photo; priceFrom: number; areaSqm: number; beds: number; maxGuests: number };
 
-export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], testimonials = [] }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; testimonials?: Testimonial[] }) {
+export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [] }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[] }) {
   const vi = lang === 'vi';
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
@@ -42,6 +42,8 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div className="editorial-hero-content"><span className="editorial-kicker">DRM STAYS <span aria-hidden="true">/</span> {lang === 'vi' ? 'ĐÀ NẴNG' : 'DA NANG'}</span><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
+
+    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{['YOUR STAY, OUR CARE', vi ? 'ĐÀ NẴNG' : 'DA NANG', vi ? 'CĂN HỘ CÓ SẴN NỘI THẤT' : 'FURNISHED APARTMENTS', 'DRM STAYS'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
       <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
@@ -72,9 +74,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <Link className="editorial-text-link" href={`/${lang}/room-types`}>{vi ? 'Xem tất cả loại phòng' : 'See all room types'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {testimonials.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
+    {reviews.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
       <div className="editorial-section-head"><div><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2></div></div>
-      <Carousel label={vi ? 'Đánh giá của khách' : 'Guest reviews'} prev={vi ? 'Trước' : 'Previous'} next={vi ? 'Sau' : 'Next'}>{testimonials.map(item => <figure key={item.id} className="home-quote"><span aria-hidden="true">“</span><blockquote>{vi ? item.quote_vi : item.quote_en}</blockquote><figcaption><strong>{item.name}</strong><small>{vi ? item.detail_vi : item.detail_en}</small></figcaption></figure>)}</Carousel>
+      <Carousel label={vi ? 'Đánh giá của khách' : 'Guest reviews'} prev={vi ? 'Trước' : 'Previous'} next={vi ? 'Sau' : 'Next'}>{reviews.map(item => <figure key={item.id} className="home-quote"><span aria-hidden="true">“</span><blockquote>{pick(item).body}</blockquote><figcaption><strong>{pick(item).title}</strong></figcaption></figure>)}</Carousel>
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>
@@ -84,9 +86,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     </section>
 
     <section className="home-stats structure-section" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
-      <div><strong>3</strong><span>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</span></div>
-      <div><strong>10+</strong><span>{vi ? 'dự án đã tư vấn' : 'projects advised'}</span></div>
-      <div><strong>6</strong><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
+      <div><CountUp to={3} /><span>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</span></div>
+      <div><CountUp to={10} suffix="+" /><span>{vi ? 'dự án đã tư vấn' : 'projects advised'}</span></div>
+      <div><CountUp to={6} /><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
     </section>
 
     {services.length > 0 && <section className="home-services structure-section" aria-labelledby="home-services-title" data-reveal>

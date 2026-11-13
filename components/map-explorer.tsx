@@ -212,6 +212,10 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
       const zoom = Number.isFinite(instance.getZoom()) ? Math.max(instance.getZoom(), 13) : 13;
       instance.setView(point, zoom, { animate: false });
     }
+    else if (selected && !isPositioned(selected) && nearby.length && mapElement.current?.offsetWidth && mapElement.current?.offsetHeight) {
+      // The building has no pin yet: still show the places around it instead of an empty map.
+      instance.fitBounds(L.latLngBounds(nearby.map(place => [place.latitude, place.longitude] as Leaflet.LatLngExpression)), { padding: [50, 50], maxZoom: 14, animate: false });
+    }
     requestAnimationFrame(() => { if (map.current === instance) instance.invalidateSize(); });
   }, [selectedId, nearby, selected, mapReady]);
 
