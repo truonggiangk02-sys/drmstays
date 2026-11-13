@@ -214,6 +214,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const homeContent = !section ? await getHomeContent(lang) : null;
   const homeServices = !section ? await getContentItems('services').catch(() => [] as ContentItem[]) : [];
   const homeReviews = !section ? await getContentItems('reviews').catch(() => [] as ContentItem[]) : [];
+  const reviewImages = !section ? await getContentImages(homeReviews).catch(() => ({})) : {};
   const homeFaq = !section ? await getContentItems('faq').catch(() => [] as ContentItem[]) : [];
   const contactChannels = await getContactChannels();
   const socialLinks = publicSocialLinks(contactChannels, await getSocialLinks());
@@ -229,7 +230,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     : article ? breadcrumbData([homeCrumb, { name: t.navJournal, path: `/${lang}/journal` }, { name: title, path: `/${lang}/journal/${article.id}` }]) : null;
   return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
     <main id="main-content"><PageTransition>
-    {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={content} home={homeContent!} services={homeServices} faq={homeFaq} reviews={homeReviews} roomTypes={(data?.buildings || []).flatMap(item => item.types.map(type => ({ id: type.id, name: type.name, building: propertyName(item.name), image: type.images[0], priceFrom: type.priceFrom, areaSqm: type.areaSqm, beds: type.beds, maxGuests: type.maxGuests })))} />}
+    {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={content} home={homeContent!} services={homeServices} faq={homeFaq} reviews={homeReviews} reviewImages={reviewImages} roomTypes={(data?.buildings || []).flatMap(item => item.types.map(type => ({ id: type.id, name: type.name, building: propertyName(item.name), image: type.images[0], priceFrom: type.priceFrom, areaSqm: type.areaSqm, beds: type.beds, maxGuests: type.maxGuests })))} />}
     {section === 'room-types' && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS / {lang === 'vi' ? 'PHÒNG TIÊU BIỂU' : 'FEATURED ROOMS'}</span><h1>{title}</h1><p>{lang === 'vi' ? 'Chọn kiểu phòng hợp với bạn: diện tích, số giường, giá và tòa nhà. Bấm vào từng loại để xem ảnh, tiện ích và các phòng đang có.' : 'Pick the room style that suits you: size, beds, price and building. Open any type for photos, amenities and the rooms available.'}</p></section>
       <section className="structure-section dv-roomtypes">{data?.buildings.some(item => item.types.length) ? <>
         <nav className="dv-roomtypes-filter" aria-label={lang === 'vi' ? 'Lọc theo tòa nhà' : 'Filter by building'}>{data.buildings.filter(item => item.types.length).map(item => <a key={item.id} href={`#building-${item.id}`}>{propertyName(item.name)} <small>{item.types.length}</small></a>)}</nav>
