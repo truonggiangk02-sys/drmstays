@@ -19,7 +19,7 @@ import { DateRangeSearch } from '@/components/date-range-search';
 import { CatalogContactForm } from '@/components/catalog-contact-form';
 import { QuickContact } from '@/components/quick-contact';
 import { PublicHome } from '@/components/public-home';
-import { getContactChannels } from '@/lib/contact-channels';
+import { getContactChannels, instagramMessageUrl, messengerUrl } from '@/lib/contact-channels';
 import { getSocialLinks, publicSocialLinks, type SocialLink } from '@/lib/social-links';
 import { policies, policySections, POLICIES_UPDATED, type PolicySection } from '@/lib/policies';
 import { breadcrumbData, structuredData } from '@/lib/structured-data';
@@ -218,6 +218,10 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const homeFaq = !section ? await getContentItems('faq').catch(() => [] as ContentItem[]) : [];
   const contactChannels = await getContactChannels();
   const socialLinks = publicSocialLinks(contactChannels, await getSocialLinks());
+  const facebookLink = socialLinks.find(link => link.name === 'Facebook')?.url;
+  const facebookMessenger = facebookLink ? messengerUrl(facebookLink) : undefined;
+  const instagramLink = socialLinks.find(link => link.name === 'Instagram')?.url;
+  const instagramDm = instagramLink ? instagramMessageUrl(instagramLink) : undefined;
   const contactPhoto = section === 'contact' ? data?.buildings.map(item => buildingPhotos(item)[0]).find(Boolean) : undefined;
   const ld = env.PREVIEW_DEMO === '1' ? null : !section ? structuredData('home', lang, undefined, undefined, { sameAs: socialLinks.map(link => link.url) }) : building ? structuredData('building', lang, building) : room ? structuredData('room', lang, room, data?.buildings.find(item => item.rooms.some(r => r.id === room.id))) : roomType ? structuredData('type', lang, { id: roomType.id, name: roomType.name, description: roomType.description, monthlyPrice: roomType.priceFrom, areaSqm: roomType.areaSqm, maxGuests: roomType.maxGuests, beds: roomType.beds, images: roomType.images }, roomType.building) : null;
   const homeCrumb = { name: lang === 'vi' ? 'Trang chủ' : 'Home', path: `/${lang}` };
@@ -276,8 +280,9 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     <QuickContact lang={lang} preview={env.PREVIEW_DEMO === '1'} channels={[
       { name: 'WhatsApp', mark: 'W', url: contactChannels.whatsapp.published ? contactChannels.whatsapp.url : undefined },
       { name: 'Telegram', mark: 'T', url: contactChannels.telegram.published ? contactChannels.telegram.url : undefined },
-      { name: 'Facebook', mark: 'f', url: contactChannels.facebook.published ? contactChannels.facebook.url : undefined },
+      { name: 'Facebook', mark: 'f', url: facebookMessenger },
       { name: 'Zalo', mark: 'Z', url: contactChannels.zalo.published ? contactChannels.zalo.url : undefined },
+      { name: 'Instagram', mark: 'IG', url: instagramDm },
     ]} />
   </div>;
 }

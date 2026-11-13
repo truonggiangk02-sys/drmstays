@@ -64,18 +64,20 @@ export function SmoothMotion() {
           else if (y <= 160 || y < lastY - 2) header.classList.remove('is-tucked');
         }
         lastY = y;
-        if (hero) hero.style.setProperty('--hp', Math.min(1, Math.max(0, y / (hero.offsetHeight * 0.9))).toFixed(3));
+        if (hero) hero.style.setProperty('--hp', Math.min(1, Math.max(0, y / (window.innerHeight * 0.5))).toFixed(3));
+        if (header && hero) header.classList.toggle('is-overlay', y < 40);
       });
     };
 
     if (fine) window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('scroll', onScroll, { passive: true });
+    if (header && hero && window.scrollY < 40) header.classList.add('is-overlay');
     onScroll();
     return () => {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('scroll', onScroll);
       if (raf) cancelAnimationFrame(raf);
-      header?.classList.remove('is-tucked');
+      header?.classList.remove('is-tucked', 'is-overlay');
     };
   }, [pathname]);
   return null;

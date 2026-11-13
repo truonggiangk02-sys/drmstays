@@ -49,3 +49,31 @@ export async function getContactChannels(): Promise<ContactChannels> {
   }
   return channels;
 }
+
+/** A Facebook page or profile address turned into a Messenger chat link (https://m.me/...), so one tap opens the conversation. */
+export function messengerUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    if (host === 'm.me') return parsed.toString();
+    if (!['facebook.com', 'm.facebook.com', 'fb.me'].includes(host)) return url;
+    const id = parsed.searchParams.get('id');
+    if (parsed.pathname.replace(/\/+$/, '') === '/profile.php' && id && /^\d+$/.test(id)) return `https://m.me/${id}`;
+    const first = parsed.pathname.split('/').filter(Boolean)[0];
+    if (first && /^[A-Za-z0-9.\-_]+$/.test(first) && !['profile.php', 'pages', 'people', 'groups', 'share', 'sharer'].includes(first.toLowerCase())) return `https://m.me/${first}`;
+  } catch { /* keep the original address */ }
+  return url;
+}
+
+/** An Instagram profile address turned into the "send a message" link (https://ig.me/m/username). */
+export function instagramMessageUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    if (host === 'ig.me') return parsed.toString();
+    if (host !== 'instagram.com') return url;
+    const first = parsed.pathname.split('/').filter(Boolean)[0];
+    if (first && /^[A-Za-z0-9._]+$/.test(first) && !['p', 'reel', 'reels', 'stories', 'explore', 'direct', 'accounts'].includes(first.toLowerCase())) return `https://ig.me/m/${first}`;
+  } catch { /* keep the original address */ }
+  return url;
+}

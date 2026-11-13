@@ -30,10 +30,12 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
   const photos = [...new Map(buildings.flatMap(buildingPhotos).map(photo => [photo.url, photo])).values()];
+  // Photos taken in turn from every building (first of each, then second of each...), so a strip never shows only one building.
+  const perBuilding = buildings.map(buildingPhotos);
+  const mixedPhotos = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
   // The owner's own home page photos win; otherwise photos of the buildings are used.
   const heroPhoto = home.images['home-hero'][0] || photos[0];
   const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
-  const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
   // Guest reviews are shown in their original (English) wording. Each card gets its own photo if one was uploaded in the admin,
   // otherwise a photo of the buildings, so a photo always sits beside the review.
   const reviewCards: ReviewCard[] = reviews.map((item, index) => {
@@ -42,22 +44,25 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     const note = /\(([^)]*)\)/.exec(sourcePart)?.[1] || '';
     const date = sourcePart.replace(/\(.*?\)/g, '').replace(/^(airbnb|google review|google)[,\s]*/i, '').trim();
     const own = reviewImages[item.id]?.[0];
-    const fallback = photos.length ? photos[index % photos.length] : undefined;
+    const fallback = mixedPhotos.length ? mixedPhotos[index % mixedPhotos.length] : undefined;
     const image = own || fallback;
     return { id: item.id, name: parts[0], detail: parts.slice(1).filter(part => part !== sourcePart).join(' · '), source: /airbnb/i.test(sourcePart) ? 'Airbnb' : /google/i.test(sourcePart) ? 'Google' : '', date, note: note ? note.replace(/^./, c => c.toUpperCase()) : '', stars: item.id.startsWith('review-'), quote: item.body_en || item.body_vi, image: image ? { url: image.url, alt: image.alt || '', width: image.width, height: image.height } : undefined };
   });
-  const marqueePhotos = [...new Map([...galleryPhotos, ...photos].map(photo => [photo.url, photo])).values()].slice(0, 12);
+  const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
+    <div className="editorial-hero-scroll">
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
       {heroPhoto && <img className="editorial-hero-image" src={heroPhoto.url} alt={heroPhoto.alt || 'DRM Stays'} fetchPriority="high" {...imgSize(heroPhoto)} />}
       <div className="editorial-hero-shade" aria-hidden="true" />
+      <div className="editorial-hero-wordmark" aria-hidden="true">{Array.from('DRM Stays').map((letter, index) => <span key={index} style={{ '--k': index } as React.CSSProperties}>{letter === ' ' ? '\u00a0' : letter}</span>)}</div>
       <div className="editorial-hero-content"><span className="editorial-kicker">DRM STAYS <span aria-hidden="true">/</span> {lang === 'vi' ? 'ĐÀ NẴNG' : 'DA NANG'}</span><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
+    </div>
 
-    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{['YOUR STAY, OUR CARE', vi ? 'ĐÀ NẴNG' : 'DA NANG', vi ? 'CĂN HỘ CÓ SẴN NỘI THẤT' : 'FURNISHED APARTMENTS', 'DRM STAYS'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
+    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Khu An Thượng, Mỹ An' : 'An Thượng, Mỹ An area', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
       <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
