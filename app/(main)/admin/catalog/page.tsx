@@ -135,7 +135,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
       </div>
 
       <div className="cx-panel">
-        {allowedTabs.map(item => <input key={item} type="radio" name="cx-tab" id={`cx-t-${item}`} defaultChecked={item === tab} />)}
+        {allowedTabs.map(item => <input key={item} type="radio" name="cx-tab" id={`cx-t-${item}`} defaultChecked={item === tab} autoComplete="off" />)}
         <div className="cx-tabbar" role="presentation">{allowedTabs.map(item => <label key={item} htmlFor={`cx-t-${item}`}>{tabNames[item]}{item === 'photos' && target.id ? ` (${photoCount(target.kind, target.id)})` : ''}</label>)}</div>
 
         {typeMode ? <form className="cx-form" action="/api/admin/room-types" method="post">
