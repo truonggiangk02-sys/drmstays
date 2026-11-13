@@ -90,7 +90,7 @@ export function ReviewSlider({ items, prev, next }: { items: Array<{ id: string;
     <span className="home-review-mark" aria-hidden="true">“</span>
     <div className="home-review-stage" aria-live="polite">
       {items.map((item, position) => <figure key={item.id} className={`home-review${position === index ? ' is-active' : ''}`} aria-hidden={position !== index}>
-        <blockquote>{item.quote}</blockquote>
+        <blockquote className={item.quote.length > 380 ? 'is-long' : undefined}>{item.quote}</blockquote>
         <figcaption><span className="home-review-avatar" aria-hidden="true">{initials(item.name)}</span><strong>{item.name}</strong></figcaption>
       </figure>)}
     </div>
