@@ -57,3 +57,6 @@
 .hm-card h2,.hm-card h3{margin:0 0 4px;font:400 26px/1.2 'Playfair Display',Georgia,serif}.hm-title{margin:36px 0 0;font:400 32px 'Playfair Display',Georgia,serif}
 .hm-hint{margin:0 0 18px;font-size:14px;color:#4f6054}.hm-card .cx-field textarea,.hm-card .cx-field input{min-height:0}
 .hm-card .cx-field input::placeholder,.hm-card .cx-field textarea::placeholder{color:#8a9a8e;opacity:1}
+
+/* If a browser restores the page (Back button) with no tab selected, show the first tab instead of an empty panel. */
+.cx-panel:not(:has(> input[type=radio]:checked)) .cx-sec-info{display:block}
