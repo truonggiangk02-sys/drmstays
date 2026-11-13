@@ -3,6 +3,7 @@ import { Analytics } from "@/components/analytics";
 import { generateMetadata as rootMetadata } from "../(main)/layout";
 import { FontLinks } from "@/components/font-links";
 import { SmoothMotion } from "@/components/smooth-motion";
+import { BackToTop } from "@/components/back-to-top";
 import "../globals.css";
 import "../cms.css";
 import "../catalog.css";
@@ -27,7 +28,7 @@ export default async function LangLayout({ children, params }: { children: React
   return (
     <html lang={lang}>
       <head><FontLinks /></head>
-      <body className="antialiased">{children}<SmoothMotion /><Analytics /></body>
+      <body className="antialiased">{children}<SmoothMotion /><BackToTop lang={lang} /><Analytics /></body>
     </html>
   );
 }

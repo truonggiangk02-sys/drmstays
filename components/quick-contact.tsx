@@ -1,7 +1,4 @@
-'use client';
-
-import { useEffect, useRef, useState } from 'react';
-import { Mail, MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send } from 'lucide-react';
 
 type Channel = { name: string; url?: string; mark: string };
 
@@ -19,32 +16,20 @@ function ChannelIcon({ name }: { name: string }) {
 }
 
 /**
- * Floating contact button. The "Liên hệ" button is always there: on its own it opens the contact page; once chat channels are
- * set up it opens a column of round icons above it (only channels that really have a link, plus the contact form).
+ * Floating contact area. The "Liên hệ" button opens the contact form page. Above it sit round buttons that open a direct chat
+ * (Messenger, Instagram message, Zalo, WhatsApp, Telegram); only channels that really have a link are shown. All of them
+ * give a small wiggle every few seconds to catch the eye.
  */
 export function QuickContact({ lang, channels }: { lang: 'vi' | 'en'; channels: Channel[]; preview?: boolean }) {
   const vi = lang === 'vi';
-  const [open, setOpen] = useState(false);
-  const dock = useRef<HTMLDivElement>(null);
   const shown = channels.filter((channel): channel is Channel & { url: string } => !!channel.url);
   const label = vi ? 'Liên hệ' : 'Contact';
+  const chat = (name: string) => name === 'Facebook' ? 'Messenger' : name === 'Instagram' ? (vi ? 'nhắn tin Instagram' : 'Instagram message') : name;
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (event: PointerEvent) => { if (!dock.current?.contains(event.target as Node)) setOpen(false); };
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
-    document.addEventListener('pointerdown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('pointerdown', onPointer); document.removeEventListener('keydown', onKey); };
-  }, [open]);
-
-  if (!shown.length) return <a className="qc-main qc-dock qc-alone" href={`/${lang}/contact`}><MessageCircle size={20} aria-hidden="true" />{label}</a>;
-
-  return <div className="qc-dock" ref={dock}>
-    {open && <div className="qc-stack" id="qc-panel" role="group" aria-label={vi ? 'Liên hệ nhanh' : 'Quick contact'}>
-      {shown.map((channel, index) => <a key={channel.name} className={`qc-round is-${channel.name.toLowerCase()}`} style={{ '--i': index } as React.CSSProperties} href={channel.url} target="_blank" rel="noopener noreferrer" title={channel.name} aria-label={`${vi ? 'Liên hệ qua' : 'Contact via'} ${channel.name} · ${vi ? 'mở trong tab mới' : 'opens in a new tab'}`}><ChannelIcon name={channel.name} /></a>)}
-      <a className="qc-round is-form" style={{ '--i': shown.length } as React.CSSProperties} href={`/${lang}/contact`} title={vi ? 'Gửi yêu cầu tư vấn' : 'Send an inquiry'} aria-label={vi ? 'Gửi yêu cầu tư vấn' : 'Send an inquiry'}><Mail size={21} aria-hidden="true" /></a>
+  return <div className="qc-dock">
+    {shown.length > 0 && <div className="qc-stack" role="group" aria-label={vi ? 'Nhắn tin trực tiếp' : 'Message us directly'}>
+      {shown.map((channel, index) => <a key={channel.name} className={`qc-round is-${channel.name.toLowerCase()}`} style={{ '--i': index } as React.CSSProperties} href={channel.url} target="_blank" rel="noopener noreferrer" title={chat(channel.name)} aria-label={`${vi ? 'Nhắn tin qua' : 'Message us on'} ${chat(channel.name)} · ${vi ? 'mở trong tab mới' : 'opens in a new tab'}`}><ChannelIcon name={channel.name} /></a>)}
     </div>}
-    <button type="button" className="qc-main" aria-expanded={open} aria-controls="qc-panel" onClick={() => setOpen(value => !value)}><MessageCircle size={20} aria-hidden="true" />{label}</button>
+    <a className="qc-main" href={`/${lang}/contact`} title={vi ? 'Điền form liên hệ' : 'Fill in the contact form'}><MessageCircle size={20} aria-hidden="true" />{label}</a>
   </div>;
 }
