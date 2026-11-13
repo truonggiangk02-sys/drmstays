@@ -4,7 +4,7 @@ import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
-import { Carousel, FaqList, StoryText } from '@/components/home-motion';
+import { Carousel, FaqList, ReviewSlider, StoryText } from '@/components/home-motion';
 import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 
@@ -33,6 +33,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const heroPhoto = home.images['home-hero'][0] || photos[0];
   const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
   const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
+  const marqueePhotos = [...new Map([...galleryPhotos, ...photos].map(photo => [photo.url, photo])).values()].slice(0, 12);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
@@ -75,8 +76,8 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     </section>}
 
     {reviews.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
-      <div className="editorial-section-head"><div><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2></div></div>
-      <Carousel label={vi ? 'Đánh giá của khách' : 'Guest reviews'} prev={vi ? 'Trước' : 'Previous'} next={vi ? 'Sau' : 'Next'}>{reviews.map(item => <figure key={item.id} className="home-quote"><span aria-hidden="true">“</span><blockquote>{pick(item).body}</blockquote><figcaption><strong>{pick(item).title}</strong></figcaption></figure>)}</Carousel>
+      <div className="home-testimonials-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2><p>{vi ? 'Những chia sẻ về thời gian ở và cách đội ngũ DRM Stays hỗ trợ.' : 'Notes on their stay and how the DRM Stays team looked after them.'}</p></div>
+      <ReviewSlider prev={vi ? 'Đánh giá trước' : 'Previous review'} next={vi ? 'Đánh giá tiếp' : 'Next review'} items={reviews.map(item => ({ id: item.id, name: pick(item).title, quote: pick(item).body }))} />
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>
@@ -97,7 +98,10 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem chi tiết dịch vụ và chi phí' : 'See services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {galleryPhotos.length >= 2 && <section className="editorial-gallery structure-section" aria-labelledby="editorial-gallery-title"><div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="editorial-gallery-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div><div className="editorial-gallery-grid">{galleryPhotos.map((photo, index) => <img key={photo.url} className={`editorial-gallery-item editorial-gallery-item-${index + 1}`} src={photo.url} alt={photo.alt || `${t.gallery} ${index + 1}`} loading="lazy" {...imgSize(photo)} />)}</div></section>}
+    {marqueePhotos.length >= 2 && <section className="home-photos" aria-labelledby="home-photos-title">
+      <div className="editorial-section-head structure-section"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
+      {[marqueePhotos, [...marqueePhotos].reverse()].map((row, rowIndex) => (rowIndex === 0 || marqueePhotos.length >= 5) && <div key={rowIndex} className={`home-photo-row${rowIndex ? ' is-reverse' : ''}`} aria-hidden={rowIndex ? 'true' : undefined}><div className="home-photo-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{row.map((photo, index) => <img key={`${photo.url}-${index}`} src={photo.url} alt={copy || rowIndex ? '' : photo.alt || `${t.gallery} ${index + 1}`} loading="lazy" {...imgSize(photo)} />)}</div>)}</div></div>)}
+    </section>}
 
     {faq.length > 0 && <section className="home-faq structure-section" aria-labelledby="home-faq-title" data-reveal>
       <div><span className="editorial-section-label">FAQ</span><h2 id="home-faq-title">{vi ? 'Bạn có câu hỏi? Chúng tôi sẵn sàng giải đáp.' : 'Got questions? We are here to help.'}</h2><Link className="editorial-text-link" href={`/${lang}/faq`}>{vi ? 'Xem tất cả câu hỏi' : 'See all questions'}<span aria-hidden="true">↗</span></Link></div>

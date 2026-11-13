@@ -71,3 +71,33 @@ export function FaqList({ items }: { items: Array<{ id: string; question: string
     })}
   </div>;
 }
+
+
+const initials = (name: string) => name.replace(/\(.*?\)/g, '').split(/[\s·,-]+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '★';
+
+/** One large guest review at a time with arrows, dots and a gentle automatic change (like a testimonial slider). */
+export function ReviewSlider({ items, prev, next }: { items: Array<{ id: string; name: string; quote: string }>; prev: string; next: string }) {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = items.length;
+  useEffect(() => {
+    if (count < 2 || paused || reduced()) return;
+    const timer = window.setInterval(() => setIndex(current => (current + 1) % count), 7000);
+    return () => window.clearInterval(timer);
+  }, [count, paused]);
+  const go = (delta: number) => setIndex(current => (current + delta + count) % count);
+  return <div className="home-review-slider" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
+    <span className="home-review-mark" aria-hidden="true">“</span>
+    <div className="home-review-stage" aria-live="polite">
+      {items.map((item, position) => <figure key={item.id} className={`home-review${position === index ? ' is-active' : ''}`} aria-hidden={position !== index}>
+        <blockquote>{item.quote}</blockquote>
+        <figcaption><span className="home-review-avatar" aria-hidden="true">{initials(item.name)}</span><strong>{item.name}</strong></figcaption>
+      </figure>)}
+    </div>
+    {count > 1 && <div className="home-review-nav">
+      <button type="button" aria-label={prev} onClick={() => go(-1)}>←</button>
+      <div className="home-review-dots">{items.map((item, position) => <button key={item.id} type="button" aria-label={`${position + 1} / ${count}`} aria-current={position === index} className={position === index ? 'is-active' : ''} onClick={() => setIndex(position)} />)}</div>
+      <button type="button" aria-label={next} onClick={() => go(1)}>→</button>
+    </div>}
+  </div>;
+}

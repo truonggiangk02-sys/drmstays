@@ -52,10 +52,21 @@ export const sampleContent: ContentItem[] = [
   sample('sample-faq-1', 'faq', 8, 'Gửi form có phải là đặt phòng không?', 'Does submitting a form reserve a room?', 'Không. Form chỉ ghi nhận yêu cầu để nhân viên liên hệ, kiểm tra thông tin và tư vấn tiếp.', 'No. The form only sends an inquiry so a team member can check details and contact you.'),
   sample('sample-faq-2', 'faq', 9, 'Giá hiển thị là giá nào?', 'Which price is displayed?', 'Trang phòng hiển thị giá thuê theo tháng. Tiền cọc và phí dịch vụ được ghi riêng nếu đã có thông tin công khai.', 'Room pages show monthly rent. Deposits and service fees appear separately when public details are available.'),
   sample('sample-faq-3', 'faq', 10, 'Tôi có thể xem phòng trước không?', 'Can I view a room first?', 'Có thể gửi yêu cầu qua form và ghi ngày giờ mong muốn. Nhân viên sẽ liên hệ để xác nhận lịch phù hợp.', 'Send an inquiry with your preferred time. A team member will contact you to confirm a suitable viewing.'),
+  // Layout samples for staging and the local preview only: each name says "(mẫu)" and none is ever shown on the live site.
+  sample('sample-review-1', 'reviews', 1, 'Khách mẫu 1 (mẫu) · thuê 3 tháng', 'Sample guest 1 (sample) · 3-month stay', 'Phòng sạch, có sẵn bếp, máy giặt và wifi mạnh nên tôi dọn vào là ở được ngay. Đội ngũ trả lời nhanh và hỗ trợ rất rõ ràng.', 'The room was clean, with a kitchen, washer and strong wifi, so I could move in right away. The team replied quickly and explained everything clearly.'),
+  sample('sample-review-2', 'reviews', 2, 'Khách mẫu 2 (mẫu) · thuê dài hạn', 'Sample guest 2 (sample) · long stay', 'Khu vực yên tĩnh, đi bộ ra quán ăn và siêu thị rất tiện, biển cũng chỉ vài phút. Chi phí điện nước được báo rõ từ đầu.', 'A quiet area with food and a supermarket within walking distance, and the beach just minutes away. Utility costs were explained from the start.'),
+  sample('sample-review-3', 'reviews', 3, 'Khách mẫu 3 (mẫu) · thuê ngắn ngày', 'Sample guest 3 (sample) · short stay', 'Giường rộng, điều hòa mát, tòa nhà có thang máy. Nhân viên hỗ trợ bằng tiếng Anh nên tôi hoàn toàn yên tâm.', 'A large bed, good air-conditioning and an elevator in the building. The staff supported me in English, so I felt well looked after.'),
+  sample('sample-review-4', 'reviews', 4, 'Khách mẫu 4 (mẫu) · gia đình nhỏ', 'Sample guest 4 (sample) · small family', 'Căn hộ gọn gàng, đúng như ảnh. Việc xem phòng và hoàn tất thủ tục thuê diễn ra nhanh và thuận tiện.', 'A tidy apartment that matches the photos. Viewing the room and completing the rental was quick and easy.'),
 ];
 
+/** Built-in samples; sample reviews exist only on staging and the local preview, never on the live site. */
+function defaultsFor(section: ContentSection): ContentItem[] {
+  const showReviewSamples = env.STAGING === '1' || env.PREVIEW_DEMO === '1';
+  return sampleContent.filter(item => item.section === section && (section !== 'reviews' || showReviewSamples));
+}
+
 export async function getContentItems(section: ContentSection): Promise<ContentItem[]> {
-  const defaults = sampleContent.filter(item => item.section === section);
+  const defaults = defaultsFor(section);
   if (!env.DB) return defaults;
   const result = await env.DB.prepare('SELECT id, section, title_vi, title_en, body_vi, body_en, published, deleted, position FROM site_content_items WHERE section = ? ORDER BY position, id').bind(section).all<ContentItem>();
   const overrides = new Map((result.results || []).map(item => [item.id, item]));
@@ -64,7 +75,7 @@ export async function getContentItems(section: ContentSection): Promise<ContentI
 }
 
 export async function getEditableContent(section: ContentSection): Promise<ContentItem[]> {
-  const defaults = sampleContent.filter(item => item.section === section);
+  const defaults = defaultsFor(section);
   if (!env.DB) return defaults;
   const result = await env.DB.prepare('SELECT id, section, title_vi, title_en, body_vi, body_en, published, deleted, position FROM site_content_items WHERE section = ? ORDER BY position, id').bind(section).all<ContentItem>();
   const overrides = new Map((result.results || []).map(item => [item.id, item]));
