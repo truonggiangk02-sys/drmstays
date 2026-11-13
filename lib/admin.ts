@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { cookies } from "next/headers";
+import { originAllowed } from "./origin";
 const cookieName = "__Host-doraemon_admin";
 const lifetime = 60 * 60 * 24 * 7;
 const encoder = new TextEncoder();
@@ -32,6 +33,7 @@ export function clearAdminSession(response: { cookies: { set: (name: string, val
   response.cookies.set(cookieName, "", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 0 });
 }
 export function validOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  return !!origin && origin === new URL(request.url).origin;
+  const allowed = originAllowed(request, (env as { SITE_URL?: string }).SITE_URL);
+  if (!allowed) console.warn("Admin request refused by the origin check:", new URL(request.url).host, request.headers.get("origin"), request.headers.get("referer"));
+  return allowed;
 }
