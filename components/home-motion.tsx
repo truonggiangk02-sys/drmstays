@@ -75,29 +75,54 @@ export function FaqList({ items }: { items: Array<{ id: string; question: string
 
 const initials = (name: string) => name.replace(/\(.*?\)/g, '').split(/[\s·,-]+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase()).join('') || '★';
 
-/** One large guest review at a time with arrows, dots and a gentle automatic change (like a testimonial slider). */
-export function ReviewSlider({ items, prev, next }: { items: Array<{ id: string; name: string; quote: string }>; prev: string; next: string }) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const count = items.length;
+export type ReviewCard = { id: string; name: string; detail: string; source: string; date: string; note: string; stars: boolean; quote: string; image?: { url: string; alt: string; width?: number; height?: number } };
+
+/** Photo cards, each with one guest review; swipe or use the arrows to see more. */
+export function ReviewCards({ items, prev, next, more, less }: { items: ReviewCard[]; prev: string; next: string; more: string; less: string }) {
+  const track = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const [open, setOpen] = useState<string | null>(null);
   useEffect(() => {
-    if (count < 2 || paused || reduced()) return;
-    const timer = window.setInterval(() => setIndex(current => (current + 1) % count), 7000);
-    return () => window.clearInterval(timer);
-  }, [count, paused]);
-  const go = (delta: number) => setIndex(current => (current + delta + count) % count);
-  return <div className="home-review-slider" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-    <span className="home-review-mark" aria-hidden="true">“</span>
-    <div className="home-review-stage" aria-live="polite">
-      {items.map((item, position) => <figure key={item.id} className={`home-review${position === index ? ' is-active' : ''}`} aria-hidden={position !== index}>
-        <blockquote className={item.quote.length > 380 ? 'is-long' : undefined}>{item.quote}</blockquote>
-        <figcaption><span className="home-review-avatar" aria-hidden="true">{initials(item.name)}</span><strong>{item.name}</strong></figcaption>
-      </figure>)}
+    const element = track.current;
+    if (!element) return;
+    const update = () => {
+      const max = element.scrollWidth - element.clientWidth;
+      setProgress(max > 0 ? element.scrollLeft / max : 1);
+      setEdge({ start: element.scrollLeft < 8, end: element.scrollLeft >= max - 8 });
+    };
+    update();
+    element.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { element.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [items.length]);
+  const go = (direction: 1 | -1) => {
+    const element = track.current;
+    if (element) element.scrollBy({ left: direction * Math.min(element.clientWidth * 0.8, 460), behavior: reduced() ? 'auto' : 'smooth' });
+  };
+  return <div className="home-rcards">
+    <div className="home-rcards-controls">
+      <div className="home-rcards-bar" aria-hidden="true"><i style={{ width: `${Math.max(12, progress * 100)}%` }} /></div>
+      <button type="button" aria-label={prev} disabled={edge.start} onClick={() => go(-1)}>←</button>
+      <button type="button" aria-label={next} disabled={edge.end} onClick={() => go(1)}>→</button>
     </div>
-    {count > 1 && <div className="home-review-nav">
-      <button type="button" aria-label={prev} onClick={() => go(-1)}>←</button>
-      <div className="home-review-dots">{items.map((item, position) => <button key={item.id} type="button" aria-label={`${position + 1} / ${count}`} aria-current={position === index} className={position === index ? 'is-active' : ''} onClick={() => setIndex(position)} />)}</div>
-      <button type="button" aria-label={next} onClick={() => go(1)}>→</button>
-    </div>}
+    <div className="home-rcards-track" ref={track} tabIndex={0} role="group" aria-roledescription="carousel">
+      {items.map(item => {
+        const long = item.quote.length > 240, expanded = open === item.id;
+        return <article key={item.id} className="home-rcard">
+          <div className="home-rcard-photo">{item.image ? <img src={item.image.url} alt={item.image.alt} loading="lazy" {...(item.image.width && item.image.height ? { width: item.image.width, height: item.image.height } : {})} /> : <span aria-hidden="true">DRM Stays</span>}</div>
+          <div className="home-rcard-body">
+            {item.stars && <p className="home-rcard-stars" aria-label="5 out of 5 stars"><span aria-hidden="true">★★★★★</span>{item.date && <time>{item.date}</time>}</p>}
+            <blockquote className={long && !expanded ? 'is-clamped' : undefined}>{item.quote}</blockquote>
+            {long && <button type="button" className="home-rcard-more" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : item.id)}>{expanded ? less : more}</button>}
+            <div className="home-rcard-foot">
+              <span className="home-rcard-avatar" aria-hidden="true">{initials(item.name)}</span>
+              <div><strong>{item.name}</strong>{(item.detail || item.note) && <small>{[item.detail, item.note].filter(Boolean).join(' · ')}</small>}</div>
+              {item.source && <em className={`home-rcard-source is-${item.source.toLowerCase()}`}>{item.source}</em>}
+            </div>
+          </div>
+        </article>;
+      })}
+    </div>
   </div>;
 }

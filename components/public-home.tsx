@@ -4,7 +4,8 @@ import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
-import { Carousel, FaqList, ReviewSlider, StoryText } from '@/components/home-motion';
+import { Carousel, FaqList, ReviewCards, StoryText, type ReviewCard } from '@/components/home-motion';
+import type { ContentImage } from '@/lib/site-content';
 import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 
@@ -24,7 +25,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 export type HomeRoomType = { id: string; name: string; building: string; image?: Photo; priceFrom: number; areaSqm: number; beds: number; maxGuests: number };
 
-export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [] }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[] }) {
+export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [], reviewImages = {} }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[]; reviewImages?: Record<string, ContentImage[]> }) {
   const vi = lang === 'vi';
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
@@ -33,6 +34,18 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const heroPhoto = home.images['home-hero'][0] || photos[0];
   const introPhoto = home.images['home-intro'][0] || photos[2] || photos[1] || heroPhoto;
   const galleryPhotos = home.images['home-gallery'].length ? home.images['home-gallery'] : photos.slice(1, 5);
+  // Guest reviews are shown in their original (English) wording. Each card gets its own photo if one was uploaded in the admin,
+  // otherwise a photo of the buildings, so a photo always sits beside the review.
+  const reviewCards: ReviewCard[] = reviews.map((item, index) => {
+    const parts = (item.title_en || item.title_vi).split(' · ');
+    const sourcePart = parts.slice(1).find(part => /airbnb|google/i.test(part)) || '';
+    const note = /\(([^)]*)\)/.exec(sourcePart)?.[1] || '';
+    const date = sourcePart.replace(/\(.*?\)/g, '').replace(/^(airbnb|google review|google)[,\s]*/i, '').trim();
+    const own = reviewImages[item.id]?.[0];
+    const fallback = photos.length ? photos[index % photos.length] : undefined;
+    const image = own || fallback;
+    return { id: item.id, name: parts[0], detail: parts.slice(1).filter(part => part !== sourcePart).join(' · '), source: /airbnb/i.test(sourcePart) ? 'Airbnb' : /google/i.test(sourcePart) ? 'Google' : '', date, note: note ? note.replace(/^./, c => c.toUpperCase()) : '', stars: item.id.startsWith('review-'), quote: item.body_en || item.body_vi, image: image ? { url: image.url, alt: image.alt || '', width: image.width, height: image.height } : undefined };
+  });
   const marqueePhotos = [...new Map([...galleryPhotos, ...photos].map(photo => [photo.url, photo])).values()].slice(0, 12);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
@@ -75,9 +88,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <Link className="editorial-text-link" href={`/${lang}/room-types`}>{vi ? 'Xem tất cả loại phòng' : 'See all room types'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {reviews.length > 0 && <section className="home-testimonials structure-section" aria-labelledby="home-testimonials-title" data-reveal>
-      <div className="home-testimonials-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-testimonials-title">{vi ? 'Trải nghiệm thật từ khách đã ở' : 'Real stays, in guests’ own words'}</h2><p>{vi ? 'Những chia sẻ về thời gian ở và cách đội ngũ DRM Stays hỗ trợ.' : 'Notes on their stay and how the DRM Stays team looked after them.'}</p></div>
-      <ReviewSlider prev={vi ? 'Đánh giá trước' : 'Previous review'} next={vi ? 'Đánh giá tiếp' : 'Next review'} items={reviews.map(item => ({ id: item.id, name: pick(item).title, quote: pick(item).body }))} />
+    {reviewCards.length > 0 && <section className="home-reviews structure-section" aria-labelledby="home-reviews-title" data-reveal>
+      <div className="home-reviews-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-reviews-title">{vi ? 'Khách đã ở nói gì về chúng tôi' : 'What our guests are saying'}</h2><p>{vi ? 'Đánh giá thật từ Airbnb và Google Maps, giữ nguyên lời khách.' : 'Real reviews from Airbnb and Google Maps, in the guests’ own words.'}</p></div>
+      <ReviewCards items={reviewCards} prev={vi ? 'Đánh giá trước' : 'Previous reviews'} next={vi ? 'Đánh giá tiếp' : 'Next reviews'} more="Read more" less="Show less" />
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>

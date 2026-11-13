@@ -7,7 +7,7 @@ import { contentSections, getEditableContent, getDeletedContent, type ContentIte
 
 export const dynamic = 'force-dynamic';
 
-const labels = { about: 'Giới thiệu công ty', services: 'Dịch vụ', partners: 'Dành cho chủ tòa', journal: 'Bài viết', faq: 'Câu hỏi thường gặp', reviews: 'Đánh giá của khách (tiêu đề = tên khách và thông tin ngắn, nội dung = lời nhận xét; chỉ đăng đánh giá thật)' } as const;
+const labels = { about: 'Giới thiệu công ty', services: 'Dịch vụ', partners: 'Dành cho chủ tòa', journal: 'Bài viết', faq: 'Câu hỏi thường gặp', reviews: 'Đánh giá của khách (hiển thị bằng tiếng Anh: tiêu đề = tên · nơi ở · nguồn (Airbnb/Google), nội dung = lời nhận xét; chỉ đăng đánh giá thật)' } as const;
 
 function ContentForm({ section, item, nextPosition, autoAvailable }: { section: ContentSection; item?: ContentItem; nextPosition?: number; autoAvailable: boolean }) {
   const isNew = !item;
