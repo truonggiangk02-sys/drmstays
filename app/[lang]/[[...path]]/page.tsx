@@ -278,6 +278,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       { name: 'Telegram', mark: 'T', url: contactChannels.telegram.published ? contactChannels.telegram.url : undefined },
       { name: 'Facebook', mark: 'f', url: contactChannels.facebook.published ? contactChannels.facebook.url : undefined },
       { name: 'Zalo', mark: 'Z', url: contactChannels.zalo.published ? contactChannels.zalo.url : undefined },
+      { name: 'Instagram', mark: 'IG', url: socialLinks.find(link => link.name === 'Instagram')?.url },
     ]} />
   </div>;
 }
