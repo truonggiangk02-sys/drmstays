@@ -1,6 +1,7 @@
 import { imgSize } from '@/lib/image-url';
 import { propertyName as displayName } from '@/lib/site';
 import { buildingFromPrice, buildingPhotos } from '@/lib/building-media';
+import { buildingStatusLabel } from '@/lib/building-status';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
 import type { ContentItem } from '@/lib/site-content';
@@ -18,6 +19,8 @@ type Building = {
   images: Photo[];
   rooms: Array<{ monthlyPrice: number; images: Photo[] }>;
   types?: Array<{ images: Photo[]; priceFrom: number; rooms: unknown[] }>;
+  status?: 'open' | 'building' | 'soon';
+  openMonth?: string;
 };
 
 
@@ -75,7 +78,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
         const photo = buildingPhotos(building)[0];
         const fromPrice = buildingFromPrice(building);
         return <Link className="editorial-property" href={`/${lang}/buildings/${building.id}`} key={building.id}>
-          <div className="editorial-property-image">{photo ? <img src={photo.url} alt={photo.alt || building.name} loading="lazy" {...imgSize(photo)} /> : <div className="editorial-property-placeholder">DRM Stays</div>}<span className="editorial-property-arrow" aria-hidden="true">↗</span></div>
+          <div className="editorial-property-image">{photo ? <img src={photo.url} alt={photo.alt || building.name} loading="lazy" {...imgSize(photo)} /> : <div className="editorial-property-placeholder">DRM Stays</div>}{buildingStatusLabel(building.status, building.openMonth, lang) && <span className={`status-badge is-${building.status}`}>{buildingStatusLabel(building.status, building.openMonth, lang)}</span>}<span className="editorial-property-arrow" aria-hidden="true">↗</span></div>
           <div className="editorial-property-meta"><div><h3>{displayName(building.name)}</h3><p>{building.address}</p></div><div className="editorial-property-facts"><span>{building.propertyType || `${(building.types?.length || 0) + building.rooms.length} ${t.rooms}`}</span>{fromPrice > 0 && <strong>{t.from} {money(fromPrice)} ₫ / {t.month}</strong>}</div></div>
         </Link>;
       })}</Carousel> : <p>{lang === 'vi' ? 'Các tòa nhà đang được cập nhật.' : 'Buildings are being updated.'}</p>}

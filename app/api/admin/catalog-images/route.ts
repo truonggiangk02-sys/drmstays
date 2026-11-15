@@ -17,6 +17,7 @@ type ImageRow = {
 const MAX_FILE_BYTES = 5_000_000;
 const MAX_REQUEST_BYTES = 26_000_000; // a handful of photos per request; each one is still capped at 5 MB
 const MAX_PER_ITEM = 20;
+const MAX_PER_BUILDING = 50; // photos, 3D renders, progress photos and floor plans share the building's allowance
 
 /** Validates and stores one image. Returns a short problem description, or null when it was saved. */
 async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string, limit = MAX_PER_ITEM): Promise<string | null> {
@@ -60,8 +61,10 @@ export async function POST(request: NextRequest) {
   const wantsJson = (request.headers.get('accept') || '').includes('application/json');
   const form = await request.formData();
   const action = String(form.get('action') || 'upload');
-  const category = form.get('category') === 'floorplan' ? 'floorplan' : 'photo';
   const kind = String(form.get('kind') || '');
+  const requested = String(form.get('category') || '');
+  // "render" (3D visualisations) and "progress" (construction or fit-out photos) only make sense for a building.
+  const category = requested === 'floorplan' ? 'floorplan' : kind === 'building' && (requested === 'render' || requested === 'progress') ? requested : 'photo';
   const sourceId = String(form.get('sourceId') || '');
   if (!/^(?:[0-9a-f-]{36}|(?:sample|review)-[a-z0-9-]+|home-[a-z]+)$/i.test(sourceId) || !['building', 'room', 'roomtype', 'content', 'home'].includes(kind))
     return new NextResponse('Invalid source item', { status: 400 });
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
     const alt = String(form.get('alt') || '').trim().slice(0, 150);
     let uploaded = 0;
     const failed: string[] = [];
-    const limit = kind === 'home' && isHomeSlot(sourceId) ? HOME_SLOTS[sourceId].max : MAX_PER_ITEM;
+    const limit = kind === 'home' && isHomeSlot(sourceId) ? HOME_SLOTS[sourceId].max : kind === 'building' ? MAX_PER_BUILDING : MAX_PER_ITEM;
     if (kind === 'home' && limit === 1) {
       // A single-photo area is replaced, not stacked: the previous photo goes away.
       const old = await env.DB.prepare("SELECT id, object_key FROM catalog_images WHERE owner_type = 'home' AND owner_id = ?").bind(sourceId).all<{ id: string; object_key: string }>();

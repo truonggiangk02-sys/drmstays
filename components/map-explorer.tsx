@@ -17,6 +17,8 @@ export type MapBuilding = {
   latitude: number | null;
   longitude: number | null;
   coordinateApproximate?: boolean;
+  statusLabel?: string;
+  status?: 'open' | 'building' | 'soon';
 };
 
 export type MapLandmark = {
@@ -305,7 +307,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
         <div className="map-list-heading"><h3 ref={listHeading} tabIndex={-1}>{t.buildings}</h3><span>{buildings.length}</span></div>
         {buildings.map(building => <article key={building.id} className={`map-building ${selected?.id === building.id ? 'is-selected' : ''}`}>
           <button type="button" className="map-building-select" aria-pressed={selected?.id === building.id} onClick={() => chooseBuilding(building.id)}>
-            <img src={building.imageUrl || '/drm-stay-logo.png'} alt="" loading="lazy" /><span className="map-building-copy"><strong>{building.name}</strong><small>{building.address}</small><span className="map-building-meta">{building.roomCount} {t.rooms}{building.monthlyPrice ? ` · ${t.from} ${formatMoney(building.monthlyPrice)} ₫ / ${t.month}` : ''}</span><em className={building.coordinateApproximate ? 'approximate' : ''}>{!isPositioned(building) ? t.noPin : building.coordinateApproximate ? t.reference : t.confirmed}</em></span>
+            <img src={building.imageUrl || '/drm-stay-logo.png'} alt="" loading="lazy" /><span className="map-building-copy"><strong>{building.name}</strong>{building.statusLabel && <span className={`status-badge is-inline is-${building.status}`}>{building.statusLabel}</span>}<small>{building.address}</small><span className="map-building-meta">{building.roomCount} {t.rooms}{building.monthlyPrice ? ` · ${t.from} ${formatMoney(building.monthlyPrice)} ₫ / ${t.month}` : ''}</span><em className={building.coordinateApproximate ? 'approximate' : ''}>{!isPositioned(building) ? t.noPin : building.coordinateApproximate ? t.reference : t.confirmed}</em></span>
           </button>
           <Link href={`/${lang}/buildings/${building.id}${dateQuery}`} className="map-building-link">{t.view} <span aria-hidden="true">↗</span></Link>
         </article>)}

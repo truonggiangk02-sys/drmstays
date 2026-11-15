@@ -27,8 +27,9 @@ export function StoryText({ text, className = '' }: { text: string; className?: 
     window.addEventListener('resize', onScroll);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (frame) cancelAnimationFrame(frame); };
   }, [text]);
-  return <p ref={ref} className={`home-story-text ${className}`} aria-label={text}>
-    {words.map((word, index) => <span key={index} aria-hidden="true" className="home-story-word" style={{ '--w': (index / Math.max(1, words.length - 1)).toFixed(3) } as React.CSSProperties}>{word} </span>)}
+  return <p ref={ref} className={`home-story-text ${className}`}>
+    <span className="sr-only">{text}</span>
+    <span aria-hidden="true">{words.map((word, index) => <span key={index} className="home-story-word" style={{ '--w': (index / Math.max(1, words.length - 1)).toFixed(3) } as React.CSSProperties}>{word} </span>)}</span>
   </p>;
 }
 
@@ -112,7 +113,7 @@ export function ReviewCards({ items, prev, next, more, less }: { items: ReviewCa
         return <article key={item.id} className="home-rcard">
           <div className="home-rcard-photo">{item.image ? <img src={item.image.url} alt={item.image.alt} loading="lazy" {...(item.image.width && item.image.height ? { width: item.image.width, height: item.image.height } : {})} /> : <span aria-hidden="true">DRM Stays</span>}</div>
           <div className="home-rcard-body">
-            {item.stars && <p className="home-rcard-stars" aria-label="5 out of 5 stars"><span aria-hidden="true">★★★★★</span>{item.date && <time>{item.date}</time>}</p>}
+            {item.stars && <p className="home-rcard-stars"><span role="img" aria-label="5 out of 5 stars">★★★★★</span>{item.date && <time>{item.date}</time>}</p>}
             <blockquote className={long && !expanded ? 'is-clamped' : undefined}>{item.quote}</blockquote>
             {long && <button type="button" className="home-rcard-more" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : item.id)}>{expanded ? less : more}</button>}
             <div className="home-rcard-foot">

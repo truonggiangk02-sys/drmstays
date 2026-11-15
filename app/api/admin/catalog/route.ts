@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
-import { formCoordinates, formLines, formNumber, formText, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
+import { detailMonth, detailStatus, detailText, formCoordinates, formLines, formNumber, formText, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 
 export async function POST(request: NextRequest) {
   if (!(await isAdmin()) || !validOrigin(request))
@@ -51,6 +51,11 @@ export async function POST(request: NextRequest) {
         amenitiesVi: formLines(form, 'amenitiesVi'), amenitiesEn: formLines(form, 'amenitiesEn'),
         servicesVi: formLines(form, 'servicesVi'), servicesEn: formLines(form, 'servicesEn'),
         rulesVi: formText(form, 'rulesVi'), rulesEn: formText(form, 'rulesEn'),
+        // A form that does not send the status fields (older page, other tab) keeps what is saved.
+        status: form.has('status') ? detailStatus(form.get('status')) : detailStatus(previousDetails.status),
+        openMonth: form.has('status') ? detailMonth(String(form.get('openMonth') || '')) : detailMonth(previousDetails.openMonth),
+        statusNoteVi: form.has('status') ? formText(form, 'statusNoteVi', 300) : detailText(previousDetails.statusNoteVi),
+        statusNoteEn: form.has('status') ? formText(form, 'statusNoteEn', 300) : detailText(previousDetails.statusNoteEn),
       };
     } catch { return new NextResponse('Invalid building details', { status: 400 }); }
     await env.DB.prepare(
