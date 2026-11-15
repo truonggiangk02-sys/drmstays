@@ -16,8 +16,11 @@ export function DetailGallery({ photos, name, lang }: { photos: Photo[]; name: s
   const images = photos.length ? photos : [{ id: 'fallback', url: '/drm-stay-logo.png', alt: name }];
   const [index, setIndex] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
-  // 1, 2, 3 or 5 tiles so the mosaic always fills its frame
-  const shown = images.slice(0, images.length >= 5 ? 5 : images.length >= 3 ? 3 : images.length);
+  // 1, 2 or 3 tiles: one large photo plus two beside it keeps every tile close to a photo's own shape, so little is cropped
+  const shown = images.slice(0, Math.min(3, images.length));
+  // the frame follows the shape of the first photo (kept within a sensible range)
+  const first = images[0] as Photo;
+  const shape = first.width && first.height ? Math.min(1.9, Math.max(1.15, first.width / first.height)) : 1.5;
   const size = (image: Photo) => (image.id === 'fallback' ? LOGO_SIZE : imgSize(image));
   const step = (delta: number) => setIndex(current => (current + delta + images.length) % images.length);
 
@@ -35,7 +38,7 @@ export function DetailGallery({ photos, name, lang }: { photos: Photo[]; name: s
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images.length]);
 
-  return <div className={`dv-gallery has-${shown.length}`} role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
+  return <div className={`dv-gallery has-${shown.length}`} style={{ '--r': shape.toFixed(3) } as React.CSSProperties} role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
     {shown.map((image, position) => <button key={image.id} type="button" className="dv-tile" style={{ '--i': position } as React.CSSProperties} aria-label={`${w.open} ${position + 1}`} onClick={() => open(position)}>
       <img src={image.url} alt={image.alt || name} loading={position === 0 ? 'eager' : 'lazy'} {...size(image)} />
     </button>)}

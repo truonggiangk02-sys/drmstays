@@ -19,3 +19,11 @@ export function buildingFromPrice(building: MediaBuilding): number {
 
 /** Rooms a guest can ask about: those under room types plus the ones shown on their own. */
 export const buildingRoomCount = (building: MediaBuilding) => (building.types || []).reduce((sum, type) => sum + type.rooms.length, 0) + building.rooms.length;
+
+/** Photos taken in turn from every building (first of each, then second of each...), so no single building fills a strip. */
+export function mixedBuildingPhotos(buildings: MediaBuilding[]): Photo[] {
+  const lists = buildings.map(buildingPhotos);
+  const rounds = Math.max(0, ...lists.map(list => list.length));
+  const all = Array.from({ length: rounds }, (_, round) => lists.map(list => list[round]).filter(Boolean)).flat();
+  return [...new Map(all.map(photo => [photo.url, photo])).values()];
+}

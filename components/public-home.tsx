@@ -9,6 +9,8 @@ import { Carousel, FaqList, ReviewCards, StoryText, type ReviewCard } from '@/co
 import type { ContentImage } from '@/lib/site-content';
 import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
+import { addonIcons, stayIcons } from '@/components/services-showcase';
+import { Sparkles } from 'lucide-react';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 type Building = {
@@ -113,10 +115,21 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div><CountUp to={6} /><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
     </section>
 
-    {services.length > 0 && <section className="home-services structure-section" aria-labelledby="home-services-title" data-reveal>
-      <div className="editorial-section-head"><div><span className="editorial-section-label">{vi ? 'DỊCH VỤ' : 'SERVICES'}</span><h2 id="home-services-title">{vi ? 'Mọi thứ bạn cần cho một kỳ lưu trú dễ chịu' : 'Everything for a comfortable stay'}</h2></div><p>{vi ? 'Chi phí rõ ràng, hỗ trợ nhiều ngôn ngữ, phòng có sẵn nội thất.' : 'Clear costs, multilingual support, furnished rooms.'}</p></div>
-      <div className="home-services-grid">{services.slice(0, 6).map((item, index) => <article key={item.id} style={{ '--i': index } as React.CSSProperties}><span>{String(index + 1).padStart(2, '0')}</span><h3>{pick(item).title}</h3><p>{pick(item).body}</p></article>)}</div>
-      <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem chi tiết dịch vụ và chi phí' : 'See services and costs'}<span aria-hidden="true">↗</span></Link>
+    {services.length > 0 && <section className="home-services svc-stay structure-section" aria-labelledby="home-services-title" data-reveal>
+      <div className="svc-head"><span className="editorial-section-label">{vi ? 'DỊCH VỤ' : 'SERVICES'}</span><h2 id="home-services-title">{vi ? 'Mọi thứ bạn cần cho một kỳ lưu trú dễ chịu' : 'Everything for a comfortable stay'}</h2><p>{vi ? 'Chi phí rõ ràng, hỗ trợ nhiều ngôn ngữ, phòng có sẵn nội thất, cùng tour, vé và đưa đón sân bay khi bạn cần.' : 'Clear costs, multilingual support, furnished rooms, plus tours, tickets and airport transfers when you need them.'}</p></div>
+      <div className="svc-stay-grid">{services.filter(item => item.position < 20).slice(0, 6).map((item, index) => {
+        const photo = mixedPhotos[index % Math.max(1, mixedPhotos.length)];
+        const Icon = stayIcons[index % stayIcons.length];
+        return <article className="svc-card" key={item.id} style={{ '--i': index } as React.CSSProperties}>
+          <div className="svc-card-photo">{photo ? <img src={photo.url} alt="" loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}<i aria-hidden="true"><Icon size={20} /></i></div>
+          <div className="svc-card-body"><small>{String(index + 1).padStart(2, '0')}</small><h3>{pick(item).title}</h3><p>{pick(item).body}</p></div>
+        </article>;
+      })}</div>
+      {services.some(item => item.position >= 20) && <div className="home-addons" aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
+        <strong>{vi ? 'Dịch vụ đi kèm' : 'Add-on services'}</strong>
+        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}><Icon size={18} aria-hidden="true" />{pick(item).title}</Link></li>; })}</ul>
+      </div>}
+      <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem tất cả dịch vụ và chi phí' : 'See all services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
     {marqueePhotos.length >= 2 && <section className="home-photos" aria-labelledby="home-photos-title">
