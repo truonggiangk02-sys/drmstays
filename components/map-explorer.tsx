@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
+import { addResilientTiles } from '@/lib/map-tiles';
 
 export type MapBuilding = {
   id: string;
@@ -93,6 +94,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
   const [showAllPlaces, setShowAllPlaces] = useState(false);
   const [mapReady, setMapReady] = useState(0);
+  const [tilesFailed, setTilesFailed] = useState(false);
   const [routeState, setRouteState] = useState<{ key: string; status: 'loading' | 'ready' | 'unavailable'; minutes?: number; distanceMeters?: number; path?: [number, number][] } | null>(null);
   const mapElement = useRef<HTMLDivElement>(null);
   const map = useRef<Leaflet.Map | null>(null);
@@ -161,10 +163,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
       if (cancelled || !mapElement.current) return;
       leaflet.current = L;
       const instance = L.map(mapElement.current, { scrollWheelZoom: false, zoomControl: false }).setView([16.0544, 108.242], 12);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',
-      }).addTo(instance);
+      addResilientTiles(L, instance, () => setTilesFailed(true));
       L.control.zoom({ position: 'bottomleft' }).addTo(instance);
       map.current = instance;
       const points: Leaflet.LatLngExpression[] = [];
@@ -316,6 +315,7 @@ export function MapExplorer({ buildings, landmarks, lang, dateQuery = '' }: { bu
       <div className={`map-explorer-map ${mobileView === 'list' ? 'mobile-hidden' : ''}`}>
         <div ref={mapElement} className="map-canvas" role="group" aria-label={`${t.map}. ${t.mapHelp}`} />
         {!mapReady && <div className="map-loading" role="status">{t.mapLoading}</div>}
+        {tilesFailed && selected && <p className="map-tiles-note" role="status">{lang === 'vi' ? 'Nền bản đồ đang tạm thời không tải được. ' : 'The map background is temporarily unavailable. '}<a href={isPositioned(selected) ? `https://www.google.com/maps/search/?api=1&query=${selected.latitude},${selected.longitude}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selected.address || selected.name)}`} target="_blank" rel="noopener noreferrer">{lang === 'vi' ? 'Mở Google Maps' : 'Open Google Maps'} ↗</a></p>}
         <div className="map-map-top"><span className="map-legend"><i className="map-legend-building" aria-hidden="true" />{t.buildings} <i className="map-legend-place" aria-hidden="true" />{t.places}</span><span className="map-map-help">{t.mapHelp}</span><button type="button" className="map-fit-all" onClick={showAllPins}>{t.fitAll}</button></div>
         {selected && cardOpen && <div className={`map-selected-building ${selectedPlace ? 'is-route-open' : ''}`} role="region" aria-label={selected.name}>
           <button type="button" className="map-card-close" aria-label={t.closeCard} onClick={() => setCardOpen(false)}>×</button>

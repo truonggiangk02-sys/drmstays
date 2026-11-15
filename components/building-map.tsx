@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type * as Leaflet from 'leaflet';
+import { addResilientTiles } from '@/lib/map-tiles';
 
 type Place = { id: string; name: string; latitude: number; longitude: number };
 
 const words = {
-  vi: { map: 'Bản đồ vị trí', open: 'Mở trong Google Maps', nearby: 'Địa điểm gần đây', route: 'Chỉ đường', approximate: 'Ghim chỉ mang tính tham khảo theo khu vực, chưa phải đúng cửa tòa.', loading: 'Đang tải bản đồ…' },
-  en: { map: 'Location map', open: 'Open in Google Maps', nearby: 'Nearby places', route: 'Directions', approximate: 'The pin is an approximate area reference, not the confirmed entrance.', loading: 'Loading map…' },
+  vi: { map: 'Bản đồ vị trí', open: 'Mở trong Google Maps', nearby: 'Địa điểm gần đây', route: 'Chỉ đường', approximate: 'Ghim chỉ mang tính tham khảo theo khu vực, chưa phải đúng cửa tòa.', loading: 'Đang tải bản đồ…', tilesDown: 'Nền bản đồ đang tạm thời không tải được.' },
+  en: { map: 'Location map', open: 'Open in Google Maps', nearby: 'Nearby places', route: 'Directions', approximate: 'The pin is an approximate area reference, not the confirmed entrance.', loading: 'Loading map…', tilesDown: 'The map background is temporarily unavailable.' },
 } as const;
 
 function routeUrl(from: { latitude: number; longitude: number } | null, place: Place) {
@@ -23,6 +24,7 @@ function routeUrl(from: { latitude: number; longitude: number } | null, place: P
 export function BuildingMap({ lang, name, address, latitude, longitude, approximate = false, places }: { lang: 'vi' | 'en'; name: string; address?: string; latitude: number | null; longitude: number | null; approximate?: boolean; places: Place[] }) {
   const w = words[lang];
   const element = useRef<HTMLDivElement>(null);
+  const [tilesFailed, setTilesFailed] = useState(false);
   const positioned = typeof latitude === 'number' && typeof longitude === 'number';
   const origin = positioned && !approximate ? { latitude: latitude as number, longitude: longitude as number } : null;
   const shown = places.slice(0, 6);
@@ -37,10 +39,7 @@ export function BuildingMap({ lang, name, address, latitude, longitude, approxim
     import('leaflet').then(L => {
       if (cancelled || !element.current) return;
       instance = L.map(element.current, { scrollWheelZoom: false, zoomControl: false }).setView([latitude as number, longitude as number], 15);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',
-      }).addTo(instance);
+      addResilientTiles(L, instance, () => setTilesFailed(true));
       L.control.zoom({ position: 'bottomright' }).addTo(instance);
       const points: Leaflet.LatLngExpression[] = [[latitude as number, longitude as number]];
       L.marker([latitude as number, longitude as number], {
@@ -63,6 +62,7 @@ export function BuildingMap({ lang, name, address, latitude, longitude, approxim
   return <div className="dv-map">
     {address && <p className="dv-map-address">{address}</p>}
     {positioned && <div className="dv-map-frame" ref={element} role="region" aria-label={`${w.map}: ${name}`} />}
+    {positioned && tilesFailed && <p className="dv-map-note">{w.tilesDown} <a href={googleUrl} target="_blank" rel="noopener noreferrer">{w.open} ↗</a></p>}
     {positioned && approximate && <p className="dv-map-note">{w.approximate}</p>}
     <a className="dv-map-open" href={googleUrl} target="_blank" rel="noopener noreferrer">{w.open} ↗</a>
     {shown.length > 0 && <div className="dv-map-places"><h3>{w.nearby}</h3><ul>{shown.map(place => <li key={place.id}><span>{place.name}</span><a href={routeUrl(origin, place)} target="_blank" rel="noopener noreferrer" aria-label={`${w.route}: ${place.name}`}>{w.route} ↗</a></li>)}</ul></div>}

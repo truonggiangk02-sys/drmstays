@@ -247,3 +247,6 @@
   .map-building-select img { width: 150px; height: 124px; border-radius: 12px; }
   .map-building-link { margin: 4px 0 0 166px; min-height: 36px; }
 }
+
+.map-tiles-note { position: absolute; left: 50%; bottom: 64px; z-index: 600; width: min(92%, 440px); margin: 0; padding: 10px 14px; transform: translateX(-50%); border-radius: 12px; background: #fffefb; box-shadow: 0 10px 30px rgba(17, 47, 37, .22); font-size: 13px; line-height: 1.5; color: #17372d; }
+.map-tiles-note a { font-weight: 700; color: #7d5636; }
