@@ -6,7 +6,24 @@ export type BuildingDetails = {
   amenitiesVi: string[]; amenitiesEn: string[];
   servicesVi: string[]; servicesEn: string[];
   rulesVi: string; rulesEn: string;
+  /** Where the building is in its life: open (default), still being completed, or announced as coming soon. */
+  status: BuildingStatus; openMonth: string; statusNoteVi: string; statusNoteEn: string;
 };
+
+export const buildingStatuses = ['open', 'building', 'soon'] as const;
+export type BuildingStatus = typeof buildingStatuses[number];
+export const detailStatus = (value: unknown): BuildingStatus => (buildingStatuses as readonly unknown[]).includes(value) ? value as BuildingStatus : 'open';
+/** A "YYYY-MM" month (as an <input type="month"> sends it), or '' when missing or invalid. */
+export const detailMonth = (value: unknown): string => typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value) ? value : '';
+
+/** "tháng 3/2027" in Vietnamese, "March 2027" in English; '' for no month. */
+export function formatOpenMonth(month: string, lang: 'vi' | 'en'): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return '';
+  const monthNumber = Number(match[2]);
+  if (lang === 'vi') return `tháng ${monthNumber}/${match[1]}`;
+  return `${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][monthNumber - 1]} ${match[1]}`;
+}
 
 export function formCoordinates(form: FormData): { latitude: number | null; longitude: number | null } {
   const lat = String(form.get('latitude') || '').trim();

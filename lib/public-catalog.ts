@@ -4,7 +4,7 @@ import { apartments } from './apartments';
 import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding } from './staydesk-catalog';
 import { effectivePrice, priceFrom, availableCount, byRoomName, type TypeDetails } from './room-types';
 import { catalogImageUrl } from './image-url';
-import { inferFloor, parseDetails, detailText, detailNumber, detailList, type BuildingDetails, type RoomDetails } from './catalog-details';
+import { inferFloor, parseDetails, detailText, detailNumber, detailList, detailStatus, detailMonth, type BuildingDetails, type RoomDetails } from './catalog-details';
 
 type BuildingRow = { source_id: string; updated_at?: string | null; published: number; description: string; address: string; services: string; details_json: string };
 type RoomRow = { source_id: string; updated_at?: string | null; published: number; description: string; nightly_price: number; monthly_price: number; services: string; details_json: string; type_id: string | null };
@@ -71,6 +71,9 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
       rules: pickText(lang === 'vi' ? detail.rulesVi : detail.rulesEn, lang === 'vi' ? detail.rulesEn : detail.rulesVi, ''),
       images: photoGallery.length ? photoGallery : env.PREVIEW_DEMO === '1' && firstSample ? [{ id: `demo-building-${building.id}`, url: firstSample.image, alt: firstSample.imageDescription }] : [],
       floorplans: gallery('building', building.id, 'floorplan'),
+      status: detailStatus(detail.status), openMonth: detailMonth(detail.openMonth),
+      statusNote: pickText(lang === 'vi' ? detail.statusNoteVi : detail.statusNoteEn, lang === 'vi' ? detail.statusNoteEn : detail.statusNoteVi, ''),
+      renders: gallery('building', building.id, 'render'), progressPhotos: gallery('building', building.id, 'progress'),
       types: typeRows.results?.filter(row => row.building_source_id === building.id && row.published === 1).flatMap(row => {
         const detail = parseDetails<TypeDetails>(row.details_json);
         const pick = <K extends keyof TypeDetails>(vi: K, en: K) => lang === 'vi' ? [detail[vi], detail[en]] as const : [detail[en], detail[vi]] as const;

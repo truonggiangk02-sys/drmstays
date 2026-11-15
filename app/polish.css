@@ -265,3 +265,17 @@ html[lang="vi"] .structure-site .editorial-hero h1 { letter-spacing: -.02em; lin
 .dv-roomtypes-head h2 { margin: 0; font: 400 clamp(26px, 3vw, 36px)/1.2 'Playfair Display', Georgia, serif; }
 .dv-roomtypes-head p { margin: 0; color: #5b6d61; font-size: 14px; }
 .dv-roomtypes-head a { margin-left: auto; font-size: 14px; font-weight: 700; color: #7d5636; }
+
+/* ---- Building status: badges on photos and cards, and the banner on the building page ---- */
+.status-badge { position: absolute; left: 14px; top: 14px; z-index: 2; padding: 6px 13px; border-radius: 99px; background: #fff; color: #17372d; font: 700 12px/1.2 'Be Vietnam Pro', Arial, sans-serif; box-shadow: 0 6px 18px rgba(17, 47, 37, .22); }
+.status-badge.is-soon { background: #fdefd5; color: #8a4f06; }
+.status-badge.is-building { background: #e2edfc; color: #2a5db0; }
+.status-badge.is-inline { position: static; display: inline-block; margin: 4px 0 6px; box-shadow: none; }
+.dv-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; margin: 6px 0 18px; padding: 18px 22px; border: 1px solid #f0d9ae; border-radius: 16px; background: #fdf4e3; }
+.dv-status.is-building { border-color: #c9dcf5; background: #eaf2fd; }
+.dv-status strong { display: block; margin-bottom: 4px; font-size: 16px; color: #6b3d04; }
+.dv-status.is-building strong { color: #1f4d96; }
+.dv-status p { margin: 0; max-width: 560px; color: #4b5b52; font-size: 14px; line-height: 1.6; }
+.dv-note { margin: -6px 0 14px; color: #55665b; font-size: 13px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }

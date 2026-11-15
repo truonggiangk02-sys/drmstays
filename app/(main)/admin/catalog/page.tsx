@@ -6,7 +6,7 @@ import { AdminShell } from '@/components/admin-shell';
 import { CatalogPhotos, type CatalogImageRow } from '@/components/catalog-photos';
 import { CopyRoomDetails } from '@/components/copy-room-details';
 import { isAdmin } from '@/lib/admin';
-import { inferFloor, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
+import { detailMonth, detailStatus, formatOpenMonth, inferFloor, parseDetails, type BuildingDetails, type RoomDetails } from '@/lib/catalog-details';
 import { buildingProgress, groupByFloor, roomProgress, typedRoomProgress, typeProgress, type Progress } from '@/lib/catalog-progress';
 import { effectivePrice, type TypeDetails } from '@/lib/room-types';
 import { buildCopySource } from '@/lib/room-copy';
@@ -107,7 +107,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
       {source.buildings.map(item => {
         const itemRow = buildingRows.get(item.id), open = item.id === building.id;
         return <div key={item.id} className={open ? 'cx-nav-building is-open' : 'cx-nav-building'}>
-          <Link href={view(item.id)} className={open && !room && !typeMode ? 'is-active' : ''}><i className={itemRow?.published === 1 ? 'dot is-on' : 'dot'} aria-hidden="true" />{item.name}<small>{item.rooms.length} phòng</small></Link>
+          <Link href={view(item.id)} className={open && !room && !typeMode ? 'is-active' : ''}><i className={itemRow?.published === 1 ? 'dot is-on' : 'dot'} aria-hidden="true" />{item.name}<small>{(() => { const st = detailStatus(parseDetails<BuildingDetails>(itemRow?.details_json).status); return st === 'open' ? `${item.rooms.length} phòng` : `${st === 'soon' ? 'Sắp mở' : 'Đang hoàn thiện'}${detailMonth(parseDetails<BuildingDetails>(itemRow?.details_json).openMonth) ? ' · ' + formatOpenMonth(detailMonth(parseDetails<BuildingDetails>(itemRow?.details_json).openMonth), 'vi') : ''}`; })()}</small></Link>
           {open && <div className="cx-nav-floor">
             <h3>Loại phòng</h3>
             {buildingTypes.map(row => <Link key={row.id} href={view(item.id, undefined, row.id)} className={type?.id === row.id ? 'is-active' : ''}>
@@ -136,7 +136,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
 
       <div className="cx-panel">
         {allowedTabs.map(item => <input key={item} type="radio" name="cx-tab" id={`cx-t-${item}`} defaultChecked={item === tab} autoComplete="off" />)}
-        <div className="cx-tabbar" role="presentation">{allowedTabs.map(item => <label key={item} htmlFor={`cx-t-${item}`}>{tabNames[item]}{item === 'photos' && target.id ? ` (${photoCount(target.kind, target.id)})` : ''}</label>)}</div>
+        <div className="cx-tabbar" role="presentation">{allowedTabs.map(item => <label key={item} htmlFor={`cx-t-${item}`}>{tabNames[item]}{item === 'photos' && target.id ? ` (${gallery(target.kind, target.id).filter(image => image.category !== 'floorplan').length})` : ''}</label>)}</div>
 
         {typeMode ? <form className="cx-form" action="/api/admin/room-types" method="post">
           <input type="hidden" name="action" value="save" /><input type="hidden" name="buildingId" value={building.id} />{type && <input type="hidden" name="typeId" value={type.id} />}
@@ -198,6 +198,11 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
             <div className="cx-sec cx-sec-info">
               <label className="cx-publish"><input type="checkbox" name="published" defaultChecked={published} /><span><strong>Hiển thị tòa này cho khách</strong><small>Bỏ tick để ẩn khỏi website. Dữ liệu vẫn được giữ.</small></span></label>
               <Pair title="Địa chỉ"><Field name="address" label="Địa chỉ" value={buildingRow?.address} maxLength={300} hint="Toạ độ trên bản đồ nhập ở mục Vị trí & điểm đến." /></Pair>
+              <Pair title="Tình trạng tòa nhà">
+                <label className="cx-field"><span>Tình trạng</span><select name="status" defaultValue={detailStatus(buildingDetail.status)}><option value="open">Đang vận hành</option><option value="building">Đang hoàn thiện (đang xây hoặc hoàn thiện nội thất)</option><option value="soon">Sắp mở (coming soon)</option></select><small>Tòa chưa vận hành sẽ hiện nhãn “Đang hoàn thiện” hoặc “Sắp mở” trên website, kèm ảnh 3D hoặc ảnh tiến độ bạn tải ở tab Ảnh.</small></label>
+                <label className="cx-field"><span>Dự kiến mở</span><input name="openMonth" type="month" defaultValue={detailMonth(buildingDetail.openMonth)} /><small>Chọn tháng dự kiến mở. Bỏ trống nếu chưa rõ.</small></label>
+                <Field name="statusNoteVi" label="Ghi chú tình trạng (VI)" value={buildingDetail.statusNoteVi} maxLength={300} hint="Ví dụ: Đang hoàn thiện nội thất, nhận đăng ký quan tâm từ bây giờ." /><Field name="statusNoteEn" label="Status note (EN)" value={buildingDetail.statusNoteEn} maxLength={300} />
+              </Pair>
               <Pair title="Loại tòa nhà và quy mô">
                 <Field name="propertyTypeVi" label="Loại tòa nhà (VI)" value={buildingDetail.propertyTypeVi} /><Field name="propertyTypeEn" label="Building type (EN)" value={buildingDetail.propertyTypeEn} />
                 <Field name="floorCount" label="Số tầng" value={buildingDetail.floorCount} type="number" /><Field name="areaSqm" label="Diện tích khuôn viên (m²)" value={buildingDetail.areaSqm} type="number" />
