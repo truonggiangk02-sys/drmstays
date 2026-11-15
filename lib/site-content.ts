@@ -1,10 +1,10 @@
 import { env } from 'cloudflare:workers';
 import { catalogImageUrl } from './image-url';
 
-export const contentSections = ['about', 'services', 'partners', 'journal', 'faq', 'reviews'] as const;
+export const contentSections = ['about', 'services', 'partners', 'journal', 'faq', 'reviews', 'metrics'] as const;
 export type ContentSection = typeof contentSections[number];
 /** Sections that have a page of their own; guest reviews only appear on the home page. */
-export const pageSections = contentSections.filter(section => section !== 'reviews');
+export const pageSections = contentSections.filter(section => section !== 'reviews' && section !== 'metrics');
 export type ContentItem = {
   id: string; section: ContentSection; title_vi: string; title_en: string;
   body_vi: string; body_en: string; published: number; deleted: number; position: number;
@@ -67,6 +67,11 @@ export const sampleContent: ContentItem[] = [
   sample('sample-addon-spa', 'services', 24, 'Spa và massage', 'Spa and massage', 'Giới thiệu và đặt lịch spa, massage thư giãn gần nơi ở. Liên hệ để biết dịch vụ và giá.', 'Recommendations and bookings for relaxing spa and massage treatments near where you stay. Contact us for treatments and prices.'),
   sample('sample-addon-motorbike', 'services', 25, 'Thuê xe máy', 'Motorbike rental', 'Thuê xe máy theo ngày hoặc theo tuần để tự do đi lại quanh Đà Nẵng. Liên hệ để biết loại xe, giá và điều kiện thuê.', 'Rent a motorbike by the day or week to get around Da Nang freely. Contact us for bikes, prices and rental terms.'),
   sample('sample-addon-airport', 'services', 26, 'Đưa đón sân bay', 'Airport transfer', 'Đặt xe đưa đón giữa sân bay Đà Nẵng và nơi ở. Cho chúng tôi biết giờ bay để sắp xếp.', 'Book a car between Da Nang airport and your accommodation. Tell us your flight time and we will arrange it.'),
+  sample('sample-metric-years', 'metrics', 1, '3', '3', 'năm vận hành bất động sản cho thuê', 'years operating rental property'),
+  sample('sample-metric-projects', 'metrics', 2, '10+', '10+', 'dự án đã tư vấn', 'projects advised'),
+  sample('sample-metric-occupancy', 'metrics', 3, '75%', '75%', 'tỷ lệ lấp đầy các tòa đang vận hành', 'occupancy across the buildings we operate'),
+  sample('sample-metric-languages', 'metrics', 4, '6', '6', 'ngôn ngữ hỗ trợ khách thuê', 'languages supported for guests'),
+  sample('sample-metric-reports', 'metrics', 5, '12', '12', 'báo cáo tài chính mỗi năm cho chủ đầu tư', 'financial reports a year for owners'),
 ];
 
 function defaultsFor(section: ContentSection): ContentItem[] {
