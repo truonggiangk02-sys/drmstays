@@ -96,8 +96,8 @@ export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { 
           <span className="bento-chip">{slide.rooms && <>{slide.rooms} · </>}{labels.open}<ArrowUpRight size={14} aria-hidden="true" /></span>
         </Link>
         {rest.map((photo, n) => <Link className="bento-photo" href={photo.href} key={photo.url} style={{ '--i': n + 1, ...placement(n) } as React.CSSProperties}>
-          <img src={photo.url} alt={`${slide.name} · ${photo.label}`} loading="lazy" {...imgSize(photo)} />
-          <span className="bento-tag">{photo.label}</span>
+          <img src={photo.url} alt={photo.label ? `${slide.name} · ${photo.label}` : slide.name} loading="lazy" {...imgSize(photo)} />
+          {photo.label && <span className="bento-tag">{photo.label}</span>}
         </Link>)}
       </div>
     </div>

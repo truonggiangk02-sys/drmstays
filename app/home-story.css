@@ -298,7 +298,7 @@
 html .editorial-home .structure-section { max-width: 1680px; padding-right: clamp(24px, 4.5vw, 80px); padding-left: clamp(24px, 4.5vw, 80px); }
 
 /* Numbers band */
-.home-numbers { margin-top: clamp(20px, 3vw, 40px); }
+.home-numbers { margin-top: 0; }
 .home-numbers .inv-metrics-inner { padding-top: clamp(40px, 5vw, 76px); padding-bottom: clamp(40px, 5vw, 76px); }
 .home-numbers .inv-numbers { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .reveal-ready .editorial-home [data-reveal]:not(.is-in) .home-numbers dl { opacity: 1; }

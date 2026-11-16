@@ -60,3 +60,14 @@
 .home-addons p { margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; color: #cfdcd3; font-size: 13.5px; line-height: 1.6; }
 .home-addon-arrow { position: absolute; top: 20px; right: 18px; opacity: .55; transition: transform .3s, opacity .3s; }
 .home-addons li a:hover .home-addon-arrow { opacity: 1; transform: translate(3px, -3px); }
+
+/* Add-on cards with a picture (or a tinted tile with a large icon until a photo is uploaded) */
+.home-addons ul { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.home-addons li a { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.home-addon-photo { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: linear-gradient(135deg, #2f6a58, #17372d); }
+.home-addon-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1s cubic-bezier(.16, 1, .3, 1); }
+.home-addons li a:hover .home-addon-photo img { transform: scale(1.07); }
+.home-addon-photo .home-addon-bg { position: absolute; right: 14px; bottom: -6px; color: rgba(243, 220, 192, .22); }
+.home-addon-photo .home-addon-icon { position: absolute; left: 14px; top: 14px; width: 40px; height: 40px; margin: 0; border-radius: 12px; }
+.home-addon-body { display: block; padding: 16px 18px 20px; }
+.home-addons li a .home-addon-arrow { top: 14px; right: 14px; padding: 6px; width: 30px; height: 30px; border-radius: 50%; background: rgba(0, 0, 0, .35); opacity: 1; }
