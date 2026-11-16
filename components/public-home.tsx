@@ -96,14 +96,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     <section className="editorial-collection home-reveal structure-section" data-reveal aria-labelledby="editorial-collection-title">
       <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / COLLECTION</span><h2 id="editorial-collection-title">{t.collection}</h2></div><p>{t.collectionLead}</p></div>
-      {buildings.length ? <Carousel label={t.collection} prev={vi ? 'Trước' : 'Previous'} next={vi ? 'Sau' : 'Next'}>{buildings.map((building) => {
-        const photo = buildingPhotos(building)[0];
-        const fromPrice = buildingFromPrice(building);
-        return <Link className="editorial-property" href={`/${lang}/buildings/${building.id}`} key={building.id}>
-          <div className="editorial-property-image">{photo ? <img src={photo.url} alt={photo.alt || building.name} loading="lazy" {...imgSize(photo)} /> : <div className="editorial-property-placeholder">DRM Stays</div>}{buildingStatusLabel(building.status, building.openMonth, lang) && <span className={`status-badge is-${building.status}`}>{buildingStatusLabel(building.status, building.openMonth, lang)}</span>}<span className="editorial-property-arrow" aria-hidden="true">↗</span></div>
-          <div className="editorial-property-meta"><div><h3>{displayName(building.name)}</h3><p>{building.address}</p></div><div className="editorial-property-facts"><span>{building.propertyType || `${(building.types?.length || 0) + building.rooms.length} ${t.rooms}`}</span>{fromPrice > 0 && <strong>{t.from} {money(fromPrice)} ₫ / {t.month}</strong>}</div></div>
-        </Link>;
-      })}</Carousel> : <p>{lang === 'vi' ? 'Các tòa nhà đang được cập nhật.' : 'Buildings are being updated.'}</p>}
+      {bentoSlides.length ? <HomeBento slides={bentoSlides} labels={{ prev: vi ? 'Tòa trước' : 'Previous building', next: vi ? 'Tòa tiếp theo' : 'Next building', open: vi ? 'Xem tòa' : 'View building', counter: vi ? 'Từng tòa nhà' : 'Buildings' }} /> : <p>{lang === 'vi' ? 'Các tòa nhà đang được cập nhật.' : 'Buildings are being updated.'}</p>}
       <Link className="editorial-text-link" href={`/${lang}/stays`}>{lang === 'vi' ? 'Xem tất cả tòa nhà & phòng' : 'Explore all buildings & rooms'}<span aria-hidden="true">↗</span></Link>
     </section>
 
@@ -120,7 +113,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     {reviewCards.length > 0 && <section className="home-reviews structure-section" aria-labelledby="home-reviews-title" data-reveal>
       <div className="home-reviews-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-reviews-title">{vi ? 'Khách đã ở nói gì về chúng tôi' : 'What our guests are saying'}</h2><p>{vi ? 'Đánh giá thật từ Airbnb và Google Maps, giữ nguyên lời khách.' : 'Real reviews from Airbnb and Google Maps, in the guests’ own words.'}</p></div>
-      <ReviewCards items={reviewCards} prev={vi ? 'Đánh giá trước' : 'Previous reviews'} next={vi ? 'Đánh giá tiếp' : 'Next reviews'} more="Read more" less="Show less" />
+      <ReviewCards items={reviewCards} prev={vi ? 'Đánh giá trước' : 'Previous reviews'} next={vi ? 'Đánh giá tiếp' : 'Next reviews'} />
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>
@@ -159,8 +152,6 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     {galleryItems.length >= 2 && <section className="home-photos structure-section" aria-labelledby="home-photos-title" data-reveal>
       <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
-      <HomeBento slides={bentoSlides} labels={{ prev: vi ? 'Tòa trước' : 'Previous building', next: vi ? 'Tòa tiếp theo' : 'Next building', open: vi ? 'Xem tòa' : 'View building', counter: vi ? 'Từng tòa nhà' : 'Buildings' }} />
-      <h3 className="hg-title">{vi ? 'Tất cả không gian' : 'All spaces'}</h3>
       <HomeGallery items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
     </section>}
 
