@@ -77,6 +77,16 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     return { id: building.id, name: displayName(building.name), address: building.address, href: `/${lang}/buildings/${building.id}`, photos: list.map(item => ({ url: item.url, alt: item.alt, width: item.width, height: item.height, label: item.label, href: item.href })),
       status: (building.status && buildingStatusLabel(building.status, building.openMonth || '', lang)) || (vi ? 'Đang vận hành' : 'Open'), rooms: count ? `${count} ${vi ? 'phòng' : 'rooms'}` : '' };
   }).filter(slide => slide.photos.length > 0);
+  // Add-on services as big photo tiles: wide and medium tiles alternate over a 12-column grid, and a short last row is stretched to full width.
+  const addons = services.filter(item => item.position >= 20);
+  const addonSpans = (() => {
+    const pattern = [6, 3, 3, 3, 3, 6];
+    const spans = addons.map((_, index) => pattern[index % pattern.length]);
+    let row = 0, rowStart = 0;
+    spans.forEach((span, index) => { row += span; if (row >= 12) { row = 0; rowStart = index + 1; } });
+    if (row > 0 && spans.length > rowStart) { const count = spans.length - rowStart; const each = Math.floor(12 / count); for (let i = rowStart; i < spans.length; i++) spans[i] = i === spans.length - 1 ? 12 - each * (count - 1) : each; }
+    return spans;
+  })();
   const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
@@ -147,11 +157,15 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
           <div className="svc-card-body"><small>{String(index + 1).padStart(2, '0')}</small><h3>{pick(item).title}</h3><p>{pick(item).body}</p></div>
         </article>;
       })}</div>
-      {services.some(item => item.position >= 20) && <div className="home-addons" aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
-        <div className="home-addons-head"><strong>{vi ? 'Dịch vụ đi kèm' : 'Add-on services'}</strong><span>{vi ? 'Đặt thêm khi bạn cần, báo giá rõ ràng trước khi xác nhận.' : 'Add them when you need them, with a clear quote before you confirm.'}</span></div>
-        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}>
-          <span className="home-addon-photo">{serviceImages[item.id]?.[0] ? <img src={serviceImages[item.id][0].url} alt={serviceImages[item.id][0].alt || ''} loading="lazy" {...imgSize(serviceImages[item.id][0])} /> : <Icon className="home-addon-bg" size={72} strokeWidth={1.2} aria-hidden="true" />}<span className="home-addon-icon" aria-hidden="true"><Icon size={20} /></span></span>
-          <span className="home-addon-body"><h3>{pick(item).title}</h3><p>{pick(item).body}</p></span><ArrowUpRight className="home-addon-arrow" size={18} aria-hidden="true" /></Link></li>; })}</ul>
+      {addons.length > 0 && <div className="home-addons" data-reveal aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
+        <div className="home-addons-head"><div><span className="editorial-section-label">{vi ? 'DỊCH VỤ ĐI KÈM' : 'ADD-ON SERVICES'}</span><h3>{vi ? 'Thêm trải nghiệm cho chuyến ở của bạn' : 'More to enjoy during your stay'}</h3></div><p>{vi ? 'Đặt thêm khi bạn cần, báo giá rõ ràng trước khi xác nhận.' : 'Add them when you need them, with a clear quote before you confirm.'}</p></div>
+        <ul className="home-addon-grid">{addons.map((item, index) => { const Icon = addonIcons[item.id] || Sparkles; const photo = serviceImages[item.id]?.[0];
+          return <li key={item.id} style={{ '--span': addonSpans[index], '--i': index } as React.CSSProperties}><Link className={`home-addon-tile is-tone-${index % 4}`} href={`/${lang}/services#addons`}>
+            <span className="home-addon-media">{photo ? <img src={photo.url} alt={photo.alt || pick(item).title} loading="lazy" {...imgSize(photo)} /> : <Icon className="home-addon-bg" size={150} strokeWidth={1} aria-hidden="true" />}</span>
+            <span className="home-addon-badge" aria-hidden="true"><Icon size={20} /></span>
+            <ArrowUpRight className="home-addon-arrow" size={20} aria-hidden="true" />
+            <span className="home-addon-text"><h4>{pick(item).title}</h4><p>{pick(item).body}</p></span>
+          </Link></li>; })}</ul>
       </div>}
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem tất cả dịch vụ và chi phí' : 'See all services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}
