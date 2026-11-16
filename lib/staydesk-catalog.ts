@@ -38,8 +38,9 @@ export function demoStaydeskCatalog(): SourceCatalog {
 }
 
 // Public pages must not hit Staydesk's database on every visit: crawlers, traffic spikes and arbitrary
-// date searches would all land on the internal system. Answers are kept briefly per isolate, concurrent
-// misses share one request, and an older copy is served if Staydesk is down.
+// date searches would all land on the internal system. Answers are kept briefly per isolate and an older copy
+// is served if Staydesk is down. Requests in flight are NOT shared between visitors: on Cloudflare Workers a
+// promise started by one request can never finish for another, which left pages hanging until the runtime cancelled them.
 const FRESH_MS = 60_000;
 const STALE_MS = 60 * 60_000;
 const MAX_ENTRIES = 100;
@@ -48,12 +49,10 @@ const MAX_DAYS_AHEAD = 730;
 
 type Entry = { catalog: SourceCatalog; at: number };
 const store = new Map<string, Entry>();
-const inflight = new Map<string, Promise<SourceCatalog>>();
 
 /** Tests only. */
 export function resetStaydeskCache() {
   store.clear();
-  inflight.clear();
 }
 
 /**
@@ -116,17 +115,10 @@ export async function getStaydeskCatalog(
   const hit = store.get(key);
   if (!options.fresh && hit && Date.now() - hit.at < FRESH_MS) return hit.catalog;
 
-  let pending = options.fresh ? undefined : inflight.get(key);
-  if (!pending) {
-    pending = requestCatalog(dates).then((catalog) => { remember(key, catalog); return catalog; });
-    if (!options.fresh) {
-      inflight.set(key, pending);
-      const clear = () => { if (inflight.get(key) === pending) inflight.delete(key); };
-      pending.then(clear, clear);
-    }
-  }
   try {
-    return await pending;
+    const catalog = await requestCatalog(dates);
+    remember(key, catalog);
+    return catalog;
   } catch (error) {
     if (!options.fresh && hit && Date.now() - hit.at < STALE_MS) {
       console.error('Staydesk catalog unavailable, serving a cached copy', error instanceof Error ? error.name : 'unknown error');

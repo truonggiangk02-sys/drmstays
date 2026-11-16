@@ -38,10 +38,13 @@ describe("catalog cache", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("lets concurrent visitors share one request", async () => {
+  it("does not share an in-flight request between visitors (a Worker cannot finish another request's promise)", async () => {
     const fetchMock = stubFetch();
-    await Promise.all(Array.from({ length: 10 }, () => getStaydeskCatalog()));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const answers = await Promise.all(Array.from({ length: 3 }, () => getStaydeskCatalog()));
+    expect(answers).toHaveLength(3);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    await getStaydeskCatalog();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("keeps a separate entry per date range", async () => {
