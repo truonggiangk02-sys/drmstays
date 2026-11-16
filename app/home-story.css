@@ -309,8 +309,16 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 .bento.is-theme-1 { --bg: #3b2a20; --tile: #55392a; --muted: #dcc7b6; --accent: #e9c7a0; }
 .bento.is-theme-2 { --bg: #1d3552; --tile: #2a4a72; --muted: #c3d3e6; --accent: #bcd7f5; }
 .bento-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(2, clamp(150px, 14vw, 250px)) clamp(110px, 10vw, 160px); gap: clamp(8px, 1vw, 14px); }
-.bento-grid > * { animation: bento-in .8s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 80ms); }
-@keyframes bento-in { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
+/* Moving on: tiles shrink and darken one by one, then the new ones are drawn in, photos settling from a slight zoom. */
+.bento.is-hold .bento-grid > * { opacity: 0; }
+.bento.is-out .bento-grid > * { animation: bento-out .55s cubic-bezier(.7, 0, .84, 0) both; animation-delay: calc(var(--i, 0) * 45ms); }
+.bento.is-out .bento-photo img { animation: bento-img-out .45s ease both; animation-delay: calc(var(--i, 0) * 45ms); }
+.bento.is-in .bento-grid > * { animation: bento-draw .95s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 95ms); }
+.bento.is-in .bento-photo img { animation: bento-zoom 1.5s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 95ms); }
+@keyframes bento-out { to { opacity: 0; transform: scale(.9); } }
+@keyframes bento-img-out { to { opacity: 0; } }
+@keyframes bento-draw { from { opacity: 0; transform: scale(.94); clip-path: inset(0 0 100% 0 round 18px); } 60% { opacity: 1; } to { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 18px); } }
+@keyframes bento-zoom { from { transform: scale(1.35); } to { transform: scale(1); } }
 .bento-photo { position: relative; display: block; overflow: hidden; border-radius: 18px; background: var(--tile); color: #fff; }
 .bento-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.16, 1, .3, 1); }
 .bento-photo:hover img { transform: scale(1.06); }
@@ -362,4 +370,5 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
   .bento-info { grid-column: 1 / 3; grid-row: 5; }
   .bento-controls { grid-column: 1 / 3; grid-row: 6; flex-direction: row; align-items: center; }
 }
-@media (prefers-reduced-motion: reduce) { .bento-grid > *, .hg-grid li { animation: none; } .bento-photo img, .hg-grid img { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .bento .bento-grid > *, .bento .bento-photo img, .hg-grid li { animation: none !important; opacity: 1 !important; } .bento-photo img, .hg-grid img { transition: none; } }
+@keyframes bento-in { from { opacity: 0; transform: translateY(26px) scale(.96); } to { opacity: 1; transform: none; } }
