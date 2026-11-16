@@ -79,11 +79,10 @@ const initials = (name: string) => name.replace(/\(.*?\)/g, '').split(/[\s·,-]+
 export type ReviewCard = { id: string; name: string; detail: string; source: string; date: string; note: string; stars: boolean; quote: string; image?: { url: string; alt: string; width?: number; height?: number } };
 
 /** Photo cards, each with one guest review; swipe or use the arrows to see more. */
-export function ReviewCards({ items, prev, next, more, less }: { items: ReviewCard[]; prev: string; next: string; more: string; less: string }) {
+export function ReviewCards({ items, prev, next }: { items: ReviewCard[]; prev: string; next: string }) {
   const track = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
   const [edge, setEdge] = useState({ start: true, end: false });
-  const [open, setOpen] = useState<string | null>(null);
   useEffect(() => {
     const element = track.current;
     if (!element) return;
@@ -109,13 +108,12 @@ export function ReviewCards({ items, prev, next, more, less }: { items: ReviewCa
     </div>
     <div className="home-rcards-track" ref={track} tabIndex={0} role="group" aria-roledescription="carousel">
       {items.map(item => {
-        const long = item.quote.length > 240, expanded = open === item.id;
+        
         return <article key={item.id} className="home-rcard">
           <div className="home-rcard-photo">{item.image ? <img src={item.image.url} alt={item.image.alt} loading="lazy" {...(item.image.width && item.image.height ? { width: item.image.width, height: item.image.height } : {})} /> : <span aria-hidden="true">DRM Stays</span>}</div>
           <div className="home-rcard-body">
             {item.stars && <p className="home-rcard-stars"><span role="img" aria-label="5 out of 5 stars">★★★★★</span>{item.date && <time>{item.date}</time>}</p>}
-            <blockquote className={long && !expanded ? 'is-clamped' : undefined}>{item.quote}</blockquote>
-            {long && <button type="button" className="home-rcard-more" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : item.id)}>{expanded ? less : more}</button>}
+            <blockquote>{item.quote}</blockquote>
             <div className="home-rcard-foot">
               <span className="home-rcard-avatar" aria-hidden="true">{initials(item.name)}</span>
               <div><strong>{item.name}</strong>{(item.detail || item.note) && <small>{[item.detail, item.note].filter(Boolean).join(' · ')}</small>}</div>

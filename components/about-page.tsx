@@ -113,7 +113,7 @@ export function AboutPage({ lang, title, items, metrics, buildings, reviews, rev
 
     {reviewCards.length > 0 && <section className="home-reviews structure-section" aria-labelledby="about-reviews-title" data-reveal>
       <div className="home-reviews-head"><span className="editorial-section-label">{w.reviewsLabel}</span><h2 id="about-reviews-title">{w.reviewsTitle}</h2><p>{w.reviewsLead}</p></div>
-      <ReviewCards items={reviewCards} prev={lang === 'vi' ? 'Đánh giá trước' : 'Previous reviews'} next={lang === 'vi' ? 'Đánh giá tiếp' : 'Next reviews'} more="Read more" less="Show less" />
+      <ReviewCards items={reviewCards} prev={lang === 'vi' ? 'Đánh giá trước' : 'Previous reviews'} next={lang === 'vi' ? 'Đánh giá tiếp' : 'Next reviews'} />
     </section>}
 
     <OfficeMap lang={lang} />
