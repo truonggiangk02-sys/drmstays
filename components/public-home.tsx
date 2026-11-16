@@ -32,7 +32,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 export type HomeRoomType = { id: string; name: string; building: string; image?: Photo; priceFrom: number; areaSqm: number; beds: number; maxGuests: number };
 
-export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [], reviewImages = {} }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[]; reviewImages?: Record<string, ContentImage[]> }) {
+export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [], reviewImages = {}, serviceImages = {} }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[]; reviewImages?: Record<string, ContentImage[]>; serviceImages?: Record<string, ContentImage[]> }) {
   const vi = lang === 'vi';
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
@@ -59,11 +59,15 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const galleryRaw: GalleryItem[] = buildings.flatMap(building => {
     const name = displayName(building.name);
     const base = { buildingId: building.id, building: name };
-    return [
-      ...building.images.map(photo => ({ ...photo, ...base, label: vi ? 'Không gian chung' : 'Common areas', href: `/${lang}/buildings/${building.id}` })),
-      ...(building.types || []).flatMap(type => type.images.map(photo => ({ ...photo, ...base, label: type.name || (vi ? 'Loại phòng' : 'Room type'), href: type.id ? `/${lang}/types/${type.id}` : `/${lang}/buildings/${building.id}` }))),
-      ...building.rooms.flatMap(room => room.images.map(photo => ({ ...photo, ...base, label: room.name || (vi ? 'Phòng' : 'Room'), href: room.id ? `/${lang}/rooms/${room.id}` : `/${lang}/buildings/${building.id}` }))),
-    ];
+    const typeItems = (building.types || []).flatMap(type => type.images.map(photo => ({ ...photo, ...base, label: type.name || (vi ? 'Loại phòng' : 'Room type'), href: type.id ? `/${lang}/types/${type.id}` : `/${lang}/buildings/${building.id}` })));
+    const roomItems = building.rooms.flatMap(room => room.images.map(photo => ({ ...photo, ...base, label: room.name || (vi ? 'Phòng' : 'Room'), href: room.id ? `/${lang}/rooms/${room.id}` : `/${lang}/buildings/${building.id}` })));
+    // A photo shared with a room type or room is named after it; building photos are named by their caption (set in /admin/media), or not at all.
+    const specific = new Map([...typeItems, ...roomItems].map(item => [item.url, item]));
+    const own = building.images.map(photo => {
+      const found = specific.get(photo.url);
+      return found ? found : { ...photo, ...base, label: photo.alt && photo.alt !== building.name && photo.alt !== name ? photo.alt : '', href: `/${lang}/buildings/${building.id}` };
+    });
+    return [...own, ...typeItems, ...roomItems];
   });
   const galleryByBuilding = buildings.map(building => galleryRaw.filter(item => item.buildingId === building.id));
   const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
@@ -88,6 +92,17 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     </div>
 
     <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Khu An Thượng, Mỹ An' : 'An Thượng, Mỹ An area', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
+
+    <section className="inv-metrics home-numbers" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
+      <div className="inv-metrics-inner structure-section">
+        <dl className="inv-numbers">
+          <div><dt><CountUp to={3} /></dt><dd>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</dd></div>
+          <div><dt><CountUp to={10} suffix="+" /></dt><dd>{vi ? 'dự án đã tư vấn' : 'projects advised'}</dd></div>
+          {buildings.filter(building => building.status === 'open').length > 0 && <div><dt><CountUp to={buildings.filter(building => building.status === 'open').length} /></dt><dd>{vi ? 'tòa nhà đang vận hành' : 'buildings in operation'}</dd></div>}
+          <div><dt><CountUp to={6} /></dt><dd>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</dd></div>
+        </dl>
+      </div>
+    </section>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
       <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
@@ -122,17 +137,6 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div><span aria-hidden="true">↗</span><h3>{t.detailThree}</h3><p>{t.detailThreeBody}</p></div>
     </section>
 
-    <section className="inv-metrics home-numbers" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
-      <div className="inv-metrics-inner structure-section">
-        <dl className="inv-numbers">
-          <div><dt><CountUp to={3} /></dt><dd>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</dd></div>
-          <div><dt><CountUp to={10} suffix="+" /></dt><dd>{vi ? 'dự án đã tư vấn' : 'projects advised'}</dd></div>
-          {buildings.filter(building => building.status === 'open').length > 0 && <div><dt><CountUp to={buildings.filter(building => building.status === 'open').length} /></dt><dd>{vi ? 'tòa nhà đang vận hành' : 'buildings in operation'}</dd></div>}
-          <div><dt><CountUp to={6} /></dt><dd>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</dd></div>
-        </dl>
-      </div>
-    </section>
-
     {services.length > 0 && <section className="home-services svc-stay structure-section" aria-labelledby="home-services-title" data-reveal>
       <div className="svc-head"><span className="editorial-section-label">{vi ? 'DỊCH VỤ' : 'SERVICES'}</span><h2 id="home-services-title">{vi ? 'Mọi thứ bạn cần cho một kỳ lưu trú dễ chịu' : 'Everything for a comfortable stay'}</h2><p>{vi ? 'Chi phí rõ ràng, hỗ trợ nhiều ngôn ngữ, phòng có sẵn nội thất, cùng tour, vé và đưa đón sân bay khi bạn cần.' : 'Clear costs, multilingual support, furnished rooms, plus tours, tickets and airport transfers when you need them.'}</p></div>
       <div className="svc-stay-grid">{services.filter(item => item.position < 20).slice(0, 6).map((item, index) => {
@@ -145,7 +149,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       })}</div>
       {services.some(item => item.position >= 20) && <div className="home-addons" aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
         <div className="home-addons-head"><strong>{vi ? 'Dịch vụ đi kèm' : 'Add-on services'}</strong><span>{vi ? 'Đặt thêm khi bạn cần, báo giá rõ ràng trước khi xác nhận.' : 'Add them when you need them, with a clear quote before you confirm.'}</span></div>
-        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}><span className="home-addon-icon" aria-hidden="true"><Icon size={22} /></span><h3>{pick(item).title}</h3><p>{pick(item).body}</p><ArrowUpRight className="home-addon-arrow" size={18} aria-hidden="true" /></Link></li>; })}</ul>
+        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}>
+          <span className="home-addon-photo">{serviceImages[item.id]?.[0] ? <img src={serviceImages[item.id][0].url} alt={serviceImages[item.id][0].alt || ''} loading="lazy" {...imgSize(serviceImages[item.id][0])} /> : <Icon className="home-addon-bg" size={72} strokeWidth={1.2} aria-hidden="true" />}<span className="home-addon-icon" aria-hidden="true"><Icon size={20} /></span></span>
+          <span className="home-addon-body"><h3>{pick(item).title}</h3><p>{pick(item).body}</p></span><ArrowUpRight className="home-addon-arrow" size={18} aria-hidden="true" /></Link></li>; })}</ul>
       </div>}
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem tất cả dịch vụ và chi phí' : 'See all services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}

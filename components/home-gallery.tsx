@@ -23,8 +23,8 @@ export function HomeGallery({ items, buildings, all, more, less }: { items: Gall
     </div>}
     <ul className="hg-grid">{visible.map((item, index) => <li key={item.url} style={{ '--i': index % 8 } as React.CSSProperties}>
       <Link href={item.href}>
-        <img src={item.url} alt={`${item.building} · ${item.label}`} loading="lazy" {...imgSize(item)} />
-        <span className="hg-cap"><span><strong>{item.label}</strong><small>{item.building}</small></span><ArrowUpRight size={16} aria-hidden="true" /></span>
+        <img src={item.url} alt={item.label ? `${item.building} · ${item.label}` : item.building} loading="lazy" {...imgSize(item)} />
+        <span className="hg-cap"><span><strong>{item.label || item.building}</strong>{item.label && <small>{item.building}</small>}</span><ArrowUpRight size={16} aria-hidden="true" /></span>
       </Link>
     </li>)}</ul>
     {fit(Math.min(shown.length, 40)) > 10 && <button type="button" className="hg-more" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>{expanded ? less : `${more} (${fit(Math.min(shown.length, 40)) - visibleDefault})`}</button>}
