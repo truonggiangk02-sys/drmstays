@@ -19,6 +19,7 @@ import "../detail.css";
 import "../home-story.css";
 import "../services.css";
 import "../investors.css";
+import "../about.css";
 import "../polish.css";
 
 // A second root layout so the page language is declared on <html> (the main layout is fixed to Vietnamese).

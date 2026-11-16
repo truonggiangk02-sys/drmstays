@@ -1,126 +1,134 @@
 import Link from 'next/link';
-import { ArrowUpRight, FileBarChart, Globe2, Handshake } from 'lucide-react';
-import type { ContentItem, ContentImage } from '@/lib/site-content';
+import { ArrowUpRight } from 'lucide-react';
+import type { ContentItem } from '@/lib/site-content';
 import { buildingPhotos, buildingRoomCount } from '@/lib/building-media';
 import { buildingStatusLabel } from '@/lib/building-status';
-import { propertyName } from '@/lib/site';
+import { CONTACT, propertyName } from '@/lib/site';
 import { imgSize } from '@/lib/image-url';
 import { CountUp } from '@/components/smooth-motion';
-import { ReviewCards, type ReviewCard } from '@/components/home-motion';
-import { OfficeMap } from '@/components/office-map';
 import type { InvestorBuilding } from '@/components/investor-page';
 
 type Lang = 'vi' | 'en';
+type Photo = { url: string; alt: string; width?: number; height?: number };
 
 const words = {
   vi: {
-    kicker: 'VỀ DRM STAYS', cta: 'Liên hệ với chúng tôi', ctaSecondary: 'Dành cho chủ đầu tư',
-    storyLabel: 'CHÚNG TÔI LÀ AI', buildingsLabel: 'CÁC TÒA NHÀ', buildingsTitle: 'Nơi chúng tôi vận hành mỗi ngày', open: 'Đang vận hành', rooms: 'phòng',
-    numbersLabel: 'CON SỐ', numbersTitle: 'Sau 3 năm, đây là những gì chúng tôi đã làm', liveBuildings: 'tòa nhà đang vận hành', liveRooms: 'phòng đang được quản lý',
-    valuesLabel: 'CÁCH CHÚNG TÔI LÀM VIỆC', valuesTitle: 'Ba điều chúng tôi giữ nhất quán',
-    values: [['Minh bạch', 'Mỗi tháng chủ đầu tư nhận một báo cáo tài chính rõ ràng; khách thuê biết trước điều khoản và chi phí.'], ['Đi cùng suốt vòng đời', 'Từ chọn mua, thiết kế, thi công đến vận hành và quản lý nhân sự, cùng một đội ngũ phụ trách.'], ['Hỗ trợ đa ngôn ngữ', 'Đội ngũ hỗ trợ khách bằng tiếng Việt, Anh, Nhật, Hàn, Trung và Nga trong giờ làm việc.']],
-    reviewsLabel: 'KHÁCH HÀNG NÓI GÌ', reviewsTitle: 'Khách đã ở nói gì về chúng tôi', reviewsLead: 'Đánh giá thật từ Airbnb và Google Maps, giữ nguyên lời khách.',
-    ctaTitle: 'Bạn đang tìm nơi ở, hay muốn tài sản của mình sinh lời?', ctaText: 'Cho chúng tôi biết nhu cầu, đội ngũ sẽ liên hệ trong giờ làm việc 8:00 đến 17:00.', ctaGuest: 'Tìm phòng', ctaOwner: 'Hợp tác cùng chúng tôi',
+    cta: 'Liên hệ với chúng tôi', ctaSecond: 'Xem các tòa nhà',
+    aboutHead: ['VỀ', 'CHÚNG TÔI'], aboutLabel: 'DRM STAYS',
+    stats: ['Vận hành bất động sản cho thuê tại Đà Nẵng, từ khách thuê đến chủ đầu tư.', 'Tư vấn phát triển, thiết kế và vận hành cho chủ đầu tư.', 'Phòng có sẵn nội thất, hỗ trợ khách bằng sáu ngôn ngữ.'],
+    roomsLabel: 'phòng đang được quản lý',
+    doHead: ['LĨNH VỰC', 'HOẠT ĐỘNG'],
+    pillars: [
+      { title: 'Cho thuê và lưu trú', text: 'Phòng có sẵn nội thất tại Đà Nẵng, thuê ngắn ngày hoặc dài ngày. Bạn xem được ảnh, giá và điều kiện của từng phòng trong cùng một nơi.', link: 'stays', cta: 'Xem tòa nhà và phòng' },
+      { title: 'Tư vấn và vận hành cho chủ đầu tư', link: 'partners', cta: 'Dành cho chủ đầu tư' },
+      { title: 'Dịch vụ đi kèm', text: 'Tour, vé tham quan, spa, thuê xe máy và đưa đón sân bay, đặt thêm khi bạn cần và báo giá rõ ràng trước khi xác nhận.', link: 'services#addons', cta: 'Xem dịch vụ và chi phí' },
+    ],
+    portHead: ['DANH MỤC', 'TÒA NHÀ'], area: 'Khu vực', rooms: 'Phòng', status: 'Trạng thái', open: 'Đang vận hành', view: 'Xem tòa nhà', roomsUnit: 'phòng',
+    closing: 'YOUR STAY,\nOUR CARE.', phone: 'Điện thoại', hours: 'Giờ làm việc', hoursValue: '8:00 – 17:00', address: 'Văn phòng',
   },
   en: {
-    kicker: 'ABOUT DRM STAYS', cta: 'Contact us', ctaSecondary: 'For investors',
-    storyLabel: 'WHO WE ARE', buildingsLabel: 'OUR BUILDINGS', buildingsTitle: 'Where we work every day', open: 'Open', rooms: 'rooms',
-    numbersLabel: 'IN NUMBERS', numbersTitle: 'What we have done in three years', liveBuildings: 'buildings in operation', liveRooms: 'rooms under management',
-    valuesLabel: 'HOW WE WORK', valuesTitle: 'Three things we keep consistent',
-    values: [['Transparency', 'Owners receive a clear financial report every month; guests know the terms and costs up front.'], ['With you for the whole lifecycle', 'From choosing and buying to design, construction, operation and staffing, one team stays responsible.'], ['Support in your language', 'We support guests in Vietnamese, English, Japanese, Korean, Chinese and Russian during office hours.']],
-    reviewsLabel: 'GUEST REVIEWS', reviewsTitle: 'What our guests are saying', reviewsLead: 'Real reviews from Airbnb and Google Maps, in the guests’ own words.',
-    ctaTitle: 'Looking for a place to stay, or want your property to earn?', ctaText: 'Tell us what you need and our team will get in touch during office hours, 8:00–17:00.', ctaGuest: 'Find a room', ctaOwner: 'Work with us',
+    cta: 'Contact us', ctaSecond: 'See our buildings',
+    aboutHead: ['ABOUT', 'US'], aboutLabel: 'DRM STAYS',
+    stats: ['Operating rental property in Da Nang, for guests and for owners.', 'Advising owners on development, design and operation.', 'Furnished rooms, with support in six languages.'],
+    roomsLabel: 'rooms under management',
+    doHead: ['WHAT', 'WE DO'],
+    pillars: [
+      { title: 'Rentals and stays', text: 'Furnished rooms in Da Nang, for short or long stays. See the photos, price and terms of every room in one place.', link: 'stays', cta: 'See buildings and rooms' },
+      { title: 'Advice and operation for owners', link: 'partners', cta: 'For investors' },
+      { title: 'Add-on services', text: 'Tours, tickets, spa, motorbike rental and airport transfers, booked when you need them and quoted clearly before you confirm.', link: 'services#addons', cta: 'See services and costs' },
+    ],
+    portHead: ['OUR', 'BUILDINGS'], area: 'Area', rooms: 'Rooms', status: 'Status', open: 'Open', view: 'View building', roomsUnit: 'rooms',
+    closing: 'YOUR STAY,\nOUR CARE.', phone: 'Phone', hours: 'Office hours', hoursValue: '8:00 – 17:00', address: 'Office',
   },
 } as const;
 
-const pick = (item: ContentItem, lang: Lang) => ({ title: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, body: lang === 'vi' ? item.body_vi : item.body_en || item.body_vi });
-function Metric({ value }: { value: string }) {
-  const match = /^(\d+)(.*)$/.exec(value.trim());
-  return match ? <CountUp to={Number(match[1])} suffix={match[2]} /> : <strong>{value}</strong>;
-}
-const valueIcons = [FileBarChart, Handshake, Globe2];
+const pick = (item: ContentItem | undefined, lang: Lang) => item ? { title: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, body: lang === 'vi' ? item.body_vi : item.body_en || item.body_vi } : { title: '', body: '' };
+const parseNumber = (value: string) => { const match = /^(\d+)(.*)$/.exec(value.trim()); return match ? { to: Number(match[1]), suffix: match[2] } : null; };
+/** A two-line heading in light capitals; the second line is pushed to the right. */
+const Staggered = ({ lines, id }: { lines: readonly string[]; id?: string }) => <h2 className="abt-head" id={id}><span>{lines[0]}</span><span>{lines[1]}</span></h2>;
+const Frame = ({ photo, alt, className = '' }: { photo?: Photo; alt: string; className?: string }) => <figure className={`abt-frame ${className}`}>{photo ? <img src={photo.url} alt={photo.alt || alt} loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}</figure>;
 
-export function AboutPage({ lang, title, items, metrics, buildings, reviews, reviewImages }: {
-  lang: Lang; title: string; items: ContentItem[]; metrics: ContentItem[]; buildings: InvestorBuilding[]; reviews: ContentItem[]; reviewImages: Record<string, ContentImage[]>;
-}) {
+export function AboutPage({ lang, title, items, metrics, buildings }: { lang: Lang; title: string; items: ContentItem[]; metrics: ContentItem[]; buildings: InvestorBuilding[] }) {
   const w = words[lang];
-  const intro = items.find(item => item.id === 'sample-about') || items[0];
-  const rest = items.filter(item => item !== intro);
+  const byId = (id: string) => items.find(item => item.id === id);
+  const intro = pick(byId('sample-about') || items[0], lang);
+  const ecosystem = pick(byId('sample-about-2'), lang);
+  const portfolioLead = pick(byId('sample-about-3'), lang);
+  const hoursText = pick(byId('sample-about-4'), lang);
+  const metric = (id: string) => { const item = metrics.find(entry => entry.id === id); return item ? { value: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, label: pick(item, lang).body } : null; };
   const operating = buildings.filter(building => building.status === 'open');
   const liveRooms = operating.reduce((sum, building) => sum + buildingRoomCount(building), 0);
-  const numbers = [
-    ...metrics.filter(item => item.id !== 'sample-metric-5' && item.id !== 'sample-metric-4').map(item => ({ id: item.id, value: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, label: pick(item, lang).body })),
-    ...(operating.length ? [{ id: 'live-buildings', value: String(operating.length), label: w.liveBuildings }] : []),
-    ...(liveRooms ? [{ id: 'live-rooms', value: String(liveRooms), label: w.liveRooms }] : []),
-  ];
-  const mixed = buildings.flatMap(building => buildingPhotos(building).slice(0, 2));
-  const heroPhotos = mixed.slice(0, 3);
-  const reviewCards: ReviewCard[] = reviews.map((item, index) => {
-    const parts = (item.title_en || item.title_vi).split(' · ');
-    const sourcePart = parts.slice(1).find(part => /airbnb|google/i.test(part)) || '';
-    const note = /\(([^)]*)\)/.exec(sourcePart)?.[1] || '';
-    const date = sourcePart.replace(/\(.*?\)/g, '').replace(/^(airbnb|google review|google)[,\s]*/i, '').trim();
-    const image = reviewImages[item.id]?.[0] || (mixed.length ? mixed[index % mixed.length] : undefined);
-    return { id: item.id, name: parts[0], detail: parts.slice(1).filter(part => part !== sourcePart).join(' · '), source: /airbnb/i.test(sourcePart) ? 'Airbnb' : /google/i.test(sourcePart) ? 'Google' : '', date, note: note ? note.replace(/^./, c => c.toUpperCase()) : '', stars: item.id.startsWith('review-'), quote: item.body_en || item.body_vi, image };
-  });
+  const stats = [metric('sample-metric-years'), metric('sample-metric-projects'), liveRooms ? { value: String(liveRooms), label: w.roomsLabel } : null];
 
-  return <div className="inv about">
-    <section className="inv-hero structure-section">
-      <div className="inv-hero-head">
-        <div><span className="editorial-section-label">{w.kicker}</span><h1>{title}</h1></div>
-        <div className="inv-hero-side">
-          {intro && <p><strong>{pick(intro, lang).title}.</strong> {pick(intro, lang).body}</p>}
-          <div className="inv-hero-actions"><Link className="inv-cta" href={`/${lang}/contact`}>{w.cta}<ArrowUpRight size={18} aria-hidden="true" /></Link><Link className="editorial-text-link" href={`/${lang}/partners`}>{w.ctaSecondary}<span aria-hidden="true">↗</span></Link></div>
-        </div>
+  // Photos taken in turn from every building, handed out one by one so the page does not show the same picture twice in a row.
+  const perBuilding = buildings.map(buildingPhotos);
+  const pool = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
+  let cursor = 0;
+  const take = (): Photo | undefined => pool.length ? pool[cursor++ % pool.length] : undefined;
+  const hero = take();
+  const statPhotos = stats.map(() => take());
+  const pillarPhotos = w.pillars.map(() => take());
+  const closing = take() || hero;
+  const [brand, ...restOfTitle] = title.split(':');
+  const subtitle = restOfTitle.join(':').trim();
+
+  return <div className="abt">
+    <section className="abt-hero" aria-labelledby="abt-title">
+      {hero && <img src={hero.url} alt="" fetchPriority="high" {...imgSize(hero)} />}
+      <div className="abt-hero-veil" />
+      <div className="abt-hero-inner">
+        <h1 id="abt-title"><span className="abt-brand">{brand}</span>{subtitle && <span className="abt-sub">{subtitle}</span>}</h1>
+        <div className="abt-hero-actions"><Link className="abt-button" href={`/${lang}/contact`}>{w.cta}<ArrowUpRight size={16} aria-hidden="true" /></Link>{buildings.length > 0 && <Link className="abt-link" href={`/${lang}/stays`}>{w.ctaSecond}</Link>}</div>
+        <p className="abt-hero-text">{intro.body}</p>
       </div>
     </section>
 
-    {heroPhotos.length > 0 && <section className="about-mosaic" aria-hidden={heroPhotos.every(photo => !photo.alt) ? 'true' : undefined}>
-      {heroPhotos.map((photo, index) => <img key={photo.url} className={index === 0 ? 'is-main' : ''} src={photo.url} alt={photo.alt || ''} loading={index === 0 ? 'eager' : 'lazy'} {...imgSize(photo)} />)}
-    </section>}
-
-    {rest.length > 0 && <section className="about-story structure-section" aria-labelledby="about-story-title" data-reveal>
-      <div className="inv-section-head"><span className="editorial-section-label">{w.storyLabel}</span><h2 id="about-story-title">{pick(rest[0], lang).title}</h2></div>
-      <div className="about-story-grid">{rest.map((item, index) => <article key={item.id}>{index > 0 && <h3>{pick(item, lang).title}</h3>}<p>{pick(item, lang).body}</p></article>)}</div>
-    </section>}
-
-    {numbers.length > 0 && <section className="inv-metrics" aria-labelledby="about-numbers-title" data-reveal>
-      <div className="inv-metrics-inner structure-section">
-        <div className="inv-section-head is-dark"><span className="editorial-section-label">{w.numbersLabel}</span><h2 id="about-numbers-title">{w.numbersTitle}</h2></div>
-        <dl className="inv-numbers">{numbers.map(number => <div key={number.id}><dt><Metric value={number.value} /></dt><dd>{number.label}</dd></div>)}</dl>
-      </div>
-    </section>}
-
-    <section className="about-values structure-section" aria-labelledby="about-values-title" data-reveal>
-      <div className="inv-section-head"><span className="editorial-section-label">{w.valuesLabel}</span><h2 id="about-values-title">{w.valuesTitle}</h2></div>
-      <div className="about-value-grid">{w.values.map(([name, text], index) => { const Icon = valueIcons[index]; return <article key={name}><span className="inv-model-icon" aria-hidden="true"><Icon size={26} /></span><h3>{name}</h3><p>{text}</p></article>; })}</div>
+    <section className="abt-section abt-about" aria-labelledby="abt-about-title" data-reveal>
+      <span className="abt-ghost" aria-hidden="true">DRM STAYS</span>
+      <div className="abt-top"><span className="abt-small">{w.aboutLabel}</span><Staggered lines={w.aboutHead} id="abt-about-title" /></div>
+      <div className="abt-stats">{stats.map((stat, index) => {
+        if (!stat) return null;
+        const num = parseNumber(stat.value);
+        return <article key={index} className={index % 2 ? 'is-flip' : ''}>
+          <Frame photo={statPhotos[index]} alt="" />
+          <div className="abt-stat-text"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{stat.value}</strong>}</p><h3>{stat.label}</h3><p>{w.stats[index]}</p></div>
+        </article>;
+      })}</div>
     </section>
 
-    {buildings.length > 0 && <section className="inv-buildings about-buildings" aria-labelledby="about-buildings-title" data-reveal>
-      <div className="inv-section-head structure-section"><span className="editorial-section-label">{w.buildingsLabel}</span><h2 id="about-buildings-title">{w.buildingsTitle}</h2></div>
-      <div className="inv-building-track">{buildings.map(building => {
-        const photo = buildingPhotos(building)[0] || building.renders[0] || building.progressPhotos[0];
+    <section className="abt-section abt-do" aria-labelledby="abt-do-title" data-reveal>
+      <div className="abt-top"><span className="abt-small">01 — 03</span><Staggered lines={w.doHead} id="abt-do-title" /></div>
+      <ol className="abt-pillars">{w.pillars.map((pillar, index) => <li key={pillar.title} className={index % 2 ? 'is-flip' : ''}>
+        <Frame photo={pillarPhotos[index]} alt={pillar.title} />
+        <div className="abt-pillar-text"><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{pillar.title}</h3><p>{'text' in pillar ? pillar.text : ecosystem.body}</p><Link className="abt-link" href={`/${lang}/${pillar.link}`}>{pillar.cta}<ArrowUpRight size={15} aria-hidden="true" /></Link></div>
+      </li>)}</ol>
+    </section>
+
+    {buildings.length > 0 && <section className="abt-section abt-port" aria-labelledby="abt-port-title" data-reveal>
+      <div className="abt-top"><span className="abt-small">{portfolioLead.title}</span><Staggered lines={w.portHead} id="abt-port-title" /></div>
+      <p className="abt-lead">{portfolioLead.body}</p>
+      {buildings.map((building, index) => {
+        const photos = buildingPhotos(building).slice(0, 5);
         const status = buildingStatusLabel(building.status, building.openMonth, lang) || w.open;
         const count = buildingRoomCount(building);
-        return <Link className="inv-building" href={`/${lang}/buildings/${building.id}`} key={building.id}>
-          {photo ? <img src={photo.url} alt={photo.alt || propertyName(building.name)} loading="lazy" {...imgSize(photo)} /> : <span className="inv-building-empty" aria-hidden="true" />}
-          <span className={`inv-building-tag is-${building.status}`}>{status}</span>
-          <div className="inv-building-info"><h3>{propertyName(building.name)}</h3><p>{building.address}</p>{count > 0 && <small>{count} {w.rooms}</small>}</div>
-          <ArrowUpRight className="inv-building-arrow" size={20} aria-hidden="true" />
-        </Link>;
-      })}</div>
+        return <article className="abt-project" key={building.id}>
+          <header><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{propertyName(building.name)}</h3>
+            <dl><div><dt>{w.area}</dt><dd>{building.address}</dd></div>{count > 0 && <div><dt>{w.rooms}</dt><dd>{count} {w.roomsUnit}</dd></div>}<div><dt>{w.status}</dt><dd>{status}</dd></div></dl>
+            <Link className="abt-link" href={`/${lang}/buildings/${building.id}`}>{w.view}<ArrowUpRight size={15} aria-hidden="true" /></Link></header>
+          {photos.length > 0 && <div className={`abt-mosaic is-${Math.min(photos.length, 5)}`}>{photos.map((photo, n) => <img key={photo.url} src={photo.url} alt={photo.alt || propertyName(building.name)} loading="lazy" style={{ '--i': n } as React.CSSProperties} {...imgSize(photo)} />)}</div>}
+        </article>;
+      })}
     </section>}
 
-    {reviewCards.length > 0 && <section className="home-reviews structure-section" aria-labelledby="about-reviews-title" data-reveal>
-      <div className="home-reviews-head"><span className="editorial-section-label">{w.reviewsLabel}</span><h2 id="about-reviews-title">{w.reviewsTitle}</h2><p>{w.reviewsLead}</p></div>
-      <ReviewCards items={reviewCards} prev={lang === 'vi' ? 'Đánh giá trước' : 'Previous reviews'} next={lang === 'vi' ? 'Đánh giá tiếp' : 'Next reviews'} />
-    </section>}
-
-    <OfficeMap lang={lang} />
-
-    <section className="about-cta structure-section" data-reveal>
-      <h2>{w.ctaTitle}</h2><p>{w.ctaText}</p>
-      <div className="inv-hero-actions"><Link className="inv-cta" href={`/${lang}/stays`}>{w.ctaGuest}<ArrowUpRight size={18} aria-hidden="true" /></Link><Link className="editorial-text-link" href={`/${lang}/partners`}>{w.ctaOwner}<span aria-hidden="true">↗</span></Link></div>
+    <section className="abt-closing" aria-labelledby="abt-closing-title" data-reveal>
+      {closing && <img src={closing.url} alt="" loading="lazy" {...imgSize(closing)} />}
+      <div className="abt-hero-veil" />
+      <div className="abt-closing-inner">
+        <h2 id="abt-closing-title">{w.closing.split('\n').map((line, i) => <span key={i}>{line}</span>)}</h2>
+        <a className="abt-phone" href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a>
+        <dl><div><dt>{w.hours}</dt><dd>{hoursText.body || w.hoursValue}</dd></div><div><dt>{w.address}</dt><dd>{CONTACT.address}</dd></div></dl>
+        <Link className="abt-button" href={`/${lang}/contact`}>{w.cta}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+      </div>
     </section>
   </div>;
 }
