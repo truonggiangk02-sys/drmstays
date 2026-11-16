@@ -5,10 +5,10 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { imgSize } from '@/lib/image-url';
 
 type Photo = { url: string; alt: string; width?: number; height?: number; label: string; href: string };
-export type BentoSlide = { id: string; name: string; address: string; status: string; rooms: string; price: string; href: string; photos: Photo[] };
+export type BentoSlide = { id: string; name: string; address: string; status: string; rooms: string; href: string; photos: Photo[] };
 
 /** One building at a time as a grid of tiles (big photo, room photos, facts, controls); the tiles reappear one by one when you move on. */
-export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { prev: string; next: string; open: string; from: string; counter: string } }) {
+export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { prev: string; next: string; open: string; counter: string } }) {
   const [index, setIndex] = useState(0);
   if (!slides.length) return null;
   const slide = slides[index];
@@ -27,15 +27,18 @@ export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { 
         <img src={photo(0).url} alt={`${slide.name}`} loading="eager" {...imgSize(photo(0))} />
         <span className="bento-title"><strong>{slide.name}</strong><small>{slide.address}</small></span>
       </Link>
-      {tile(1, 'bento-tall-a', 1)}
-      {tile(2, 'bento-tall-b', 2)}
-      <div className="bento-info" style={{ '--i': 3 } as React.CSSProperties}>
+      {tile(1, 'bento-a', 1)}
+      {tile(2, 'bento-b', 2)}
+      {tile(3, 'bento-c', 3)}
+      {tile(4, 'bento-d', 4)}
+      <div className="bento-info" style={{ '--i': 5 } as React.CSSProperties}>
         <span className="bento-status">{slide.status}</span>
-        <dl>{slide.rooms && <div><dt>{slide.rooms}</dt></div>}{slide.price && <div><dt>{labels.from} {slide.price}</dt></div>}</dl>
+        {slide.rooms && <p>{slide.rooms}</p>}
         <Link className="bento-open" href={slide.href}>{labels.open}<ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
-      {tile(3, 'bento-small', 4)}
-      <div className="bento-controls" style={{ '--i': 5 } as React.CSSProperties}>
+      {tile(5, 'bento-e', 6)}
+      {tile(6, 'bento-f', 7)}
+      <div className="bento-controls" style={{ '--i': 8 } as React.CSSProperties}>
         <span aria-live="polite">{String(index + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
         <div>
           <button type="button" onClick={() => go(-1)} aria-label={labels.prev}><ArrowLeft size={18} aria-hidden="true" /></button>
