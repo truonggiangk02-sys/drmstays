@@ -10,7 +10,8 @@ import type { ContentImage } from '@/lib/site-content';
 import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 import { addonIcons, stayIcons } from '@/components/services-showcase';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowUpRight } from 'lucide-react';
+import { HomeGallery, type GalleryItem } from '@/components/home-gallery';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 type Building = {
@@ -19,8 +20,8 @@ type Building = {
   address: string;
   propertyType: string;
   images: Photo[];
-  rooms: Array<{ monthlyPrice: number; images: Photo[] }>;
-  types?: Array<{ images: Photo[]; priceFrom: number; rooms: unknown[] }>;
+  rooms: Array<{ id?: string; name?: string; monthlyPrice: number; images: Photo[] }>;
+  types?: Array<{ id?: string; name?: string; images: Photo[]; priceFrom: number; rooms: unknown[] }>;
   status?: 'open' | 'building' | 'soon';
   openMonth?: string;
 };
@@ -53,6 +54,18 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     const image = own || fallback;
     return { id: item.id, name: parts[0], detail: parts.slice(1).filter(part => part !== sourcePart).join(' · '), source: /airbnb/i.test(sourcePart) ? 'Airbnb' : /google/i.test(sourcePart) ? 'Google' : '', date, note: note ? note.replace(/^./, c => c.toUpperCase()) : '', stars: item.id.startsWith('review-'), quote: item.body_en || item.body_vi, image: image ? { url: image.url, alt: image.alt || '', width: image.width, height: image.height } : undefined };
   });
+  // Gallery: every photo knows its building and room type, so the guest sees what they are looking at.
+  const galleryRaw: GalleryItem[] = buildings.flatMap(building => {
+    const name = displayName(building.name);
+    const base = { buildingId: building.id, building: name };
+    return [
+      ...building.images.map(photo => ({ ...photo, ...base, label: vi ? 'Không gian chung' : 'Common areas', href: `/${lang}/buildings/${building.id}` })),
+      ...(building.types || []).flatMap(type => type.images.map(photo => ({ ...photo, ...base, label: type.name || (vi ? 'Loại phòng' : 'Room type'), href: type.id ? `/${lang}/types/${type.id}` : `/${lang}/buildings/${building.id}` }))),
+      ...building.rooms.flatMap(room => room.images.map(photo => ({ ...photo, ...base, label: room.name || (vi ? 'Phòng' : 'Room'), href: room.id ? `/${lang}/rooms/${room.id}` : `/${lang}/buildings/${building.id}` }))),
+    ];
+  });
+  const galleryByBuilding = buildings.map(building => galleryRaw.filter(item => item.buildingId === building.id));
+  const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
   const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
@@ -109,10 +122,15 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <div><span aria-hidden="true">↗</span><h3>{t.detailThree}</h3><p>{t.detailThreeBody}</p></div>
     </section>
 
-    <section className="home-stats structure-section" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
-      <div><CountUp to={3} /><span>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</span></div>
-      <div><CountUp to={10} suffix="+" /><span>{vi ? 'dự án đã tư vấn' : 'projects advised'}</span></div>
-      <div><CountUp to={6} /><span>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</span></div>
+    <section className="inv-metrics home-numbers" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
+      <div className="inv-metrics-inner structure-section">
+        <dl className="inv-numbers">
+          <div><dt><CountUp to={3} /></dt><dd>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</dd></div>
+          <div><dt><CountUp to={10} suffix="+" /></dt><dd>{vi ? 'dự án đã tư vấn' : 'projects advised'}</dd></div>
+          {buildings.filter(building => building.status === 'open').length > 0 && <div><dt><CountUp to={buildings.filter(building => building.status === 'open').length} /></dt><dd>{vi ? 'tòa nhà đang vận hành' : 'buildings in operation'}</dd></div>}
+          <div><dt><CountUp to={6} /></dt><dd>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</dd></div>
+        </dl>
+      </div>
     </section>
 
     {services.length > 0 && <section className="home-services svc-stay structure-section" aria-labelledby="home-services-title" data-reveal>
@@ -126,15 +144,15 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
         </article>;
       })}</div>
       {services.some(item => item.position >= 20) && <div className="home-addons" aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
-        <strong>{vi ? 'Dịch vụ đi kèm' : 'Add-on services'}</strong>
-        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}><Icon size={18} aria-hidden="true" />{pick(item).title}</Link></li>; })}</ul>
+        <div className="home-addons-head"><strong>{vi ? 'Dịch vụ đi kèm' : 'Add-on services'}</strong><span>{vi ? 'Đặt thêm khi bạn cần, báo giá rõ ràng trước khi xác nhận.' : 'Add them when you need them, with a clear quote before you confirm.'}</span></div>
+        <ul>{services.filter(item => item.position >= 20).map(item => { const Icon = addonIcons[item.id] || Sparkles; return <li key={item.id}><Link href={`/${lang}/services#addons`}><span className="home-addon-icon" aria-hidden="true"><Icon size={22} /></span><h3>{pick(item).title}</h3><p>{pick(item).body}</p><ArrowUpRight className="home-addon-arrow" size={18} aria-hidden="true" /></Link></li>; })}</ul>
       </div>}
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem tất cả dịch vụ và chi phí' : 'See all services and costs'}<span aria-hidden="true">↗</span></Link>
     </section>}
 
-    {marqueePhotos.length >= 2 && <section className="home-photos" aria-labelledby="home-photos-title">
-      <div className="editorial-section-head structure-section"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
-      {[marqueePhotos, [...marqueePhotos].reverse()].map((row, rowIndex) => (rowIndex === 0 || marqueePhotos.length >= 5) && <div key={rowIndex} className={`home-photo-row${rowIndex ? ' is-reverse' : ''}`} aria-hidden={rowIndex ? 'true' : undefined}><div className="home-photo-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{row.map((photo, index) => <img key={`${photo.url}-${index}`} src={photo.url} alt={copy || rowIndex ? '' : photo.alt || `${t.gallery} ${index + 1}`} loading="lazy" {...imgSize(photo)} />)}</div>)}</div></div>)}
+    {galleryItems.length >= 2 && <section className="home-photos structure-section" aria-labelledby="home-photos-title" data-reveal>
+      <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
+      <HomeGallery items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
     </section>}
 
     {faq.length > 0 && <section className="home-faq structure-section" aria-labelledby="home-faq-title" data-reveal>
