@@ -59,18 +59,19 @@ export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { 
   // Tiles: the first photo is the big one; the rest fill the grid, with the last rows stretched so no gap is left.
   const photos = slide.photos.slice(0, MAX_TILES + 1);
   const rest = photos.slice(1);
-  const tail = Math.max(0, rest.length - 5);
+  const tail = Math.max(0, rest.length - 4);
   const tailSpan = tail ? Math.floor(6 / tail) : 0;
   const placement = (n: number): React.CSSProperties | undefined => {
     // Few photos: let them fill the space beside the big one instead of leaving gaps.
     if (rest.length === 1) return { gridColumn: 'span 3', gridRow: 'span 2' };
     if (rest.length === 2) return { gridColumn: 'span 3' };
     if (rest.length === 3) return { gridColumn: `span ${n === 0 ? 3 : n === 1 ? 2 : 1}` };
-    if (n === 3) return { gridColumn: `span ${rest.length === 4 ? 3 : 2}` };
-    if (n >= 5) { const k = n - 5; return { gridColumn: `span ${k === tail - 1 ? 6 - tailSpan * (tail - 1) : tailSpan}` }; }
+    // The first and the fourth small photos are wide (two columns); the rows below are stretched to fill the width.
+    if (n === 0 || n === 3) return { gridColumn: 'span 2' };
+    if (n >= 4) { const k = n - 4; return { gridColumn: `span ${k === tail - 1 ? 6 - tailSpan * (tail - 1) : tailSpan}` }; }
     return undefined;
   };
-  const rows = rest.length >= 6 ? 3 : 2;
+  const rows = rest.length >= 5 ? 3 : 2;
   const playing = auto && visible && phase === 'idle' && slides.length > 1;
 
   return <div ref={root} className="bento-wrap" aria-roledescription="carousel" aria-label={labels.counter}>
