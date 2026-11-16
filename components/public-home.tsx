@@ -69,10 +69,9 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
   const bentoSlides: BentoSlide[] = buildings.map((building, index) => {
     const list = [...new Map(galleryByBuilding[index].map(item => [item.url, item])).values()];
-    const price = buildingFromPrice(building);
     const count = buildingRoomCount(building);
     return { id: building.id, name: displayName(building.name), address: building.address, href: `/${lang}/buildings/${building.id}`, photos: list.map(item => ({ url: item.url, alt: item.alt, width: item.width, height: item.height, label: item.label, href: item.href })),
-      status: (building.status && buildingStatusLabel(building.status, building.openMonth || '', lang)) || (vi ? 'Đang vận hành' : 'Open'), rooms: count ? `${count} ${vi ? 'phòng' : 'rooms'}` : '', price: price > 0 ? `${money(price)} ₫ / ${vi ? 'tháng' : 'month'}` : '' };
+      status: (building.status && buildingStatusLabel(building.status, building.openMonth || '', lang)) || (vi ? 'Đang vận hành' : 'Open'), rooms: count ? `${count} ${vi ? 'phòng' : 'rooms'}` : '' };
   }).filter(slide => slide.photos.length > 0);
   const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
@@ -160,7 +159,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     {galleryItems.length >= 2 && <section className="home-photos structure-section" aria-labelledby="home-photos-title" data-reveal>
       <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
-      <HomeBento slides={bentoSlides} labels={{ prev: vi ? 'Tòa trước' : 'Previous building', next: vi ? 'Tòa tiếp theo' : 'Next building', open: vi ? 'Xem tòa' : 'View building', from: vi ? 'Từ' : 'From', counter: vi ? 'Từng tòa nhà' : 'Buildings' }} />
+      <HomeBento slides={bentoSlides} labels={{ prev: vi ? 'Tòa trước' : 'Previous building', next: vi ? 'Tòa tiếp theo' : 'Next building', open: vi ? 'Xem tòa' : 'View building', counter: vi ? 'Từng tòa nhà' : 'Buildings' }} />
       <h3 className="hg-title">{vi ? 'Tất cả không gian' : 'All spaces'}</h3>
       <HomeGallery items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
     </section>}

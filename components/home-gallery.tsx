@@ -12,9 +12,9 @@ export function HomeGallery({ items, buildings, all, more, less }: { items: Gall
   const [expanded, setExpanded] = useState(false);
   const shown = items.filter(item => !active || item.buildingId === active);
   // Rows of four: show a count that fills the grid, so no photo sits alone on the last row.
-  const fit = (count: number) => count >= 4 ? Math.floor(count / 4) * 4 : count;
-  const visible = shown.slice(0, fit(expanded ? Math.min(shown.length, 36) : Math.min(shown.length, 8)));
-  const visibleDefault = fit(Math.min(shown.length, 8));
+  const fit = (count: number) => count >= 5 ? Math.floor(count / 5) * 5 : count;
+  const visible = shown.slice(0, fit(expanded ? Math.min(shown.length, 40) : Math.min(shown.length, 10)));
+  const visibleDefault = fit(Math.min(shown.length, 10));
   const choose = (id: string) => { setActive(id); setExpanded(false); };
   return <div className="hg">
     {buildings.length > 1 && <div className="hg-chips" role="group" aria-label={all}>
@@ -27,6 +27,6 @@ export function HomeGallery({ items, buildings, all, more, less }: { items: Gall
         <span className="hg-cap"><span><strong>{item.label}</strong><small>{item.building}</small></span><ArrowUpRight size={16} aria-hidden="true" /></span>
       </Link>
     </li>)}</ul>
-    {fit(Math.min(shown.length, 36)) > 8 && <button type="button" className="hg-more" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>{expanded ? less : `${more} (${fit(Math.min(shown.length, 36)) - visibleDefault})`}</button>}
+    {fit(Math.min(shown.length, 40)) > 10 && <button type="button" className="hg-more" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>{expanded ? less : `${more} (${fit(Math.min(shown.length, 40)) - visibleDefault})`}</button>}
   </div>;
 }
