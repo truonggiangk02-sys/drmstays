@@ -45,8 +45,8 @@ const words = {
 const pick = (item: ContentItem | undefined, lang: Lang) => item ? { title: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, body: lang === 'vi' ? item.body_vi : item.body_en || item.body_vi } : { title: '', body: '' };
 const parseNumber = (value: string) => { const match = /^(\d+)(.*)$/.exec(value.trim()); return match ? { to: Number(match[1]), suffix: match[2] } : null; };
 /** A two-line heading in light capitals; the second line is pushed to the right. */
-const Staggered = ({ lines, id }: { lines: readonly string[]; id?: string }) => <h2 className="abt-head" id={id}><span>{lines[0]}</span><span>{lines[1]}</span></h2>;
-const Frame = ({ photo, alt, className = '' }: { photo?: Photo; alt: string; className?: string }) => <figure className={`abt-frame ${className}`}>{photo ? <img src={photo.url} alt={photo.alt || alt} loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}</figure>;
+export const Staggered = ({ lines, id }: { lines: readonly string[]; id?: string }) => <h2 className="abt-head" id={id}><span>{lines[0]}</span><span>{lines[1]}</span></h2>;
+export const Frame = ({ photo, alt, className = '' }: { photo?: Photo; alt: string; className?: string }) => <figure className={`abt-frame ${className}`}>{photo ? <img src={photo.url} alt={photo.alt || alt} loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}</figure>;
 
 export function AboutPage({ lang, title, items, metrics, buildings }: { lang: Lang; title: string; items: ContentItem[]; metrics: ContentItem[]; buildings: InvestorBuilding[] }) {
   const w = words[lang];
