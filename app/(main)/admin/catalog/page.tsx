@@ -124,7 +124,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
       <p className="cx-legend"><i className="dot is-on" aria-hidden="true" /> đang hiển thị cho khách · <i className="dot" aria-hidden="true" /> đang ẩn · bên phải mỗi phòng là loại phòng (hoặc mức hoàn thiện nếu chưa gán loại)</p>
     </details></aside>
 
-    <section className="cx-main">
+    <section className="cx-main" key={`${building.id}:${room?.id || ""}:${type?.id || (creatingType ? "new" : "")}`}>
       {query.saved === '1' && <p className="cx-flash" role="status">Đã lưu. {published ? '' : 'Mục này đang ẩn, tick "Hiển thị cho khách" khi sẵn sàng.'}</p>}
       {query.saved === 'hidden' && <p className="cx-flash" role="status">Đã gỡ khỏi website công khai.</p>}
       {query.saved === 'deleted' && <p className="cx-flash" role="status">Đã xoá loại phòng. Các phòng thuộc loại này giờ chưa được gán loại.</p>}
@@ -138,7 +138,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
         {allowedTabs.map(item => <input key={item} type="radio" name="cx-tab" id={`cx-t-${item}`} defaultChecked={item === tab} autoComplete="off" />)}
         <div className="cx-tabbar" role="presentation">{allowedTabs.map(item => <label key={item} htmlFor={`cx-t-${item}`}>{tabNames[item]}{item === 'photos' && target.id ? ` (${gallery(target.kind, target.id).filter(image => image.category !== 'floorplan').length})` : ''}</label>)}</div>
 
-        {typeMode ? <form className="cx-form" action="/api/admin/room-types" method="post">
+        {typeMode ? <form className="cx-form" action="/api/admin/room-types" method="post" data-save-in-place={type ? "" : undefined}>
           <input type="hidden" name="action" value="save" /><input type="hidden" name="buildingId" value={building.id} />{type && <input type="hidden" name="typeId" value={type.id} />}
           <div className="cx-sec cx-sec-info">
             <label className="cx-publish"><input type="checkbox" name="published" defaultChecked={published} /><span><strong>Hiển thị loại phòng này cho khách</strong><small>Khách thấy loại phòng cùng ảnh, mô tả, giá và danh sách phòng thuộc loại (chỉ phòng đã bật hiển thị).</small></span></label>
@@ -160,7 +160,7 @@ export default async function CatalogAdminPage({ searchParams }: { searchParams:
             <Pair title="Quy định"><Area name="rulesVi" label="Quy định (VI)" value={typeDetail.rulesVi} /><Area name="rulesEn" label="Rules (EN)" value={typeDetail.rulesEn} /></Pair>
           </div>
           <div className="cx-savebar"><button type="submit">{type ? 'Lưu loại phòng' : 'Tạo loại phòng'}</button><small>{type ? 'Lưu cả hai tab Thông tin và Mô tả cùng lúc.' : 'Sau khi tạo, bạn thêm ảnh và gán phòng.'}</small></div>
-        </form> : <form className="cx-form" action="/api/admin/catalog" method="post">
+        </form> : <form className="cx-form" action="/api/admin/catalog" method="post" data-save-in-place="">
           <input type="hidden" name="kind" value={target.kind} /><input type="hidden" name="sourceId" value={target.id} />
           {room ? <>
             <div className="cx-sec cx-sec-info">

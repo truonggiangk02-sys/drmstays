@@ -17,7 +17,7 @@ export default async function ContactChannelsAdmin({ searchParams }: { searchPar
     <p className="admin-hint">Nhập tài khoản chính thức của DRM Stays. Chỉ kênh đã bật và có link hợp lệ mới mở được cho khách trên website.</p>
     {status.saved === '1' && <p role="status" className="contact-admin-success">Đã lưu các kênh liên hệ.</p>}
     {status.error === 'invalid' && <p role="alert" className="translation-error">Kiểm tra lại link và kênh đã bật. Link phải dùng HTTPS và đúng nền tảng.</p>}
-    <form className="contact-admin-form" action="/api/admin/contact-channels" method="post">
+    <form className="contact-admin-form" action="/api/admin/contact-channels" method="post" data-save-in-place="">
       {channelNames.map(channel => <fieldset key={channel}>
         <legend>{labels[channel]}</legend>
         <label htmlFor={`${channel}-url`}>Số hoặc đường dẫn<input id={`${channel}-url`} name={`${channel}Url`} type="text" inputMode={channel === 'whatsapp' ? 'tel' : 'url'} maxLength={300} defaultValue={channels[channel].url} placeholder={hints[channel]} /></label>
@@ -30,7 +30,7 @@ export default async function ContactChannelsAdmin({ searchParams }: { searchPar
     <p className="admin-hint">Hiện ở chân trang và trang Liên hệ, và được khai cho Google. Facebook nhập ở mục &ldquo;Facebook / Messenger&rdquo; phía trên. Để trống hoặc bỏ bật để ẩn.</p>
     {status.socialSaved === '1' && <p role="status" className="contact-admin-success">Đã lưu các mạng xã hội.</p>}
     {status.socialError === 'invalid' && <p role="alert" className="translation-error">Kiểm tra lại link và mạng đã bật. Link phải dùng HTTPS và đúng nền tảng.</p>}
-    <form className="contact-admin-form" action="/api/admin/social-links" method="post">
+    <form className="contact-admin-form" action="/api/admin/social-links" method="post" data-save-in-place="">
       {socialNetworks.map(network => <fieldset key={network}>
         <legend>{socialLabels[network]}</legend>
         <label htmlFor={`${network}-url`}>Đường dẫn<input id={`${network}-url`} name={`${network}Url`} type="text" inputMode="url" maxLength={300} defaultValue={social[network].url} placeholder={socialHints[network]} /></label>
