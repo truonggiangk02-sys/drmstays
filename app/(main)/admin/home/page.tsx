@@ -26,7 +26,7 @@ export default async function HomeEditorPage({ searchParams }: { searchParams: P
     {missingTable && <p className="cx-flash" role="alert">Chưa áp dụng migration <strong>0015_home_content</strong>. Deploy với -Migrate (Windows) hoặc --migrate (Mac) rồi tải lại trang.</p>}
     <p className="admin-hint">Sửa chữ và ảnh của trang chủ. <strong>Ô để trống = dùng chữ mặc định</strong> (hiện mờ trong ô). Mỗi khu vực ảnh để trống thì trang chủ tự lấy ảnh của các tòa nhà. Các trang khác (Về chúng tôi, Dịch vụ, Cẩm nang, FAQ) sửa ở mục <strong>Website content</strong>.</p>
 
-    <form action="/api/admin/home" method="post" className="hm-form">
+    <form action="/api/admin/home" method="post" className="hm-form" data-save-in-place="">
       {HOME_SECTIONS.map(section => <section className="hm-card" id={section.id} key={section.id}>
         <h2>{section.title}</h2><p className="hm-hint">{section.hint}</p>
         {section.fields.map(field => <div className="cx-pair" key={field.key}><h4>{field.label}</h4><div>
