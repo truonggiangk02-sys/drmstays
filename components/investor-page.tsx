@@ -84,7 +84,7 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
   const pool = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
   const hero = pool[0], howPhoto = pool[1] || pool[0];
   // "Completed" photos are the building's own, room type and room photos: progress photos and renders never stand in for them here.
-  const finished = (building: InvestorBuilding) => buildingPhotos({ ...building, renders: [], progressPhotos: [] });
+  const finished = (building: InvestorBuilding) => buildingPhotos(building);
   const compareBuilding = buildings.find(building => building.renders.length && finished(building).length);
   const compareAfter = compareBuilding ? finished(compareBuilding)[0] : undefined;
   const stat = (value: string, label: string, note?: string) => { const num = parseNumber(value); return <div className="inv2-stat abt-rise"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{value}</strong>}</p><h3>{label}</h3>{note && <p className="inv2-note">{note}</p>}</div>; };

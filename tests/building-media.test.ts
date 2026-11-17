@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildingFromPrice, buildingPhotos, buildingRoomCount } from "@/lib/building-media";
+import { buildingCover, buildingFromPrice, buildingPhotos, buildingRoomCount } from "@/lib/building-media";
 
 const photo = (url: string) => ({ url, alt: "" });
 
@@ -20,16 +20,18 @@ describe("building media", () => {
   it("counts rooms under types and on their own", () => { expect(buildingRoomCount(building)).toBe(4); });
 });
 
-describe("buildingPhotos for a building still being completed", () => {
+describe("buildingPhotos and buildingCover for a building still being completed", () => {
   const p = (name: string) => ({ url: `/media/${name}`, alt: name });
 
-  it("uses 3D renders and then progress photos when there are no finished photos yet", () => {
-    const list = buildingPhotos({ images: [], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] });
-    expect(list.map(item => item.alt)).toEqual(["render", "progress"]);
+  it("never lists 3D renders or progress photos among the building's photos", () => {
+    expect(buildingPhotos({ images: [], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] })).toEqual([]);
+    expect(buildingPhotos({ images: [p("a")], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] }).map(item => item.alt)).toEqual(["a"]);
   });
 
-  it("does not mix renders or progress photos into a building that already has finished photos", () => {
-    const list = buildingPhotos({ images: [p("a")], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] });
-    expect(list.map(item => item.alt)).toEqual(["a"]);
+  it("uses a finished photo as the cover, else a 3D render, else a progress photo", () => {
+    expect(buildingCover({ images: [p("a")], types: [], rooms: [], renders: [p("render")] })?.alt).toBe("a");
+    expect(buildingCover({ images: [], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] })?.alt).toBe("render");
+    expect(buildingCover({ images: [], types: [], rooms: [], progressPhotos: [p("progress")] })?.alt).toBe("progress");
+    expect(buildingCover({ images: [], types: [], rooms: [] })).toBeUndefined();
   });
 });

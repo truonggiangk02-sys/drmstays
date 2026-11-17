@@ -13,6 +13,8 @@ import { addonIcons, stayIcons } from '@/components/services-showcase';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
 import { HomeGallery, type GalleryItem } from '@/components/home-gallery';
 import { HomeBento, type BentoSlide } from '@/components/home-bento';
+import { HomeLoader } from '@/components/home-loader';
+import { addonSpans } from '@/lib/addon-spans';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 type Building = {
@@ -69,33 +71,29 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       const found = specific.get(photo.url);
       return found ? found : { ...photo, ...base, label: photo.alt && photo.alt !== building.name && photo.alt !== name ? photo.alt : '', href: `/${lang}/buildings/${building.id}` };
     });
-    // 3D renders and progress photos of buildings still being completed: shown with their own label and filter.
-    const renderItems = (building.renders || []).map(photo => ({ ...photo, ...base, label: vi ? 'Phối cảnh 3D' : '3D render', href: `/${lang}/buildings/${building.id}`, area: 'render' }));
-    const progressItems = (building.progressPhotos || []).map(photo => ({ ...photo, ...base, label: vi ? 'Tiến độ hoàn thiện' : 'Progress', href: `/${lang}/buildings/${building.id}`, area: 'progress' }));
-    return [...own, ...typeItems, ...roomItems, ...renderItems, ...progressItems];
+    return [...own, ...typeItems, ...roomItems];
   });
   const galleryByBuilding = buildings.map(building => galleryRaw.filter(item => item.buildingId === building.id));
   const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
   const bentoSlides: BentoSlide[] = buildings.map((building, index) => {
-    const list = [...new Map(galleryByBuilding[index].map(item => [item.url, item])).values()];
+    let list = [...new Map(galleryByBuilding[index].map(item => [item.url, item])).values()];
+    // Only the building tab itself may show 3D renders and progress photos, and only while the building has no finished photos.
+    if (!list.length) {
+      const href = `/${lang}/buildings/${building.id}`, base = { buildingId: building.id, building: displayName(building.name), href };
+      list = [...(building.renders || []).map(photo => ({ ...photo, ...base, label: vi ? 'Phối cảnh 3D' : '3D render' })), ...(building.progressPhotos || []).map(photo => ({ ...photo, ...base, label: vi ? 'Tiến độ hoàn thiện' : 'Progress' }))];
+    }
     const count = buildingRoomCount(building);
     return { id: building.id, name: displayName(building.name), address: building.address, href: `/${lang}/buildings/${building.id}`, photos: list.map(item => ({ url: item.url, alt: item.alt, width: item.width, height: item.height, label: item.label, href: item.href })),
       status: (building.status && buildingStatusLabel(building.status, building.openMonth || '', lang)) || (vi ? 'Đang vận hành' : 'Open'), rooms: count ? `${count} ${vi ? 'phòng' : 'rooms'}` : '' };
   }).filter(slide => slide.photos.length > 0);
-  // Add-on services as big photo tiles: wide and medium tiles alternate over a 12-column grid, and a short last row is stretched to full width.
   const addons = services.filter(item => item.position >= 20);
-  const addonSpans = (() => {
-    const pattern = [6, 3, 3, 3, 3, 6];
-    const spans = addons.map((_, index) => pattern[index % pattern.length]);
-    let row = 0, rowStart = 0;
-    spans.forEach((span, index) => { row += span; if (row >= 12) { row = 0; rowStart = index + 1; } });
-    if (row > 0 && spans.length > rowStart) { const count = spans.length - rowStart; const each = Math.floor(12 / count); for (let i = rowStart; i < spans.length; i++) spans[i] = i === spans.length - 1 ? 12 - each * (count - 1) : each; }
-    return spans;
-  })();
+  const addonSpanList = addonSpans(addons.length);
   const marqueePhotos = [...new Map([...(home.images['home-gallery'].length ? home.images['home-gallery'] : []), ...mixedPhotos].map(photo => [photo.url, photo])).values()].slice(0, 18);
   const contactPhoto = home.images['home-contact'][0] || photos[2];
 
   return <div className="editorial-home">
+    <script dangerouslySetInnerHTML={{ __html: "try{var d=document.documentElement;if(!sessionStorage.getItem('home-loader')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('home-loading');sessionStorage.setItem('home-loader','1');setTimeout(function(){d.classList.remove('home-loading','home-loader-leaving')},4500)}}catch(e){}" }} />
+    <HomeLoader />
     <div className="editorial-hero-scroll">
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
       {heroPhoto && <img className="editorial-hero-image" src={heroPhoto.url} alt={heroPhoto.alt || 'DRM Stays'} fetchPriority="high" {...imgSize(heroPhoto)} />}
@@ -164,7 +162,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       {addons.length > 0 && <div className="home-addons" data-reveal aria-label={vi ? 'Dịch vụ đi kèm' : 'Add-on services'}>
         <div className="home-addons-head"><div><span className="editorial-section-label">{vi ? 'DỊCH VỤ ĐI KÈM' : 'ADD-ON SERVICES'}</span><h3>{vi ? 'Thêm trải nghiệm cho chuyến ở của bạn' : 'More to enjoy during your stay'}</h3></div><p>{vi ? 'Đặt thêm khi bạn cần, báo giá rõ ràng trước khi xác nhận.' : 'Add them when you need them, with a clear quote before you confirm.'}</p></div>
         <ul className="home-addon-grid">{addons.map((item, index) => { const Icon = addonIcons[item.id] || Sparkles; const photo = serviceImages[item.id]?.[0];
-          return <li key={item.id} style={{ '--span': addonSpans[index], '--i': index } as React.CSSProperties}><Link className={`home-addon-tile is-tone-${index % 4}`} href={`/${lang}/services#addons`}>
+          return <li key={item.id} style={{ '--span': addonSpanList[index], '--i': index } as React.CSSProperties}><Link className={`home-addon-tile is-tone-${index % 4}`} href={`/${lang}/services#addons`}>
             <span className="home-addon-media">{photo ? <img src={photo.url} alt={photo.alt || pick(item).title} loading="lazy" {...imgSize(photo)} /> : <Icon className="home-addon-bg" size={150} strokeWidth={1} aria-hidden="true" />}</span>
             <span className="home-addon-badge" aria-hidden="true"><Icon size={20} /></span>
             <ArrowUpRight className="home-addon-arrow" size={20} aria-hidden="true" />

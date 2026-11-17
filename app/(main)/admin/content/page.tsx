@@ -11,7 +11,7 @@ const labels = { about: 'Giới thiệu công ty', services: 'Dịch vụ', part
 
 function ContentForm({ section, item, nextPosition, autoAvailable }: { section: ContentSection; item?: ContentItem; nextPosition?: number; autoAvailable: boolean }) {
   const isNew = !item;
-  return <form action="/api/admin/content" method="post" data-save-in-place={isNew ? undefined : ""}>
+  return <form action="/api/admin/content" method="post">
     {item && <input type="hidden" name="id" value={item.id} />}
     <input type="hidden" name="section" value={section} /><input type="hidden" name="action" value={isNew ? 'create' : 'save'} />
     <label>Tiêu đề tiếng Việt<input name="titleVi" defaultValue={item?.title_vi} required maxLength={180} /></label>
