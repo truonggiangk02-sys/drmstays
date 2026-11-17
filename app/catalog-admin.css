@@ -60,3 +60,4 @@
 
 /* If a browser restores the page (Back button) with no tab selected, show the first tab instead of an empty panel. */
 .cx-panel:not(:has(> input[type=radio]:checked)) .cx-sec-info{display:block}
+.hm-photos{margin:18px 0 26px;padding:18px;background:#f4f7f3;border:1px solid #dce4da}.hm-photos h3,.hm-card form>h3{margin:0 0 4px;font:700 13px 'DM Sans',Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#315d50}.hm-card form{display:grid;gap:14px}.hm-card form .cx-savebar{position:static;box-shadow:none;border:0;padding:0;background:none}
