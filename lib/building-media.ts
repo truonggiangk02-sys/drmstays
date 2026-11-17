@@ -1,6 +1,8 @@
 type Photo = { url: string; alt: string; width?: number; height?: number };
 type MediaBuilding = {
   images: Photo[];
+  renders?: Photo[];
+  progressPhotos?: Photo[];
   rooms: Array<{ monthlyPrice: number; images: Photo[] }>;
   types?: Array<{ images: Photo[]; priceFrom: number; rooms: unknown[] }>;
 };
@@ -8,7 +10,9 @@ type MediaBuilding = {
 /** Every photo that represents a building: its own, then its room types', then its individual rooms'. No repeats. */
 export function buildingPhotos(building: MediaBuilding): Photo[] {
   const all = [...building.images, ...(building.types || []).flatMap(type => type.images), ...building.rooms.flatMap(room => room.images)];
-  return [...new Map(all.map(photo => [photo.url, photo])).values()];
+  // A building still being completed has no finished photos yet: its 3D renders and progress photos stand in, so it still has a cover.
+  const photos = all.length ? all : [...(building.renders || []), ...(building.progressPhotos || [])];
+  return [...new Map(photos.map(photo => [photo.url, photo])).values()];
 }
 
 /** Lowest monthly price across room types and rooms ("from X"), or 0 when none is set. */

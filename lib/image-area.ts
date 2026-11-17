@@ -2,9 +2,9 @@
 export const IMAGE_AREAS = ['living', 'bedroom', 'kitchen', 'bathroom', 'balcony'] as const;
 export type ImageArea = (typeof IMAGE_AREAS)[number];
 
-export const AREA_LABELS: Record<'vi' | 'en', Record<ImageArea | 'other', string>> = {
-  vi: { living: 'Phòng khách', bedroom: 'Phòng ngủ', kitchen: 'Bếp', bathroom: 'Phòng tắm', balcony: 'Ban công', other: 'Khác' },
-  en: { living: 'Living room', bedroom: 'Bedroom', kitchen: 'Kitchen', bathroom: 'Bathroom', balcony: 'Balcony', other: 'Other' },
+export const AREA_LABELS: Record<'vi' | 'en', Record<ImageArea | 'other' | 'render' | 'progress', string>> = {
+  vi: { living: 'Phòng khách', bedroom: 'Phòng ngủ', kitchen: 'Bếp', bathroom: 'Phòng tắm', balcony: 'Ban công', other: 'Khác', render: 'Phối cảnh 3D', progress: 'Tiến độ' },
+  en: { living: 'Living room', bedroom: 'Bedroom', kitchen: 'Kitchen', bathroom: 'Bathroom', balcony: 'Balcony', other: 'Other', render: '3D renders', progress: 'Progress' },
 };
 
 export const isImageArea = (value: string): value is ImageArea => (IMAGE_AREAS as readonly string[]).includes(value);

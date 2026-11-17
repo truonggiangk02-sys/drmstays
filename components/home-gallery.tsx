@@ -16,7 +16,7 @@ export function HomeGallery({ lang, items, buildings, all, more, less }: { lang:
   const [area, setArea] = useState('');
   const [expanded, setExpanded] = useState(false);
   const labels = AREA_LABELS[lang];
-  const areas = IMAGE_AREAS.filter(key => items.some(item => item.area === key));
+  const areas = [...IMAGE_AREAS, 'render', 'progress'].filter(key => items.some(item => item.area === key)) as Array<keyof (typeof AREA_LABELS)['vi']>;
   const hasOther = areas.length > 0 && items.some(item => !item.area);
   const shown = items.filter(item => (!active || item.buildingId === active) && (!area || (area === 'other' ? !item.area : item.area === area)));
   // Rows of four: show a count that fills the grid, so no photo sits alone on the last row.

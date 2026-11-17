@@ -21,6 +21,8 @@ type Building = {
   address: string;
   propertyType: string;
   images: Photo[];
+  renders?: Photo[];
+  progressPhotos?: Photo[];
   rooms: Array<{ id?: string; name?: string; monthlyPrice: number; images: Photo[] }>;
   types?: Array<{ id?: string; name?: string; images: Photo[]; priceFrom: number; rooms: unknown[] }>;
   status?: 'open' | 'building' | 'soon';
@@ -67,7 +69,10 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       const found = specific.get(photo.url);
       return found ? found : { ...photo, ...base, label: photo.alt && photo.alt !== building.name && photo.alt !== name ? photo.alt : '', href: `/${lang}/buildings/${building.id}` };
     });
-    return [...own, ...typeItems, ...roomItems];
+    // 3D renders and progress photos of buildings still being completed: shown with their own label and filter.
+    const renderItems = (building.renders || []).map(photo => ({ ...photo, ...base, label: vi ? 'Phối cảnh 3D' : '3D render', href: `/${lang}/buildings/${building.id}`, area: 'render' }));
+    const progressItems = (building.progressPhotos || []).map(photo => ({ ...photo, ...base, label: vi ? 'Tiến độ hoàn thiện' : 'Progress', href: `/${lang}/buildings/${building.id}`, area: 'progress' }));
+    return [...own, ...typeItems, ...roomItems, ...renderItems, ...progressItems];
   });
   const galleryByBuilding = buildings.map(building => galleryRaw.filter(item => item.buildingId === building.id));
   const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
