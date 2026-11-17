@@ -43,8 +43,8 @@ export function RoomTypesBrowser({ lang, buildings, dateQuery }: { lang: 'vi' | 
     </div>
     {shown.length === 0 && <p className="rt-empty">{w.empty}</p>}
     {shown.map((building, index) => <section className="rt-group" key={building.id} id={`building-${building.id}`} data-reveal>
-      <header><span className="rt-num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h2>{building.name}</h2><p>{building.address}</p></header>
-      <div className={`rt-row${building.types.length + 1 > 4 ? ' is-scroll' : ''}${building.types.length + 1 > 3 ? ' is-scroll-md' : ''}`}>
+      <header><span className="rt-num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h2>{building.name}</h2><p>{building.address} · {building.types.length} {w.typesWord}</p><Link className="rt-building-link" href={`/${lang}/buildings/${building.id}${dateQuery}`}>{w.viewBuilding}<ArrowUpRight size={15} aria-hidden="true" /></Link></header>
+      <div className={`rt-row${building.types.length > 4 ? ' is-scroll' : ''}${building.types.length > 3 ? ' is-scroll-md' : ''}`}>
         {building.types.map((type, i) => {
           const first = type.images[0], second = type.images[1];
           const facts = [type.areaSqm > 0 ? `${type.areaSqm} m²` : '', type.maxGuests > 0 ? `${type.maxGuests} ${w.guests}` : '', type.beds > 0 ? `${type.beds} ${w.beds}` : ''].filter(Boolean).join(' · ');
@@ -58,9 +58,6 @@ export function RoomTypesBrowser({ lang, buildings, dateQuery }: { lang: 'vi' | 
             <span className="rt-meta">{type.priceFrom > 0 && <strong>{w.from} {money(type.priceFrom)} ₫ / {w.month}</strong>}{facts && <small>{facts}</small>}</span>
           </Link>;
         })}
-        <Link className="rt-card rt-building" href={`/${lang}/buildings/${building.id}${dateQuery}`} style={{ '--i': building.types.length } as React.CSSProperties}>
-          <span className="rt-media">{building.cover && <img src={building.cover.url} alt="" loading="lazy" {...imgSize(building.cover)} />}<span className="rt-building-label"><small>{building.types.length} {w.typesWord}</small><strong>{w.viewBuilding}</strong><ArrowUpRight size={18} aria-hidden="true" /></span></span>
-        </Link>
       </div>
     </section>)}
   </div>;
