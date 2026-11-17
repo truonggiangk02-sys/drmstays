@@ -71,3 +71,13 @@
   .rt-building-link { grid-column: 1 / -1; grid-row: auto; justify-self: start; margin-top: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .rt * { animation: none !important; transition: none !important; } .reveal-ready .rt [data-reveal]:not(.is-in) .rt-card { opacity: 1 !important; transform: none !important; } }
+
+/* Buildings & rooms page: title with a gold italic line, booking card and facts */
+.stays-hero h1 { display: grid; gap: .04em; }
+.stays-hero h1 em { font-style: italic; color: #ae815d; letter-spacing: -.02em; }
+.stays-card { max-width: 560px; margin: 4px 0 26px; padding: 18px 20px; background: #fff; box-shadow: 0 24px 56px rgba(23, 55, 45, .14); animation: rt-rise 1.3s cubic-bezier(.22, 1, .36, 1) .45s both; }
+.stays-card .structure-search { margin: 0; }
+.stays-facts { display: flex; flex-wrap: wrap; gap: 14px clamp(20px, 3vw, 44px); margin: 0; padding-top: 22px; border-top: 1px solid var(--line); animation: rt-rise 1.3s cubic-bezier(.22, 1, .36, 1) .6s both; }
+.stays-facts dt { font: 400 clamp(24px, 2.4vw, 34px)/1.1 'Playfair Display', Georgia, serif; }
+.stays-facts dd { margin: 4px 0 0; color: var(--mute); font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; }
+.map-explorer-intro h2 { font-size: clamp(26px, 3vw, 42px) !important; line-height: 1.12 !important; }
