@@ -83,9 +83,11 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
   const perBuilding = buildings.map(buildingPhotos);
   const pool = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
   const hero = pool[0], howPhoto = pool[1] || pool[0];
-  const compareBuilding = buildings.find(building => building.renders.length && buildingPhotos(building).some(photo => !building.renders.some(render => render.url === photo.url)));
-  const compareAfter = compareBuilding ? buildingPhotos(compareBuilding).find(photo => !compareBuilding.renders.some(render => render.url === photo.url)) : undefined;
-  const stat = (value: string, label: string, note?: string) => { const num = parseNumber(value); return <div className="inv2-stat"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{value}</strong>}</p><h3>{label}</h3>{note && <p className="inv2-note">{note}</p>}</div>; };
+  // "Completed" photos are the building's own, room type and room photos: progress photos and renders never stand in for them here.
+  const finished = (building: InvestorBuilding) => buildingPhotos({ ...building, renders: [], progressPhotos: [] });
+  const compareBuilding = buildings.find(building => building.renders.length && finished(building).length);
+  const compareAfter = compareBuilding ? finished(compareBuilding)[0] : undefined;
+  const stat = (value: string, label: string, note?: string) => { const num = parseNumber(value); return <div className="inv2-stat abt-rise"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{value}</strong>}</p><h3>{label}</h3>{note && <p className="inv2-note">{note}</p>}</div>; };
 
   return <div className="abt inv2">
     <section className="abt-hero" aria-labelledby="inv-title">
@@ -98,38 +100,38 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
       </div>
     </section>
 
-    {stages.length > 0 && <section className="abt-section" id="inv-how" aria-labelledby="inv-how-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.howLabel}</span><Staggered lines={w.howHead} id="inv-how-title" /></div>
-      <div className="inv2-how">
-        <div className="inv2-how-side"><Frame photo={howPhoto} alt="" /><p>{w.howLead}</p></div>
-        <ol>{stages.map((stage, index) => <li key={stage.id}><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{stage.title}</h3><p>{stage.body}</p></div></li>)}</ol>
+    {stages.length > 0 && <section className="abt-section" id="inv-how" aria-labelledby="inv-how-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.howLabel}</span><Staggered lines={w.howHead} id="inv-how-title" /></div>
+      <div className="inv2-how" data-reveal>
+        <div className="inv2-how-side abt-rise"><Frame photo={howPhoto} alt="" /><p>{w.howLead}</p></div>
+        <ol>{stages.map((stage, index) => <li key={stage.id} className="abt-rise" style={{ '--d': `${index * 0.09}s` } as React.CSSProperties}><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{stage.title}</h3><p>{stage.body}</p></div></li>)}</ol>
       </div>
     </section>}
 
-    <section className="abt-section" aria-labelledby="inv-models-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.modelsLabel}</span><Staggered lines={w.modelsHead} id="inv-models-title" /></div>
-      <div className="inv2-models">
-        <article><span className="abt-index" aria-hidden="true">A</span><h3>{w.modelA}</h3><p>{w.modelAText}</p><ul>{stages.slice(0, 2).map(stage => <li key={stage.id}>{stage.title}</li>)}</ul></article>
-        <article><span className="abt-index" aria-hidden="true">B</span><h3>{w.modelB}</h3><p>{w.modelBText}</p><ul>{stages.slice(2, 5).map(stage => <li key={stage.id}>{stage.title}</li>)}</ul></article>
+    <section className="abt-section" aria-labelledby="inv-models-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.modelsLabel}</span><Staggered lines={w.modelsHead} id="inv-models-title" /></div>
+      <div className="inv2-models" data-reveal>
+        <article className="abt-rise"><span className="abt-index" aria-hidden="true">A</span><h3>{w.modelA}</h3><p>{w.modelAText}</p><ul>{stages.slice(0, 2).map(stage => <li key={stage.id}>{stage.title}</li>)}</ul></article>
+        <article className="abt-rise" style={{ '--d': '.2s' } as React.CSSProperties}><span className="abt-index" aria-hidden="true">B</span><h3>{w.modelB}</h3><p>{w.modelBText}</p><ul>{stages.slice(2, 5).map(stage => <li key={stage.id}>{stage.title}</li>)}</ul></article>
       </div>
       {fee.body && <p className="inv2-fee"><span>{w.feeLabel}</span>{fee.body}</p>}
     </section>
 
-    <section className="abt-section" aria-labelledby="inv-report-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.reportLabel}</span><Staggered lines={w.reportHead} id="inv-report-title" /></div>
-      <div className="inv2-report">
-        <div className="inv2-report-text"><p>{w.reportLead}</p><ul>{w.reportItems.map((entry, index) => <li key={entry}><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ul></div>
+    <section className="abt-section" aria-labelledby="inv-report-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.reportLabel}</span><Staggered lines={w.reportHead} id="inv-report-title" /></div>
+      <div className="inv2-report" data-reveal>
+        <div className="inv2-report-text abt-rise"><p>{w.reportLead}</p><ul>{w.reportItems.map((entry, index) => <li key={entry}><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ul></div>
         {reportShots.length > 0 && <div className={`inv2-shots is-${Math.min(reportShots.length, 2)}`}>{reportShots.slice(0, 2).map(shot => <Frame key={shot.id} photo={shot} alt={shot.alt || ''} className="is-shot" />)}</div>}
       </div>
     </section>
 
-    {(occupancy || reports || operating.length > 0) && <section className="abt-section" aria-labelledby="inv-numbers-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.numbersLabel}</span><Staggered lines={w.numbersHead} id="inv-numbers-title" /></div>
-      <div className="inv2-stats">{occupancy && stat(occupancy.value, occupancy.label, w.asOf)}{reports && stat(reports.value, w.reportsPerYear)}</div>
+    {(occupancy || reports || operating.length > 0) && <section className="abt-section" aria-labelledby="inv-numbers-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.numbersLabel}</span><Staggered lines={w.numbersHead} id="inv-numbers-title" /></div>
+      <div className="inv2-stats" data-reveal>{occupancy && stat(occupancy.value, occupancy.label, w.asOf)}{reports && stat(reports.value, w.reportsPerYear)}</div>
       {operating.map((building, index) => {
         const count = buildingRoomCount(building);
-        return <article className="abt-project inv2-project" key={building.id}>
-          <header><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{propertyName(building.name)}</h3>
+        return <article className="abt-project inv2-project" key={building.id} data-reveal>
+          <header className="abt-rise"><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{propertyName(building.name)}</h3>
             <dl><div><dt>{w.area}</dt><dd>{building.address}</dd></div>{count > 0 && <div><dt>{w.rooms}</dt><dd>{count} {w.roomsUnit}</dd></div>}{building.types.length > 0 && <div><dt>{w.types}</dt><dd>{building.types.length}</dd></div>}<div><dt>{w.status}</dt><dd>{buildingStatusLabel(building.status, building.openMonth, lang) || w.open}</dd></div></dl>
             <Link className="abt-link" href={`/${lang}/buildings/${building.id}`}>{w.view}<ArrowUpRight size={15} aria-hidden="true" /></Link></header>
         </article>;
@@ -137,14 +139,14 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
       {compareBuilding && compareAfter && <div className="inv2-compare"><span className="abt-small">{w.compareLabel}</span><BeforeAfter before={compareBuilding.renders[0].url} after={compareAfter.url} beforeLabel={w.compareBefore} afterLabel={w.compareAfter} alt={propertyName(compareBuilding.name)} hint={w.compareHint} /><p className="inv2-note">{propertyName(compareBuilding.name)} · {w.compareNote}</p></div>}
     </section>}
 
-    <section className="abt-section" aria-labelledby="inv-faq-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.faqLabel}</span><Staggered lines={w.faqHead} id="inv-faq-title" /></div>
-      <div className="inv2-faq">{w.faq.map(([question, answer], index) => <details key={question} open={index === 0}><summary><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{question}<i aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
+    <section className="abt-section" aria-labelledby="inv-faq-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.faqLabel}</span><Staggered lines={w.faqHead} id="inv-faq-title" /></div>
+      <div className="inv2-faq" data-reveal>{w.faq.map(([question, answer], index) => <details key={question} open={index === 0}><summary><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{question}<i aria-hidden="true" /></summary><p>{answer}</p></details>)}</div>
     </section>
 
-    <section className="abt-section inv2-contact" id="inv-form" aria-labelledby="inv-form-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{w.formLabel}</span><Staggered lines={w.formHead} id="inv-form-title" /></div>
-      <div className="inv2-contact-grid">
+    <section className="abt-section inv2-contact" id="inv-form" aria-labelledby="inv-form-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{w.formLabel}</span><Staggered lines={w.formHead} id="inv-form-title" /></div>
+      <div className="inv2-contact-grid" data-reveal>
         <div><p className="inv2-lead">{w.formLead}</p><ol className="inv2-steps">{w.steps.map(([step, text], index) => <li key={index}><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{step}</h3><p>{text}</p></div></li>)}</ol></div>
         <div>
           {sent && <p role="status" className="inv2-sent">{labels.received}</p>}

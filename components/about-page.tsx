@@ -45,8 +45,8 @@ const words = {
 const pick = (item: ContentItem | undefined, lang: Lang) => item ? { title: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, body: lang === 'vi' ? item.body_vi : item.body_en || item.body_vi } : { title: '', body: '' };
 const parseNumber = (value: string) => { const match = /^(\d+)(.*)$/.exec(value.trim()); return match ? { to: Number(match[1]), suffix: match[2] } : null; };
 /** A two-line heading in light capitals; the second line is pushed to the right. */
-export const Staggered = ({ lines, id }: { lines: readonly string[]; id?: string }) => <h2 className="abt-head" id={id}><span>{lines[0]}</span><span>{lines[1]}</span></h2>;
-export const Frame = ({ photo, alt, className = '' }: { photo?: Photo; alt: string; className?: string }) => <figure className={`abt-frame ${className}`}>{photo ? <img src={photo.url} alt={photo.alt || alt} loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}</figure>;
+export const Staggered = ({ lines, id }: { lines: readonly string[]; id?: string }) => <h2 className="abt-head" id={id}>{lines.map((line, row) => <span className="abt-line" key={row}>{line.split(' ').map((word, index) => <span key={index}><span className="w" style={{ '--k': row * 3 + index } as React.CSSProperties}><span className="wi">{word}</span></span>{' '}</span>)}</span>)}</h2>;
+export const Frame = ({ photo, alt, className = '' }: { photo?: Photo; alt: string; className?: string }) => <figure className={`abt-frame ${className}`}><span className="abt-frame-clip">{photo ? <img src={photo.url} alt={photo.alt || alt} loading="lazy" {...imgSize(photo)} /> : <span aria-hidden="true" />}</span></figure>;
 
 export function AboutPage({ lang, title, items, metrics, buildings }: { lang: Lang; title: string; items: ContentItem[]; metrics: ContentItem[]; buildings: InvestorBuilding[] }) {
   const w = words[lang];
@@ -73,6 +73,8 @@ export function AboutPage({ lang, title, items, metrics, buildings }: { lang: La
   const subtitle = restOfTitle.join(':').trim();
 
   return <div className="abt">
+    <script dangerouslySetInnerHTML={{ __html: "try{var d=document.documentElement;if(sessionStorage.getItem('abt-intro'))d.classList.add('no-abt-intro');else sessionStorage.setItem('abt-intro','1')}catch(e){}" }} />
+    <div className="abt-intro" aria-hidden="true"><img src="/drm-stay-logo.png" alt="" width="120" height="120" /><span className="abt-intro-line"><i /></span><span className="abt-intro-count" /></div>
     <section className="abt-hero" aria-labelledby="abt-title">
       {hero && <img src={hero.url} alt="" fetchPriority="high" {...imgSize(hero)} />}
       <div className="abt-hero-veil" />
@@ -83,36 +85,36 @@ export function AboutPage({ lang, title, items, metrics, buildings }: { lang: La
       </div>
     </section>
 
-    <section className="abt-section abt-about" aria-labelledby="abt-about-title" data-reveal>
+    <section className="abt-section abt-about" aria-labelledby="abt-about-title">
       <span className="abt-ghost" aria-hidden="true">DRM STAYS</span>
-      <div className="abt-top"><span className="abt-small">{w.aboutLabel}</span><Staggered lines={w.aboutHead} id="abt-about-title" /></div>
+      <div className="abt-top" data-reveal><span className="abt-small">{w.aboutLabel}</span><Staggered lines={w.aboutHead} id="abt-about-title" /></div>
       <div className="abt-stats">{stats.map((stat, index) => {
         if (!stat) return null;
         const num = parseNumber(stat.value);
-        return <article key={index} className={index % 2 ? 'is-flip' : ''}>
+        return <article key={index} className={index % 2 ? 'is-flip' : ''} data-reveal>
           <Frame photo={statPhotos[index]} alt="" />
-          <div className="abt-stat-text"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{stat.value}</strong>}</p><h3>{stat.label}</h3><p>{w.stats[index]}</p></div>
+          <div className="abt-stat-text abt-rise"><p className="abt-number">{num ? <CountUp to={num.to} suffix={num.suffix} /> : <strong>{stat.value}</strong>}</p><h3>{stat.label}</h3><p>{w.stats[index]}</p></div>
         </article>;
       })}</div>
     </section>
 
-    <section className="abt-section abt-do" aria-labelledby="abt-do-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">01 — 03</span><Staggered lines={w.doHead} id="abt-do-title" /></div>
-      <ol className="abt-pillars">{w.pillars.map((pillar, index) => <li key={pillar.title} className={index % 2 ? 'is-flip' : ''}>
+    <section className="abt-section abt-do" aria-labelledby="abt-do-title">
+      <div className="abt-top" data-reveal><span className="abt-small">01 — 03</span><Staggered lines={w.doHead} id="abt-do-title" /></div>
+      <ol className="abt-pillars">{w.pillars.map((pillar, index) => <li key={pillar.title} className={index % 2 ? 'is-flip' : ''} data-reveal>
         <Frame photo={pillarPhotos[index]} alt={pillar.title} />
-        <div className="abt-pillar-text"><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{pillar.title}</h3><p>{'text' in pillar ? pillar.text : ecosystem.body}</p><Link className="abt-link" href={`/${lang}/${pillar.link}`}>{pillar.cta}<ArrowUpRight size={15} aria-hidden="true" /></Link></div>
+        <div className="abt-pillar-text abt-rise"><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{pillar.title}</h3><p>{'text' in pillar ? pillar.text : ecosystem.body}</p><Link className="abt-link" href={`/${lang}/${pillar.link}`}>{pillar.cta}<ArrowUpRight size={15} aria-hidden="true" /></Link></div>
       </li>)}</ol>
     </section>
 
-    {buildings.length > 0 && <section className="abt-section abt-port" aria-labelledby="abt-port-title" data-reveal>
-      <div className="abt-top"><span className="abt-small">{portfolioLead.title}</span><Staggered lines={w.portHead} id="abt-port-title" /></div>
+    {buildings.length > 0 && <section className="abt-section abt-port" aria-labelledby="abt-port-title">
+      <div className="abt-top" data-reveal><span className="abt-small">{portfolioLead.title}</span><Staggered lines={w.portHead} id="abt-port-title" /></div>
       <p className="abt-lead">{portfolioLead.body}</p>
       {buildings.map((building, index) => {
         const photos = buildingPhotos(building).slice(0, 5);
         const status = buildingStatusLabel(building.status, building.openMonth, lang) || w.open;
         const count = buildingRoomCount(building);
-        return <article className="abt-project" key={building.id}>
-          <header><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{propertyName(building.name)}</h3>
+        return <article className="abt-project" key={building.id} data-reveal>
+          <header className="abt-rise"><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{propertyName(building.name)}</h3>
             <dl><div><dt>{w.area}</dt><dd>{building.address}</dd></div>{count > 0 && <div><dt>{w.rooms}</dt><dd>{count} {w.roomsUnit}</dd></div>}<div><dt>{w.status}</dt><dd>{status}</dd></div></dl>
             <Link className="abt-link" href={`/${lang}/buildings/${building.id}`}>{w.view}<ArrowUpRight size={15} aria-hidden="true" /></Link></header>
           {photos.length > 0 && <div className={`abt-mosaic is-${Math.min(photos.length, 5)}`}>{photos.map((photo, n) => <img key={photo.url} src={photo.url} alt={photo.alt || propertyName(building.name)} loading="lazy" style={{ '--i': n } as React.CSSProperties} {...imgSize(photo)} />)}</div>}

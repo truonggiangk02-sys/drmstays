@@ -24,19 +24,21 @@
 .abt-top { display: grid; gap: 14px; margin-bottom: clamp(34px, 5vw, 80px); }
 .abt-small { font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 .abt-head { margin: 0; display: grid; font-weight: 200; font-size: clamp(48px, 8.4vw, 132px); line-height: .98; letter-spacing: -.04em; text-transform: uppercase; }
-.abt-head span:last-child { padding-left: clamp(40px, 22%, 360px); }
-.abt-head span { display: block; opacity: 1; }
-.reveal-ready .abt [data-reveal]:not(.is-in) .abt-head span { opacity: 0; transform: translateY(60px); }
-.abt-head span { transition: opacity 1.2s cubic-bezier(.22, 1, .36, 1), transform 1.2s cubic-bezier(.22, 1, .36, 1); }
-.abt-head span:last-child { transition-delay: .15s; }
+.abt-head .abt-line:last-child { padding-left: clamp(40px, 22%, 360px); }
+.abt-head .abt-line { display: block; }
+/* Each word slides up from behind a mask, one after another */
+.abt-head .w { display: inline-block; overflow: hidden; vertical-align: bottom; padding: .24em .06em .1em; margin: -.24em -.06em -.1em; }
+.abt-head .wi { display: inline-block; transition: transform 1.2s cubic-bezier(.22, 1, .36, 1); transition-delay: calc(var(--k, 0) * 90ms); }
+.reveal-ready .abt [data-reveal]:not(.is-in) .abt-head .wi { transform: translateY(115%); }
 
 /* Framed photo: thin outline offset behind the picture */
 .abt-frame { position: relative; margin: 0; }
 .abt-frame::before { content: ''; position: absolute; inset: -16px 16px 16px -16px; border: 1px solid var(--line); transition: inset .8s cubic-bezier(.22, 1, .36, 1); }
 .abt-frame:hover::before { inset: -22px 22px 22px -22px; }
-.abt-frame img, .abt-frame > span { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #e9e6df; }
-.reveal-ready .abt [data-reveal]:not(.is-in) .abt-frame img { clip-path: inset(0 0 100% 0); transform: scale(1.12); }
-.abt-frame img { clip-path: inset(0); transition: clip-path 1.5s cubic-bezier(.22, 1, .36, 1), transform 1.8s cubic-bezier(.22, 1, .36, 1); }
+.abt-frame-clip { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: #e9e6df; clip-path: inset(0); transition: clip-path 1.5s cubic-bezier(.22, 1, .36, 1); }
+.abt-frame-clip img { position: absolute; left: 0; top: -9%; display: block; width: 100%; height: 118%; object-fit: cover; transition: transform 1.8s cubic-bezier(.22, 1, .36, 1); }
+.reveal-ready .abt [data-reveal]:not(.is-in) .abt-frame-clip { clip-path: inset(0 0 100% 0); }
+.reveal-ready .abt [data-reveal]:not(.is-in) .abt-frame-clip img { transform: scale(1.14); }
 
 /* About: ghost wordmark and number + photo rows */
 .abt-about { position: relative; }
@@ -55,7 +57,7 @@
 .abt-pillars li { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(30px, 6vw, 110px); align-items: center; }
 .abt-pillars li.is-flip { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
 .abt-pillars li.is-flip .abt-frame { order: 2; }
-.abt-pillars .abt-frame img, .abt-pillars .abt-frame > span { aspect-ratio: 16 / 11; }
+.abt-pillars .abt-frame-clip { aspect-ratio: 16 / 11; }
 .abt-pillar-text { position: relative; max-width: 480px; }
 .abt-index { display: block; margin-bottom: 14px; font-weight: 200; font-size: clamp(48px, 6vw, 96px); line-height: 1; letter-spacing: -.03em; color: transparent; -webkit-text-stroke: 1px #c9c5ba; }
 .abt-pillar-text h3 { margin: 0 0 14px; font-size: clamp(19px, 1.8vw, 26px); font-weight: 500; letter-spacing: .03em; text-transform: uppercase; line-height: 1.25; }
@@ -148,7 +150,8 @@
 .inv2-report-text li:last-child { border-bottom: 1px solid var(--line); }
 .inv2-report-text li span { color: var(--gold); font-size: 12px; font-weight: 600; letter-spacing: .1em; }
 .inv2-shots { display: grid; gap: 30px; }
-.inv2-shots .abt-frame img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; }
+.inv2-shots .abt-frame-clip { aspect-ratio: 16 / 10; }
+.inv2-shots .abt-frame-clip img { object-position: top; }
 
 .inv2-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: clamp(26px, 4vw, 70px); margin-bottom: clamp(34px, 5vw, 70px); }
 .inv2-stat { padding-top: 20px; border-top: 1px solid var(--line); }
@@ -199,10 +202,10 @@
 
 /* Investor page: same look, calmer scale (headings, spacing and numerals sized for reading, not for show) */
 .inv2 .abt-section { padding-top: clamp(40px, 5vw, 76px); }
-.inv2 .abt-top { gap: 8px; margin-bottom: clamp(20px, 2.6vw, 38px); }
+.inv2 .abt-top { gap: 26px; margin-bottom: clamp(20px, 2.6vw, 38px); }
 .inv2 .abt-head { display: block; font-weight: 300; font-size: clamp(30px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -.025em; }
-.inv2 .abt-head span { display: inline; padding-left: 0; }
-.inv2 .abt-head span:last-child { padding-left: .28em; }
+.inv2 .abt-head .abt-line { display: inline; padding-left: 0; }
+.inv2 .abt-head .abt-line:last-child { padding-left: .28em; }
 .inv2 .abt-hero { min-height: min(62svh, 620px); }
 .inv2 .abt-hero-inner { padding-top: clamp(70px, 8vw, 120px); padding-bottom: clamp(30px, 4vw, 56px); }
 .inv2-title { font-weight: 300; font-size: clamp(30px, 4.6vw, 68px); line-height: 1.05; letter-spacing: -.03em; max-width: 980px; }
@@ -225,10 +228,10 @@
 
 /* About page: same calmer scale as the investor page */
 .abt:not(.inv2) .abt-section { padding-top: clamp(40px, 5vw, 76px); }
-.abt:not(.inv2) .abt-top { gap: 8px; margin-bottom: clamp(20px, 2.6vw, 38px); }
+.abt:not(.inv2) .abt-top { gap: 26px; margin-bottom: clamp(20px, 2.6vw, 38px); }
 .abt:not(.inv2) .abt-head { display: block; font-weight: 300; font-size: clamp(30px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -.025em; }
-.abt:not(.inv2) .abt-head span { display: inline; padding-left: 0; }
-.abt:not(.inv2) .abt-head span:last-child { padding-left: .28em; }
+.abt:not(.inv2) .abt-head .abt-line { display: inline; padding-left: 0; }
+.abt:not(.inv2) .abt-head .abt-line:last-child { padding-left: .28em; }
 .abt:not(.inv2) .abt-hero { min-height: min(70svh, 700px); }
 .abt:not(.inv2) .abt-brand { font-size: clamp(48px, min(9vw, 15vh), 150px); }
 .abt:not(.inv2) .abt-sub { font-size: clamp(16px, 1.6vw, 24px); }
@@ -242,3 +245,46 @@
 .abt:not(.inv2) .abt-closing { min-height: min(70svh, 660px); margin-top: clamp(50px, 6vw, 90px); }
 .abt:not(.inv2) .abt-closing h2 { font-size: clamp(36px, 5vw, 76px); }
 .abt:not(.inv2) .abt-phone { font-size: clamp(22px, 2.4vw, 34px); }
+
+/* Effects that run piece by piece, each one when it comes into view */
+.abt-rise { transition: opacity 1.1s cubic-bezier(.22, 1, .36, 1), transform 1.1s cubic-bezier(.22, 1, .36, 1); transition-delay: var(--d, .12s); }
+.reveal-ready .abt [data-reveal]:not(.is-in) .abt-rise { opacity: 0; transform: translateY(42px); }
+.reveal-ready .abt [data-reveal]:not(.is-in) .abt-number, .reveal-ready .abt [data-reveal]:not(.is-in) .abt-index { opacity: 0; transform: translateY(24px); }
+.abt-number, .abt-index { transition: opacity 1s cubic-bezier(.22, 1, .36, 1) .1s, transform 1s cubic-bezier(.22, 1, .36, 1) .1s; }
+
+/* Effects tied to the scroll bar (browsers that support scroll timelines; the others simply skip them) */
+@supports (animation-timeline: scroll()) {
+  .abt-hero > img { animation: abt-settle 2.4s cubic-bezier(.22, 1, .36, 1) both, abt-parallax linear both; animation-timeline: auto, scroll(root block); animation-range: normal, 0 100vh; }
+  .abt-hero-inner { animation: abt-leave linear both; animation-timeline: scroll(root block); animation-range: 0 70vh; }
+  .abt-ghost { animation: abt-ghost linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+  .abt-closing > img { animation: abt-parallax-soft linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+}
+@keyframes abt-parallax { to { translate: 0 14%; } }
+@keyframes abt-leave { to { translate: 0 -48px; opacity: 0; } }
+@keyframes abt-ghost { from { translate: 0 120px; } to { translate: 0 -120px; } }
+@keyframes abt-parallax-soft { from { translate: 0 -8%; } to { translate: 0 8%; } }
+@media (prefers-reduced-motion: reduce) { .abt-hero > img, .abt-hero-inner, .abt-ghost, .abt-closing > img { animation: none !important; } }
+
+/* Photos in frames drift slowly against the scroll */
+@supports (animation-timeline: view()) { .abt-frame-clip img { animation: abt-img-drift linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; } }
+@keyframes abt-img-drift { from { translate: 0 -6%; } to { translate: 0 6%; } }
+
+/* Opening screen of the About page: a counter from 0 to 100, then it slides up like a curtain (shown once per visit) */
+@property --abt-n { syntax: '<integer>'; initial-value: 0; inherits: false; }
+.abt-intro { position: fixed; inset: 0; z-index: 9999; display: grid; place-content: center; justify-items: center; gap: 22px; background: #fff; pointer-events: none; animation: abt-intro-out .85s cubic-bezier(.76, 0, .24, 1) 1.55s both; }
+.abt-intro img { width: 110px; height: auto; border-radius: 12px; }
+.abt-intro-line { width: min(280px, 60vw); height: 2px; background: #e6e2d8; overflow: hidden; }
+.abt-intro-line i { display: block; height: 100%; background: var(--gold); transform-origin: left; animation: abt-intro-line 1.35s cubic-bezier(.65, 0, .35, 1) both; }
+.abt-intro-count { font: 300 clamp(40px, 6vw, 72px)/1 'Be Vietnam Pro', Arial, sans-serif; letter-spacing: -.03em; color: var(--ink); counter-reset: abt-n var(--abt-n); animation: abt-intro-count 1.35s cubic-bezier(.65, 0, .35, 1) both; }
+.abt-intro-count::after { content: counter(abt-n); }
+@keyframes abt-intro-count { to { --abt-n: 100; } }
+@keyframes abt-intro-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes abt-intro-out { to { transform: translateY(-100%); visibility: hidden; } }
+.no-abt-intro .abt-intro { display: none; }
+/* The hero starts once the curtain has lifted */
+html:not(.no-abt-intro) .abt:not(.inv2) .abt-brand { animation-delay: 1.9s; }
+html:not(.no-abt-intro) .abt:not(.inv2) .abt-sub { animation-delay: 2.1s; }
+html:not(.no-abt-intro) .abt:not(.inv2) .abt-hero-actions { animation-delay: 2.3s; }
+html:not(.no-abt-intro) .abt:not(.inv2) .abt-hero-text { animation-delay: 2.45s; }
+html:not(.no-abt-intro) .abt:not(.inv2) .abt-hero > img { animation-delay: 1.3s; }
+@media (prefers-reduced-motion: reduce) { .abt-intro { display: none; } .abt-frame-clip img { animation: none !important; } .reveal-ready .abt [data-reveal]:not(.is-in) .abt-head .wi { transform: none; } }

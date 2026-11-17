@@ -19,3 +19,17 @@ describe("building media", () => {
   });
   it("counts rooms under types and on their own", () => { expect(buildingRoomCount(building)).toBe(4); });
 });
+
+describe("buildingPhotos for a building still being completed", () => {
+  const p = (name: string) => ({ url: `/media/${name}`, alt: name });
+
+  it("uses 3D renders and then progress photos when there are no finished photos yet", () => {
+    const list = buildingPhotos({ images: [], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] });
+    expect(list.map(item => item.alt)).toEqual(["render", "progress"]);
+  });
+
+  it("does not mix renders or progress photos into a building that already has finished photos", () => {
+    const list = buildingPhotos({ images: [p("a")], types: [], rooms: [], renders: [p("render")], progressPhotos: [p("progress")] });
+    expect(list.map(item => item.alt)).toEqual(["a"]);
+  });
+});
