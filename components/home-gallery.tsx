@@ -7,6 +7,9 @@ import { imgSize } from '@/lib/image-url';
 export type GalleryItem = { url: string; alt: string; width?: number; height?: number; buildingId: string; building: string; label: string; href: string };
 
 /** Photos labelled with their building and room, filtered by building, so a guest always knows what they are looking at. */
+/** Width over height of a photo, kept between 3:4 and 16:9 so one extreme picture cannot stretch or shrink a whole row. */
+const ratio = (item: GalleryItem) => item.width && item.height ? Math.min(1.78, Math.max(0.75, item.width / item.height)) : 1.4;
+
 export function HomeGallery({ items, buildings, all, more, less }: { items: GalleryItem[]; buildings: Array<{ id: string; name: string }>; all: string; more: string; less: string }) {
   const [active, setActive] = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -21,10 +24,10 @@ export function HomeGallery({ items, buildings, all, more, less }: { items: Gall
       <button type="button" aria-pressed={!active} className={!active ? 'is-on' : ''} onClick={() => choose('')}>{all}</button>
       {buildings.map(building => <button type="button" key={building.id} aria-pressed={active === building.id} className={active === building.id ? 'is-on' : ''} onClick={() => choose(building.id)}>{building.name}</button>)}
     </div>}
-    <ul className="hg-grid">{visible.map((item, index) => <li key={item.url} style={{ '--i': index % 8 } as React.CSSProperties}>
+    <ul className="hg-grid">{visible.map((item, index) => <li key={item.url} style={{ '--i': index % 8, '--r': ratio(item) } as React.CSSProperties}>
       <Link href={item.href}>
         <img src={item.url} alt={item.label ? `${item.building} · ${item.label}` : item.building} loading="lazy" {...imgSize(item)} />
-        <span className="hg-cap"><span><strong>{item.label || item.building}</strong>{item.label && <small>{item.building}</small>}</span><ArrowUpRight size={16} aria-hidden="true" /></span>
+        {item.label && <span className="hg-cap"><span><strong>{item.label}</strong><small>{item.building}</small></span><ArrowUpRight size={16} aria-hidden="true" /></span>}
       </Link>
     </li>)}</ul>
     {fit(Math.min(shown.length, 40)) > 10 && <button type="button" className="hg-more" onClick={() => setExpanded(value => !value)} aria-expanded={expanded}>{expanded ? less : `${more} (${fit(Math.min(shown.length, 40)) - visibleDefault})`}</button>}
