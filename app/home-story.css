@@ -352,11 +352,9 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 .hg-chips button { min-height: 40px; padding: 0 18px; border: 1px solid #cfd8cf; border-radius: 4px; background: #fff; color: #17372d; font: 600 14px 'Be Vietnam Pro', Arial, sans-serif; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
 .hg-chips button:hover { border-color: #17372d; }
 .hg-chips button.is-on { background: #17372d; border-color: #17372d; color: #fff; }
-.hg-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(18px, 2vw, 30px) clamp(10px, 1.2vw, 18px); margin: 0; padding: 0; list-style: none; }
-.hg-grid li { min-width: 0; animation: bento-in .7s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
+.hg-row li { min-width: 0; animation: bento-in .7s cubic-bezier(.16, 1, .3, 1) both; animation-delay: calc(var(--i, 0) * 50ms); }
 .hg-grid a { display: block; color: #17372d; }
-.hg-grid img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; background: #e4e8e0; transition: transform .9s cubic-bezier(.16, 1, .3, 1), filter .4s; }
-.hg-grid li a { overflow: hidden; }
+.hg-grid img { border-radius: 4px; background: #e4e8e0; transition: transform .9s cubic-bezier(.16, 1, .3, 1), filter .4s; }
 .hg-grid a:hover img { transform: scale(1.04); }
 .hg-cap { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #dce2d9; }
 .hg-cap span { display: grid; gap: 2px; min-width: 0; }
@@ -367,7 +365,6 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 .hg-more { display: block; margin: 28px auto 0; min-height: 46px; padding: 0 26px; border: 1px solid #17372d; border-radius: 99px; background: transparent; color: #17372d; font: 700 14px 'Be Vietnam Pro', Arial, sans-serif; cursor: pointer; }
 .hg-more:hover { background: #17372d; color: #fff; }
 @media (max-width: 900px) {
-  .hg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: clamp(110px, 30vw, 170px); }
   .bento-grid > .bento-photo { grid-column: auto !important; }
   .bento-main { grid-column: 1 / 3 !important; grid-row: auto; height: clamp(230px, 62vw, 380px); }
@@ -390,12 +387,13 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 @keyframes addon-settle { from { transform: scale(1.22); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .home-addon-grid > li, .home-addon-media { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; } }
 
-/* Gallery: justified rows. Every photo keeps its own proportions (no cropping) and each row fills the full width. */
-.hg-grid { --rh: clamp(170px, 17vw, 270px); display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(14px, 1.6vw, 24px) clamp(8px, 1vw, 14px); }
-.hg-grid::after { content: ''; flex-grow: 1000; }
-.hg-grid li { flex: calc(var(--r, 1.4) * 100) 1 calc(var(--r, 1.4) * var(--rh)); min-width: 0; }
-.hg-grid img { width: 100%; aspect-ratio: var(--r, 1.4); height: auto; min-height: 0; }
-@media (max-width: 700px) { .hg-grid { --rh: 120px; } }
+/* Gallery: every row fills the width, every photo keeps its own proportions (no cropping). */
+.hg-grid { display: grid; gap: clamp(8px, 1vw, 14px); }
+.hg-row { display: flex; gap: clamp(8px, 1vw, 14px); margin: 0; padding: 0; list-style: none; }
+.hg-row li { flex: var(--r, 1.4) 1 0%; min-width: 0; }
+.hg-row.is-wrap { flex-wrap: wrap; }
+.hg-row.is-wrap li { flex: calc(var(--r, 1.4) * 100) 1 calc(var(--r, 1.4) * 200px); }
+.hg-grid img { display: block; width: 100%; height: auto; aspect-ratio: var(--r, 1.4); object-fit: cover; }
 
 /* Phones: building mosaic without overlaps, smaller overlay text, shorter tab names, less cropping */
 @media (max-width: 700px) {
@@ -438,3 +436,15 @@ html[lang="vi"] .editorial-home .editorial-hero h1 { line-height: 1.24 !importan
 .hg-cap strong, .hg-cap small { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .45); }
 .hg-cap small { opacity: .85; }
 .hg-cap svg { opacity: .8; }
+
+/* Loading screen of the home page (first visit of a session): logo, a line and a counter that follow the real loading, then it slides up */
+.home-loader { display: none; position: fixed; inset: 0; z-index: 9999; place-content: center; justify-items: center; gap: 22px; background: #fff; pointer-events: none; transition: transform .9s cubic-bezier(.76, 0, .24, 1); }
+html.home-loading .home-loader { display: grid; }
+html.home-loader-leaving .home-loader { transform: translateY(-100%); }
+.home-loader img { width: 110px; height: auto; border-radius: 12px; }
+.home-loader-line { width: min(280px, 60vw); height: 2px; background: #e6e2d8; overflow: hidden; }
+.home-loader-line i { display: block; height: 100%; background: #ae815d; transform-origin: left; }
+.home-loader-count { font: 300 clamp(40px, 6vw, 72px)/1 'Be Vietnam Pro', Arial, sans-serif; letter-spacing: -.03em; color: #17372d; min-width: 3ch; text-align: center; }
+/* The hero waits for the curtain before it moves */
+html.home-loading .editorial-home .editorial-hero-image, html.home-loading .editorial-home .editorial-hero-wordmark span, html.home-loading .editorial-home .editorial-hero-content > * { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .home-loader { display: none !important; } }
