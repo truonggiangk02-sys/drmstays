@@ -414,3 +414,27 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 /* Hero headline: nothing sits behind it any more, and Vietnamese diacritics get a safe line height so lines never touch */
 .editorial-home .editorial-hero h1 { line-height: 1.22 !important; }
 html[lang="vi"] .editorial-home .editorial-hero h1 { line-height: 1.24 !important; }
+
+.hg-label { align-self: center; margin-right: 6px; color: #5c6c61; font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.hg-chips { margin-bottom: 14px; }
+
+/* Hero: the brand name sits in the text flow above the headline, so it can never overlap it; sizes follow the screen height as well as its width */
+.editorial-home .editorial-hero { padding-top: clamp(96px, 13vh, 130px); box-sizing: border-box; }
+.editorial-home .editorial-hero-content { margin-bottom: clamp(56px, 9vh, 120px); }
+.editorial-home .editorial-hero-wordmark { position: static; display: flex; justify-content: flex-start; margin: 0 0 clamp(8px, 1.6vh, 18px); font: 700 clamp(44px, min(8.5vw, 13vh), 140px)/1 'Be Vietnam Pro', Arial, sans-serif; letter-spacing: -.045em; color: rgba(255, 255, 255, .34); text-shadow: none; }
+.editorial-home .editorial-hero h1 { font-size: clamp(32px, min(5vw, 7.4vh), 84px) !important; max-width: 900px; }
+.editorial-home .editorial-hero-content > p { font-size: clamp(14px, min(1.3vw, 2.2vh), 18px); }
+@media (max-width: 700px) {
+  .editorial-home .editorial-hero { padding-top: 150px; }
+  .editorial-home .editorial-hero-wordmark { font-size: clamp(40px, 15vw, 86px); }
+  .editorial-home .editorial-hero h1 { font-size: clamp(28px, 8vw, 44px) !important; }
+}
+.editorial-intro-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 8px; }
+@media (max-width: 700px) { .editorial-home .editorial-hero-content { padding-right: 68px; box-sizing: border-box; width: 100%; } }
+
+/* Photo names sit on the photo itself, so every row of the gallery ends in a straight line */
+.hg-grid a { position: relative; overflow: hidden; }
+.hg-cap { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 30px 12px 10px; border-top: 0; color: #fff; background: linear-gradient(180deg, transparent, rgba(8, 20, 16, .72)); pointer-events: none; }
+.hg-cap strong, .hg-cap small { color: #fff; text-shadow: 0 1px 8px rgba(0, 0, 0, .45); }
+.hg-cap small { opacity: .85; }
+.hg-cap svg { opacity: .8; }

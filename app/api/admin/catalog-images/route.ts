@@ -4,6 +4,7 @@ import { isAdmin, validOrigin } from '@/lib/admin';
 import { imageSize } from '@/lib/image-size';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 import { HOME_SLOTS, isHomeSlot } from '@/lib/home-content';
+import { isImageArea } from '@/lib/image-area';
 import { getEditableContent, contentSections, sampleContent, type ContentSection } from '@/lib/site-content';
 
 type ImageRow = {
@@ -20,7 +21,7 @@ const MAX_PER_ITEM = 20;
 const MAX_PER_BUILDING = 50; // photos, 3D renders, progress photos and floor plans share the building's allowance
 
 /** Validates and stores one image. Returns a short problem description, or null when it was saved. */
-async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string, limit = MAX_PER_ITEM): Promise<string | null> {
+async function storeImage(file: File, kind: string, sourceId: string, category: string, alt: string, limit = MAX_PER_ITEM, area = ''): Promise<string | null> {
   if (file.size > MAX_FILE_BYTES || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
     return 'use a JPG, PNG or WebP image under 5 MB';
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -49,6 +50,8 @@ async function storeImage(file: File, kind: string, sourceId: string, category: 
     await env.BUCKET!.delete(objectKey);
     throw error;
   }
+  // The area is saved on its own so that a database without the column yet (migration 0017 not applied) still accepts the photo.
+  if (area) { try { await env.DB!.prepare('UPDATE catalog_images SET area = ? WHERE id = ?').bind(area, id).run(); } catch { /* column missing: the photo is kept without an area */ } }
   return null;
 }
 
@@ -97,6 +100,8 @@ export async function POST(request: NextRequest) {
     const files = form.getAll('image').filter((item): item is File => item instanceof File && item.size > 0);
     if (!files.length) return new NextResponse('Choose at least one image', { status: 400 });
     const alt = String(form.get('alt') || '').trim().slice(0, 150);
+    const areaValue = String(form.get('area') || '');
+    const area = kind !== 'content' && category === 'photo' && isImageArea(areaValue) ? areaValue : '';
     let uploaded = 0;
     const failed: string[] = [];
     const limit = kind === 'home' && isHomeSlot(sourceId) ? HOME_SLOTS[sourceId].max : kind === 'building' ? MAX_PER_BUILDING : MAX_PER_ITEM;
@@ -106,11 +111,19 @@ export async function POST(request: NextRequest) {
       for (const row of old.results || []) { await env.DB.prepare('DELETE FROM catalog_images WHERE id = ?').bind(row.id).run(); await env.BUCKET.delete(row.object_key); }
     }
     for (const file of files) {
-      const problem = await storeImage(file, kind, sourceId, category, alt, limit);
+      const problem = await storeImage(file, kind, sourceId, category, alt, limit, area);
       if (problem) failed.push(`${file.name || 'image'}: ${problem}`); else uploaded += 1;
     }
     if (wantsJson) return NextResponse.json({ uploaded, failed }, { status: uploaded || !failed.length ? 200 : 400 });
     if (!uploaded) return new NextResponse(failed[0] || 'Upload failed', { status: 400 });
+  } else if (action === 'area') {
+    const imageId = String(form.get('imageId') || '');
+    const areaValue = String(form.get('area') || '');
+    if (areaValue && !isImageArea(areaValue)) return new NextResponse('Invalid area', { status: 400 });
+    const row = await env.DB.prepare('SELECT id FROM catalog_images WHERE id = ? AND owner_type = ? AND owner_id = ?').bind(imageId, kind, sourceId).first<{ id: string }>();
+    if (!row) return new NextResponse('Image not found', { status: 404 });
+    try { await env.DB.prepare('UPDATE catalog_images SET area = ? WHERE id = ?').bind(areaValue, imageId).run(); }
+    catch { return new NextResponse('Run the database migration 0017 (deploy with -Migrate) before setting areas', { status: 409 }); }
   } else if (action === 'delete' || action === 'cover') {
     const imageId = String(form.get('imageId') || '');
     const row = await env.DB.prepare(

@@ -95,12 +95,12 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     <section className={`editorial-hero${heroPhoto ? ' has-photo' : ''}`}>
       {heroPhoto && <img className="editorial-hero-image" src={heroPhoto.url} alt={heroPhoto.alt || 'DRM Stays'} fetchPriority="high" {...imgSize(heroPhoto)} />}
       <div className="editorial-hero-shade" aria-hidden="true" />
-      <div className="editorial-hero-content"><span className="editorial-kicker">DRM STAYS <span aria-hidden="true">/</span> {lang === 'vi' ? 'ĐÀ NẴNG' : 'DA NANG'}</span><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
+      <div className="editorial-hero-content"><div className="editorial-hero-wordmark" aria-hidden="true">{Array.from('DRM Stays').map((letter, index) => <span key={index} style={{ '--k': index } as React.CSSProperties}>{letter === ' ' ? '\u00a0' : letter}</span>)}</div><h1>{t.hero}</h1><p>{t.heroLead}</p><Link className="editorial-primary-link" href={`/${lang}/stays`}>{t.explore}<span aria-hidden="true">↗</span></Link></div>
       <div className="editorial-hero-foot"><span>YOUR STAY, OUR CARE</span><span>{lang === 'vi' ? 'CĂN HỘ CHO THUÊ · ĐÀ NẴNG' : 'APARTMENTS FOR RENT · DA NANG'}</span></div>
     </section>
     </div>
 
-    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Khu An Thượng, Mỹ An' : 'An Thượng, Mỹ An area', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
+    <div className="home-marquee" aria-hidden="true"><div className="home-marquee-track">{Array.from({ length: 2 }, (_, copy) => <div key={copy}>{[vi ? 'Có sẵn nội thất' : 'Furnished rooms', vi ? 'Thuê ngắn và dài ngày' : 'Short and long stays', vi ? 'Giữa lòng Đà Nẵng' : 'In the heart of Da Nang', vi ? 'Hỗ trợ 6 ngôn ngữ' : 'Support in 6 languages', vi ? 'Chi phí rõ ràng' : 'Clear costs'].map((word, index) => <span key={index}>{word}<i /></span>)}</div>)}</div></div>
 
     <section className="inv-metrics home-numbers" aria-label={vi ? 'DRM Stays trong vài con số' : 'DRM Stays in numbers'} data-reveal>
       <div className="inv-metrics-inner structure-section">
@@ -114,7 +114,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     </section>
 
     <section className="editorial-intro structure-section" aria-labelledby="editorial-intro-title">
-      <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div>
+      <div className="editorial-intro-copy"><span className="editorial-section-label">{t.introLabel}</span><h2 id="editorial-intro-title">{t.introTitle}</h2><StoryText text={t.introBody} /><div className="editorial-intro-actions"><Link className="editorial-primary-link" href={`/${lang}/contact`}>{lang === 'vi' ? 'Đặt lịch xem phòng' : 'Book a viewing'}<span aria-hidden="true">↗</span></Link><Link className="editorial-text-link" href={`/${lang}/about`}>{lang === 'vi' ? 'Về DRM Stays' : 'About DRM Stays'}<span aria-hidden="true">↗</span></Link></div></div>
       {introPhoto && <figure className="editorial-intro-photo"><img src={introPhoto.url} alt={introPhoto.alt || 'DRM Stays apartment'} loading="lazy" {...imgSize(introPhoto)} /><figcaption>DRM STAYS / DA NANG</figcaption></figure>}
     </section>
 
@@ -171,7 +171,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     {galleryItems.length >= 2 && <section className="home-photos structure-section" aria-labelledby="home-photos-title" data-reveal>
       <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
-      <HomeGallery items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
+      <HomeGallery lang={lang} items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
     </section>}
 
     {faq.length > 0 && <section className="home-faq structure-section" aria-labelledby="home-faq-title" data-reveal>
