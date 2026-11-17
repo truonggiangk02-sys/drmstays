@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { env } from 'cloudflare:workers';
 import { apartments } from './apartments';
 import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding } from './staydesk-catalog';
+import { areaOf } from './image-area';
 import { effectivePrice, priceFrom, availableCount, byRoomName, type TypeDetails } from './room-types';
 import { catalogImageUrl } from './image-url';
 import { inferFloor, parseDetails, detailText, detailNumber, detailList, detailStatus, detailMonth, type BuildingDetails, type RoomDetails } from './catalog-details';
@@ -33,6 +34,9 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
   ]);
   const buildings = new Map((buildingRows.results || []).map(row => [row.source_id, row]));
   const rooms = new Map((roomRows.results || []).map(row => [row.source_id, row]));
+  // Photo areas come from a column added by migration 0017; until it is applied the query fails and areas are guessed from captions.
+  const areaById = new Map<string, string>();
+  try { for (const row of (await env.DB!.prepare("SELECT id, area FROM catalog_images WHERE area != ''").all<{ id: string; area: string }>()).results || []) areaById.set(row.id, row.area); } catch { /* migration not applied yet */ }
   const images = new Map<string, Image[]>();
   for (const image of imageRows.results || []) {
     const key = `${image.owner_type}:${image.owner_id}`;
@@ -40,7 +44,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
   }
   const gallery = (kind: 'building' | 'room' | 'roomtype', id: string, category: string) => (images.get(`${kind}:${id}`) || [])
     .filter(image => image.category === category)
-    .map(image => ({ id: image.id, url: catalogImageUrl(image.id), alt: image.alt, ...(image.width && image.height ? { width: image.width, height: image.height } : {}) }));
+    .map(image => ({ id: image.id, url: catalogImageUrl(image.id), alt: image.alt, area: areaOf(areaById.get(image.id), image.alt), ...(image.width && image.height ? { width: image.width, height: image.height } : {}) }));
   const published = source.buildings.flatMap((building: SourceBuilding) => {
     const firstSample = apartments.find(apartment => apartment.building === building.name);
     const profile = buildings.get(building.id) || (env.PREVIEW_DEMO === '1' && firstSample ? {
@@ -69,7 +73,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
       amenities: pickList(lang === 'vi' ? detail.amenitiesVi : detail.amenitiesEn, lang === 'vi' ? detail.amenitiesEn : detail.amenitiesVi, []),
       services: pickList(lang === 'vi' ? detail.servicesVi : detail.servicesEn, lang === 'vi' ? detail.servicesEn : detail.servicesVi, legacyList(profile.services)),
       rules: pickText(lang === 'vi' ? detail.rulesVi : detail.rulesEn, lang === 'vi' ? detail.rulesEn : detail.rulesVi, ''),
-      images: photoGallery.length ? photoGallery : env.PREVIEW_DEMO === '1' && firstSample ? [{ id: `demo-building-${building.id}`, url: firstSample.image, alt: firstSample.imageDescription }] : [],
+      images: photoGallery.length ? photoGallery : env.PREVIEW_DEMO === '1' && firstSample ? [{ id: `demo-building-${building.id}`, url: firstSample.image, alt: firstSample.imageDescription, area: '' as const }] : [],
       floorplans: gallery('building', building.id, 'floorplan'),
       status: detailStatus(detail.status), openMonth: detailMonth(detail.openMonth),
       statusNote: pickText(lang === 'vi' ? detail.statusNoteVi : detail.statusNoteEn, lang === 'vi' ? detail.statusNoteEn : detail.statusNoteVi, ''),
@@ -129,7 +133,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
           rules: pickText(lang === 'vi' ? detail.rulesVi : detail.rulesEn, lang === 'vi' ? detail.rulesEn : detail.rulesVi, ''),
           minStayMonths: detailNumber(detail.minStayMonths),
           nightlyPrice: 0, monthlyPrice: profile.monthly_price,
-          images: photos.length ? photos : env.PREVIEW_DEMO === '1' && sample ? [{ id: `demo-room-${room.id}`, url: sample.image, alt: sample.imageDescription }] : [],
+          images: photos.length ? photos : env.PREVIEW_DEMO === '1' && sample ? [{ id: `demo-room-${room.id}`, url: sample.image, alt: sample.imageDescription, area: '' as const }] : [],
           floorplans: gallery('room', room.id, 'floorplan'),
         }];
       }),
