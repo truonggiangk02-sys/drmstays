@@ -36,7 +36,7 @@ function BuildingLocation({ building, row }: { building: SourceBuilding; row?: B
 function LandmarkForm({ row, buildings }: { row?: LandmarkRow; buildings: SourceBuilding[] }) {
   const isNew = !row;
   const assigned = row ? parseBuildingIds(row.building_ids_json) : [];
-  return <form action="/api/admin/locations" method="post" className="location-form" data-save-in-place={isNew ? undefined : ""}>
+  return <form action="/api/admin/locations" method="post" className="location-form">
     <input type="hidden" name="kind" value="landmark" /><input type="hidden" name="action" value={isNew ? 'create' : 'save'} />{row && <input type="hidden" name="id" value={row.id} />}
     <div className="location-coordinates"><label>Tên tiếng Việt<input name="nameVi" defaultValue={row?.name_vi} maxLength={160} required /></label><label>Tên tiếng Anh<input name="nameEn" defaultValue={row?.name_en} maxLength={160} /></label></div>
     <div className="location-coordinates"><label>Vĩ độ<input type="number" name="latitude" min="-90" max="90" step="any" defaultValue={row?.latitude ?? ''} required /></label><label>Kinh độ<input type="number" name="longitude" min="-180" max="180" step="any" defaultValue={row?.longitude ?? ''} required /></label></div>

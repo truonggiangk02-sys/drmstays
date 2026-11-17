@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
 import { HOME_KEYS, HOME_TEXT } from '@/lib/home-content';
 
-/** Saves the home page wording for the fields the form sends. A field left empty (or identical to the default) goes back to the default text. */
+/** Saves the home page wording. A field left empty (or identical to the default) goes back to the default text. */
 export async function POST(request: NextRequest) {
   if (!(await isAdmin()) || !validOrigin(request))
     return new NextResponse('Forbidden', { status: 403 });
@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
   const statements = [];
   for (const lang of ['vi', 'en'] as const) {
     for (const key of HOME_KEYS) {
-      if (!form.has(`${key}.${lang}`)) continue; // each section saves on its own; fields not sent keep their saved text
       const value = String(form.get(`${key}.${lang}`) ?? '').replace(/\r\n/g, '\n').trim().slice(0, 1500);
       const standard = (HOME_TEXT[lang] as Record<string, string>)[key];
       if (!value || value === standard) statements.push(env.DB.prepare('DELETE FROM home_texts WHERE key = ? AND lang = ?').bind(key, lang));

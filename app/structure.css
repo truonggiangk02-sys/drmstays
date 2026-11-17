@@ -32,8 +32,3 @@
 :where(.structure-site img[width][height]){height:auto}
 
 .structure-address{display:grid;gap:4px;margin:14px 0 0;font-style:normal;font-size:14px;line-height:1.5}.structure-address b{font-weight:600;margin-right:6px}.structure-address a{text-decoration:underline;text-underline-offset:3px}
-.content-admin-item form>button,.content-admin-new form>button{justify-self:start;width:auto;padding:10px 22px;font-size:13px}
-.content-admin-item .content-delete{margin-top:0;padding:8px 16px;background:transparent;color:#a83c35;border:1px solid #a83c35}
-.content-admin-item .content-delete:hover{background:#a83c35;color:#fff}
-.save-note{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;padding:11px 20px;background:#26513f;color:#fff;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.save-note.is-bad{background:#a83c35}

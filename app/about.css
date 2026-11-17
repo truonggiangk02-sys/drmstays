@@ -6,7 +6,7 @@
 /* Hero */
 .abt-hero { position: relative; display: flex; align-items: flex-end; min-height: min(88svh, 900px); overflow: hidden; color: #fff; background: #2b2a26; }
 .abt-hero > img, .abt-closing > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: abt-settle 2.4s cubic-bezier(.22, 1, .36, 1) both; }
-.abt-hero-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20, 18, 14, .35) 0%, rgba(20, 18, 14, .08) 40%, rgba(20, 18, 14, .62) 100%); }
+.abt-hero-veil { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 18, 14, .5) 0%, rgba(20, 18, 14, .2) 55%, rgba(20, 18, 14, 0) 85%), linear-gradient(180deg, rgba(20, 18, 14, .35) 0%, rgba(20, 18, 14, .12) 40%, rgba(20, 18, 14, .68) 100%); }
 .abt-hero-inner { position: relative; width: 100%; max-width: 1520px; margin: 0 auto; padding: clamp(110px, 14vw, 200px) clamp(24px, 4.5vw, 80px) clamp(36px, 5vw, 80px); }
 .abt-hero h1 { margin: 0; display: grid; gap: clamp(8px, 1vw, 16px); font-weight: 200; }
 .abt-brand { font-size: clamp(64px, 14vw, 230px); line-height: .9; letter-spacing: -.045em; text-transform: uppercase; animation: abt-rise 1.4s cubic-bezier(.22, 1, .36, 1) .1s both; }
@@ -71,7 +71,6 @@
 .abt-project dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px 26px; margin: 0; }
 .abt-project dt { margin-bottom: 4px; color: var(--mute); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; }
 .abt-project dd { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.4; }
-.reveal-ready .abt [data-reveal]:not(.is-in) 
 /* Closing */
 .abt-closing { position: relative; margin-top: clamp(70px, 9vw, 150px); display: flex; align-items: center; justify-content: flex-end; min-height: min(86svh, 820px); overflow: hidden; color: #fff; background: #3b362d; }
 .abt-closing .abt-hero-veil { background: linear-gradient(90deg, rgba(20, 18, 14, .05), rgba(20, 18, 14, .6)); }
@@ -296,3 +295,11 @@
 .svc2-cta h2 { margin: 0 0 14px; font-weight: 300; font-size: clamp(28px, 3.6vw, 52px); line-height: 1.1; letter-spacing: -.02em; text-transform: uppercase; text-wrap: balance; }
 .svc2-cta p { margin: 0 auto 26px; max-width: 520px; color: var(--mute); font-size: 16px; line-height: 1.8; }
 @media (max-width: 900px) { .svc2-cost-inner, .svc2-compact { grid-template-columns: 1fr; } }
+
+/* The hero always fits the window (the text sits at its bottom, so a hero taller than the window would push it off the screen) */
+.abt .abt-hero { min-height: calc(100svh - 120px); }
+.abt .abt-hero-inner { padding-top: clamp(56px, 9vh, 120px); padding-bottom: clamp(24px, 5vh, 56px); }
+.abt:not(.inv2) .abt-brand { font-size: clamp(44px, min(9vw, 14vh), 140px); }
+.abt .abt-hero-text { margin-top: clamp(12px, 2.4vh, 30px); }
+.abt .abt-hero-actions { margin-top: clamp(14px, 2.4vh, 30px); }
+.inv2-title { font-size: clamp(30px, min(4.6vw, 7.4vh), 68px); }
