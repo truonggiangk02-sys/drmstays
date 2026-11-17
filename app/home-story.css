@@ -390,11 +390,12 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
 @keyframes addon-settle { from { transform: scale(1.22); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .home-addon-grid > li, .home-addon-media { transition: none !important; animation: none !important; opacity: 1 !important; transform: none !important; } }
 
-/* Gallery grid keeps every photo's own proportions (no cropping): masonry columns */
-.hg-grid { display: block; column-count: 5; column-gap: clamp(10px, 1.2vw, 18px); }
-.hg-grid li { break-inside: avoid; margin-bottom: clamp(18px, 2vw, 30px); }
-.hg-grid img { aspect-ratio: auto; height: auto; min-height: 120px; }
-@media (max-width: 900px) { .hg-grid { column-count: 2; } }
+/* Gallery: justified rows. Every photo keeps its own proportions (no cropping) and each row fills the full width. */
+.hg-grid { --rh: clamp(170px, 17vw, 270px); display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(14px, 1.6vw, 24px) clamp(8px, 1vw, 14px); }
+.hg-grid::after { content: ''; flex-grow: 1000; }
+.hg-grid li { flex: calc(var(--r, 1.4) * 100) 1 calc(var(--r, 1.4) * var(--rh)); min-width: 0; }
+.hg-grid img { width: 100%; aspect-ratio: var(--r, 1.4); height: auto; min-height: 0; }
+@media (max-width: 700px) { .hg-grid { --rh: 120px; } }
 
 /* Phones: building mosaic without overlaps, smaller overlay text, shorter tab names, less cropping */
 @media (max-width: 700px) {
@@ -409,3 +410,7 @@ html .editorial-home .structure-section { max-width: 1680px; padding-right: clam
   .svc-card-photo { aspect-ratio: 4 / 3; }
 }
 @media (max-width: 700px) { .bento-grid > .bento-photo:last-child:nth-child(even) { grid-column: 1 / 3 !important; } }
+
+/* Hero headline: nothing sits behind it any more, and Vietnamese diacritics get a safe line height so lines never touch */
+.editorial-home .editorial-hero h1 { line-height: 1.22 !important; }
+html[lang="vi"] .editorial-home .editorial-hero h1 { line-height: 1.24 !important; }
