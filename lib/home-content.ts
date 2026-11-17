@@ -4,8 +4,8 @@ import { catalogImageUrl } from './image-url';
 /** Default wording of the home page, in both languages. The admin can override any of the keys listed in HOME_SECTIONS. */
 export const HOME_TEXT = {
   vi: {
-    hero: 'Xách vali đến. Mọi thứ còn lại, DRM Stays lo.',
-    heroLead: 'Căn hộ đầy đủ nội thất tại Đà Nẵng, thuê từ ngắn ngày đến dài ngày. Kèm theo là dịch vụ tour, xe và spa liên kết chất lượng, để bạn không mất công đi tìm.',
+    hero: 'Căn hộ đủ nội thất tại Đà Nẵng, kèm dịch vụ trọn gói.',
+    heroLead: 'Thuê từ ngắn ngày đến dài ngày. Tour, xe và spa liên kết chất lượng đã sẵn sàng, bạn không cần mất công đi tìm.',
     explore: 'Xem tòa nhà & phòng',
     introLabel: 'Đặt lịch xem phòng',
     introTitle: 'Chọn được phòng ưng ý, hãy hẹn lịch đến xem.',
@@ -21,8 +21,8 @@ export const HOME_TEXT = {
     contactTitle: 'Bắt đầu từ một cuộc trò chuyện.', contactBody: 'Cho chúng tôi biết bạn muốn ở khu vực nào, thời gian dự kiến và kiểu phòng phù hợp. Đội ngũ sẽ liên hệ trong giờ làm việc, 8:00 đến 17:00.', contact: 'Gửi yêu cầu tư vấn',
   },
   en: {
-    hero: 'Just bring your suitcase. DRM Stays handles the rest.',
-    heroLead: 'Fully furnished apartments in Da Nang, for short or long stays. Add trusted tour, transport and spa partners, so you never have to go looking.',
+    hero: 'Furnished apartments in Da Nang, with services included.',
+    heroLead: 'Rent for a short or long stay. Trusted tour, transport and spa partners are ready for you, so you never have to go looking.',
     explore: 'Explore buildings & rooms',
     introLabel: 'Book a viewing',
     introTitle: 'Found a room you like? Book a time to see it.',
