@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { imgSize } from '@/lib/image-url';
 
 type Photo = { url: string; alt: string; width?: number; height?: number; label: string; href: string };
-export type BentoSlide = { id: string; name: string; address: string; status: string; rooms: string; href: string; photos: Photo[] };
+export type BentoSlide = { id: string; note?: string; name: string; address: string; status: string; rooms: string; href: string; photos: Photo[] };
 
 const MAX_TILES = 11;
 const AUTOPLAY_MS = 7000;
@@ -91,7 +91,7 @@ export function HomeBento({ slides, labels }: { slides: BentoSlide[]; labels: { 
       <div className="bento-grid" key={slide.id} style={{ '--rows': rows } as React.CSSProperties}>
         <Link className="bento-photo bento-main" href={slide.href} style={{ '--i': 0 } as React.CSSProperties}>
           <img src={photos[0].url} alt={slide.name} loading="eager" {...imgSize(photos[0])} />
-          <span className="bento-status">{slide.status}</span>
+          <span className="bento-pills"><span className="bento-status">{slide.status}</span>{slide.note && <span className="bento-note">{slide.note}</span>}</span>
           <span className="bento-title"><strong>{slide.name}</strong><small>{slide.address}</small></span>
           <span className="bento-chip">{slide.rooms && <>{slide.rooms} · </>}{labels.open}<ArrowUpRight size={14} aria-hidden="true" /></span>
         </Link>

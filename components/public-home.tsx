@@ -77,13 +77,16 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
   const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
   const bentoSlides: BentoSlide[] = buildings.map((building, index) => {
     let list = [...new Map(galleryByBuilding[index].map(item => [item.url, item])).values()];
+    let note = '';
     // Only the building tab itself may show 3D renders and progress photos, and only while the building has no finished photos.
     if (!list.length) {
       const href = `/${lang}/buildings/${building.id}`, base = { buildingId: building.id, building: displayName(building.name), href };
-      list = [...(building.renders || []).map(photo => ({ ...photo, ...base, label: vi ? 'Phối cảnh 3D' : '3D render' })), ...(building.progressPhotos || []).map(photo => ({ ...photo, ...base, label: vi ? 'Tiến độ hoàn thiện' : 'Progress' }))];
+      // One note on the big photo says what these pictures are, instead of repeating a label on every tile.
+      list = [...(building.renders || []).map(photo => ({ ...photo, ...base, label: '' })), ...(building.progressPhotos || []).map(photo => ({ ...photo, ...base, label: '' }))];
+      note = building.renders?.length && building.progressPhotos?.length ? (vi ? 'Ảnh 3D và ảnh tiến độ' : '3D and progress photos') : building.renders?.length ? (vi ? 'Ảnh 3D minh họa' : 'Illustrative 3D images') : (vi ? 'Ảnh tiến độ' : 'Progress photos');
     }
     const count = buildingRoomCount(building);
-    return { id: building.id, name: displayName(building.name), address: building.address, href: `/${lang}/buildings/${building.id}`, photos: list.map(item => ({ url: item.url, alt: item.alt, width: item.width, height: item.height, label: item.label, href: item.href })),
+    return { id: building.id, note, name: displayName(building.name), address: building.address, href: `/${lang}/buildings/${building.id}`, photos: list.map(item => ({ url: item.url, alt: item.alt, width: item.width, height: item.height, label: item.label, href: item.href })),
       status: (building.status && buildingStatusLabel(building.status, building.openMonth || '', lang)) || (vi ? 'Đang vận hành' : 'Open'), rooms: count ? `${count} ${vi ? 'phòng' : 'rooms'}` : '' };
   }).filter(slide => slide.photos.length > 0);
   const addons = services.filter(item => item.position >= 20);

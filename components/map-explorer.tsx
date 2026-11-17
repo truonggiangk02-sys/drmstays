@@ -36,7 +36,7 @@ type Language = 'vi' | 'en';
 const formatMoney = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount);
 const text = {
   vi: {
-    heading: 'Chọn nơi ở theo cách bạn khám phá Đà Nẵng', subtitle: 'Chọn tòa nhà, xem các điểm đến trên bản đồ và mở đường đi xe máy trong Google Maps.',
+    heading: 'Tòa nhà và điểm đến trên bản đồ', subtitle: 'Chọn tòa nhà, xem các điểm đến trên bản đồ và mở đường đi xe máy trong Google Maps.',
     buildings: 'Tòa nhà', map: 'Bản đồ', rooms: 'loại phòng', from: 'Từ', month: 'tháng', view: 'Xem phòng trong tòa',
     places: 'Địa điểm trên bản đồ', select: 'Chọn một tòa để xem các điểm đến.',
     morePlaces: 'Xem thêm địa điểm', fewerPlaces: 'Thu gọn địa điểm',
@@ -48,7 +48,7 @@ const text = {
     mapHelp: 'Ghim xanh là tòa nhà, ghim nâu là địa điểm. Chạm ghim để xem chi tiết.', selectedPlace: 'Địa điểm đã chọn', reference: 'Vị trí tham khảo', confirmed: 'Vị trí đã xác nhận', allPlaces: 'địa điểm', closePlace: 'Đóng chi tiết địa điểm', closeCard: 'Đóng thẻ tòa nhà', viewList: 'Xem danh sách địa điểm', fitAll: 'Xem tất cả ghim', illustrative: 'Ảnh minh họa', previousPhoto: 'Ảnh trước', nextPhoto: 'Ảnh tiếp', routeOnMap: 'Tuyến trên bản đồ chưa sẵn sàng; hãy xem tuyến xe máy trong Google Maps.',
   },
   en: {
-    heading: 'Find a stay around your Da Nang plans', subtitle: 'Choose a building, explore places on the map and open motorcycle directions in Google Maps.',
+    heading: 'Buildings and places on the map', subtitle: 'Choose a building, explore places on the map and open motorcycle directions in Google Maps.',
     buildings: 'Buildings', map: 'Map', rooms: 'room types', from: 'From', month: 'month', view: 'Explore rooms',
     places: 'Places on the map', select: 'Choose a building to see places.',
     morePlaces: 'Show more places', fewerPlaces: 'Show fewer places',
