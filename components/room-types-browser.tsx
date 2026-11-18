@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { imgSize } from '@/lib/image-url';
+import { kindOf } from '@/lib/room-kind';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 export type BrowserType = { id: string; name: string; images: Photo[]; priceFrom: number; areaSqm: number; beds: number; maxGuests: number; roomCount: number; availableCount: number | null };
@@ -13,14 +14,6 @@ const text = {
   en: { building: 'Building', kind: 'Room style', all: 'All', from: 'From', month: 'month', guests: 'guests', beds: 'beds', free: 'available', none: 'fully booked', viewBuilding: 'View building', typesWord: 'room types', empty: 'No matching room types yet.', other: 'Other', studio: 'Studio', oneBed: '1 bedroom', twoBed: '2 bedrooms' },
 } as const;
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
-
-/** Rough room style taken from the room type's name, for the filter. */
-function kindOf(name: string): 'studio' | 'oneBed' | 'twoBed' | 'other' {
-  if (/studio/i.test(name)) return 'studio';
-  const bedrooms = /(\d)\s*(pn|phòng ngủ|bedroom|br)\b/i.exec(name);
-  if (bedrooms) return bedrooms[1] === '1' ? 'oneBed' : bedrooms[1] === '2' ? 'twoBed' : 'other';
-  return 'other';
-}
 
 export function RoomTypesBrowser({ lang, buildings, dateQuery }: { lang: 'vi' | 'en'; buildings: BrowserBuilding[]; dateQuery: string }) {
   const w = text[lang];
