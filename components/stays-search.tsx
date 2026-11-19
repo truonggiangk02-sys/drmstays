@@ -28,6 +28,7 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
   const [picked, setPicked] = useState<string[]>([]);
   const [guests, setGuests] = useState(0);
   const [open, setOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [hoverId, setHoverId] = useState('');
   const [focusId, setFocusId] = useState('');
   const [priceMin, setPriceMin] = useState('');
@@ -56,9 +57,10 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
   if (sort === 'down') shown = [...shown].sort((a, b) => b.price - a.price);
   const filtered = !!buildingId || !!kind || onlyFree || !!guests || picked.length > 0 || !!priceMin || !!priceMax;
   const activeCount = (buildingId ? 1 : 0) + (kind ? 1 : 0) + (guests ? 1 : 0) + (onlyFree ? 1 : 0) + picked.length + (priceMin || priceMax ? 1 : 0);
+  const closeDialog = () => { setClosing(true); window.setTimeout(() => { setOpen(false); setClosing(false); }, 260); };
   useEffect(() => {
     if (!open) return;
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') { setClosing(true); window.setTimeout(() => { setOpen(false); setClosing(false); }, 260); } };
     const before = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
@@ -82,9 +84,9 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
       <p className="stays-count" aria-live="polite"><strong>{shown.length}</strong> {w.results}</p>
       <label className="stays-sort">{w.sort}<select value={sort} onChange={event => setSort(event.target.value)}><option value="default">{w.sortDefault}</option><option value="up">{w.sortUp}</option><option value="down">{w.sortDown}</option></select></label>
     </div>
-    {open && <div className="stays-modal" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
+    {open && <div className={`stays-modal${closing ? ' is-closing' : ''}`} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) closeDialog(); }}>
       <div className="stays-dialog" role="dialog" aria-modal="true" aria-label={w.filters}>
-        <header><h2>{w.filters}</h2><button type="button" className="stays-close" aria-label={w.close} onClick={() => setOpen(false)}><X size={20} aria-hidden="true" /></button></header>
+        <header><h2>{w.filters}</h2><button type="button" className="stays-close" aria-label={w.close} onClick={closeDialog}><X size={20} aria-hidden="true" /></button></header>
         <div className="stays-dialog-body">
       {buildings.length > 1 && <div className="rt-chips is-block" role="group" aria-label={w.building}><span>{w.building}</span>
         <button type="button" aria-pressed={!buildingId} className={!buildingId ? 'is-on' : ''} onClick={() => setBuildingId('')}>{w.all}</button>
@@ -104,7 +106,7 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
           <div className="stays-price"><span>{w.priceFilter}</span><div><label>{w.priceMin}<input type="number" min="0" inputMode="decimal" value={priceMin} onChange={event => setPriceMin(event.target.value)} placeholder="0" /></label><i aria-hidden="true" /><label>{w.priceMax}<input type="number" min="0" inputMode="decimal" value={priceMax} onChange={event => setPriceMax(event.target.value)} placeholder="∞" /></label></div></div>
           {hasFreeInfo && <label className="stays-check"><input type="checkbox" checked={onlyFree} onChange={event => setOnlyFree(event.target.checked)} />{w.onlyFree}</label>}
         </div>
-        <footer><button type="button" className="stays-clear" onClick={reset} disabled={!filtered}>{w.clearAll}</button><button type="button" className="stays-apply" onClick={() => setOpen(false)}>{w.showResults} {shown.length} {w.results}</button></footer>
+        <footer><button type="button" className="stays-clear" onClick={reset} disabled={!filtered}>{w.clearAll}</button><button type="button" className="stays-apply" onClick={closeDialog}>{w.showResults} {shown.length} {w.results}</button></footer>
       </div>
     </div>}
 
@@ -125,7 +127,7 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
       </Link></li>;
     })}</ul>}
     </div>
-    <aside className="stays-aside"><StaysMap lang={lang} pins={pins} places={places} activeId={focusId || buildingId} hoverId={hoverId} onPick={pickBuilding} />
+    <aside className="stays-aside"><StaysMap lang={lang} pins={pins} places={places} activeId={focusId || buildingId} hoverId={hoverId} onPick={pickBuilding} visible={mapOpen} />
       <div className="stays-map-float"><button type="button" onClick={() => setOpen(true)}><SlidersHorizontal size={16} aria-hidden="true" />{w.filters}{activeCount > 0 && <b>{activeCount}</b>}</button><button type="button" className="is-light" onClick={() => { setMapOpen(false); setFocusId(''); }}>{w.closeMap}</button></div>
       {focusItem && <Link className="stays-map-card" href={focusItem.href}>{focusItem.images[0] ? <img src={focusItem.images[0].url} alt="" {...imgSize(focusItem.images[0])} /> : <span className="stays-soon-blank" aria-hidden="true" />}<span><small>{focusItem.building}</small><strong>{focusItem.name}</strong><em>{focusCount} {w.matching}{focusItem.price > 0 ? ` · ${w.from} ${money(focusItem.price)} ₫` : ''}</em></span><ArrowUpRight size={18} aria-hidden="true" /></Link>}
     </aside>
