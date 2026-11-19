@@ -23,10 +23,11 @@ export function SaveInPlace() {
       try {
         // getAttribute: a hidden input named "action" shadows form.action
         const body = new FormData(form, event.submitter);
-        const response = await fetch(form.getAttribute('action') || window.location.pathname, { method: 'POST', body, credentials: 'same-origin' });
-        if (!response.ok) throw new Error(String(response.status));
+        // redirect: 'manual' - the server answers a successful save with a redirect; there is no need to load that page here
+        const response = await fetch(form.getAttribute('action') || window.location.pathname, { method: 'POST', body, credentials: 'same-origin', redirect: 'manual' });
+        if (response.type !== 'opaqueredirect' && !response.ok) throw new Error(String(response.status));
         show('Đã lưu');
-        router.refresh();
+        if (form.getAttribute('data-save-in-place') !== 'quiet') router.refresh();
       } catch (error) {
         show(`Chưa lưu được (${error instanceof Error ? error.message : 'lỗi mạng'}). Thử lại hoặc tải lại trang.`, true);
       } finally { if (button) button.disabled = false; }
