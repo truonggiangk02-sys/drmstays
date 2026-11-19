@@ -109,3 +109,22 @@
 @media (max-width: 1099px) { .stays-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .stays-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 14px; } .stays-soon a { grid-template-columns: 72px 1fr; } .stays-soon img, .stays-soon-blank { width: 72px; height: 72px; } .stays-soon-cta { grid-column: 1 / -1; } }
 @media (max-width: 460px) { .stays-grid { grid-template-columns: 1fr; } }
+
+/* Stays: results beside a map that follows the filters */
+.stays-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 40%); gap: 28px; align-items: start; }
+.stays-split .stays-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1500px) { .stays-split .stays-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.stays-aside { position: sticky; top: 92px; height: calc(100svh - 112px); min-height: 420px; }
+.stays-map { position: relative; height: 100%; overflow: hidden; border-radius: 14px; border: 1px solid var(--line); background: #e8efe9; }
+.stays-map .map-canvas { position: absolute; inset: 0; }
+.stays-map-places { position: absolute; z-index: 500; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 99px; background: #fff; box-shadow: 0 6px 18px rgba(23, 55, 45, .18); font-size: 13px; font-weight: 600; }
+.stays-map-empty { position: absolute; z-index: 500; left: 12px; right: 12px; bottom: 12px; margin: 0; padding: 10px 14px; border-radius: 10px; background: #fff; font-size: 13.5px; }
+.stays-map-toggle { display: none; }
+@media (max-width: 960px) {
+  .stays-split { grid-template-columns: 1fr; }
+  .stays-aside { display: none; position: fixed; inset: 70px 0 0; z-index: 900; height: auto; padding: 0; background: #f8f8f4; }
+  .stays-split.is-map .stays-aside { display: block; }
+  .stays-split.is-map .stays-results { display: none; }
+  .stays-aside .stays-map { border-radius: 0; border: 0; }
+  .stays-map-toggle { display: inline-flex; position: fixed; z-index: 950; left: 50%; bottom: 20px; transform: translateX(-50%); min-height: 46px; align-items: center; padding: 0 24px; border: 0; border-radius: 99px; background: var(--ink); color: #fff; font: 600 14px 'Be Vietnam Pro', Arial, sans-serif; box-shadow: 0 10px 26px rgba(23, 55, 45, .35); cursor: pointer; }
+}
