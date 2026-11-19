@@ -113,7 +113,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
           <div><dt><CountUp to={3} /></dt><dd>{vi ? 'năm vận hành bất động sản cho thuê' : 'years operating rental property'}</dd></div>
           <div><dt><CountUp to={10} suffix="+" /></dt><dd>{vi ? 'dự án đã tư vấn' : 'projects advised'}</dd></div>
           {buildings.filter(building => building.status === 'open').length > 0 && <div><dt><CountUp to={buildings.filter(building => building.status === 'open').length} /></dt><dd>{vi ? 'tòa nhà đang vận hành' : 'buildings in operation'}</dd></div>}
-          <div><dt><CountUp to={6} /></dt><dd>{vi ? 'ngôn ngữ hỗ trợ khách' : 'languages supported'}</dd></div>
+          <div><dt><CountUp to={800} suffix="+" /></dt><dd>{vi ? 'lượt khách đã phục vụ từ năm 2025' : 'guest stays since 2025'}</dd></div>
         </dl>
       </div>
     </section>
