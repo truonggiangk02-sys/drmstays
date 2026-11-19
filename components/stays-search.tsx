@@ -4,20 +4,22 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { imgSize } from '@/lib/image-url';
 import { kindOf } from '@/lib/room-kind';
+import { StaysMap, type StaysPlace } from '@/components/stays-map';
 
 type Photo = { url: string; alt: string; width?: number; height?: number };
 /** One result: a room type (for example "Studio with desk" in building A) or a single room. */
 export type StayItem = { key: string; href: string; name: string; buildingId: string; building: string; address: string; images: Photo[]; price: number; areaSqm: number; beds: number; guests: number; tags: string[]; count: number; free: number | null; kindText: string };
+export type StaysBuildingPoint = { id: string; latitude: number | null; longitude: number | null; approximate: boolean };
 export type UpcomingBuilding = { id: string; name: string; address: string; status: string; href: string; photo?: Photo };
 
 const text = {
-  vi: { building: 'Tòa nhà', kind: 'Kiểu phòng', all: 'Tất cả', sort: 'Sắp xếp', sortDefault: 'Gợi ý', sortUp: 'Giá thấp đến cao', sortDown: 'Giá cao đến thấp', onlyFree: 'Chỉ phòng còn trống', amenities: 'Tiện nghi cần có', guestsFilter: 'Số khách', guestsOpt: 'khách trở lên', showMoreTags: 'Xem thêm tiện nghi', fewerTags: 'Thu gọn', results: 'kết quả', from: 'Từ', month: 'tháng', guests: 'khách', beds: 'giường', free: 'còn phòng', none: 'hết phòng', rooms: 'phòng', noPrice: 'Liên hệ để biết giá', empty: 'Chưa có phòng phù hợp với bộ lọc này.', reset: 'Bỏ lọc', studio: 'Studio', oneBed: '1 phòng ngủ', twoBed: '2 phòng ngủ', other: 'Khác', soon: 'SẮP MỞ', soonTitle: 'Tòa nhà sắp mở', soonCta: 'Đăng ký nhận thông tin' },
-  en: { building: 'Building', kind: 'Room style', all: 'All', sort: 'Sort', sortDefault: 'Suggested', sortUp: 'Price, low to high', sortDown: 'Price, high to low', onlyFree: 'Available rooms only', amenities: 'Must-have amenities', guestsFilter: 'Guests', guestsOpt: 'guests or more', showMoreTags: 'More amenities', fewerTags: 'Show fewer', results: 'results', from: 'From', month: 'month', guests: 'guests', beds: 'beds', free: 'available', none: 'fully booked', rooms: 'rooms', noPrice: 'Contact us for the price', empty: 'No rooms match these filters yet.', reset: 'Clear filters', studio: 'Studio', oneBed: '1 bedroom', twoBed: '2 bedrooms', other: 'Other', soon: 'OPENING SOON', soonTitle: 'Buildings opening soon', soonCta: 'Register your interest' },
+  vi: { building: 'Tòa nhà', kind: 'Kiểu phòng', all: 'Tất cả', sort: 'Sắp xếp', sortDefault: 'Gợi ý', showMap: 'Xem bản đồ', showList: 'Xem danh sách', sortUp: 'Giá thấp đến cao', sortDown: 'Giá cao đến thấp', onlyFree: 'Chỉ phòng còn trống', amenities: 'Tiện nghi cần có', guestsFilter: 'Số khách', guestsOpt: 'khách trở lên', showMoreTags: 'Xem thêm tiện nghi', fewerTags: 'Thu gọn', results: 'kết quả', from: 'Từ', month: 'tháng', guests: 'khách', beds: 'giường', free: 'còn phòng', none: 'hết phòng', rooms: 'phòng', noPrice: 'Liên hệ để biết giá', empty: 'Chưa có phòng phù hợp với bộ lọc này.', reset: 'Bỏ lọc', studio: 'Studio', oneBed: '1 phòng ngủ', twoBed: '2 phòng ngủ', other: 'Khác', soon: 'SẮP MỞ', soonTitle: 'Tòa nhà sắp mở', soonCta: 'Đăng ký nhận thông tin' },
+  en: { building: 'Building', kind: 'Room style', all: 'All', sort: 'Sort', sortDefault: 'Suggested', showMap: 'Show map', showList: 'Show list', sortUp: 'Price, low to high', sortDown: 'Price, high to low', onlyFree: 'Available rooms only', amenities: 'Must-have amenities', guestsFilter: 'Guests', guestsOpt: 'guests or more', showMoreTags: 'More amenities', fewerTags: 'Show fewer', results: 'results', from: 'From', month: 'month', guests: 'guests', beds: 'beds', free: 'available', none: 'fully booked', rooms: 'rooms', noPrice: 'Contact us for the price', empty: 'No rooms match these filters yet.', reset: 'Clear filters', studio: 'Studio', oneBed: '1 bedroom', twoBed: '2 bedrooms', other: 'Other', soon: 'OPENING SOON', soonTitle: 'Buildings opening soon', soonCta: 'Register your interest' },
 } as const;
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 /** The place to find a room: every room type and room of every building in one list, filtered by building, style, price and availability. */
-export function StaysSearch({ lang, items, upcoming, hasDates }: { lang: 'vi' | 'en'; items: StayItem[]; upcoming: UpcomingBuilding[]; hasDates: boolean }) {
+export function StaysSearch({ lang, items, upcoming, hasDates, points, places }: { lang: 'vi' | 'en'; items: StayItem[]; upcoming: UpcomingBuilding[]; hasDates: boolean; points: StaysBuildingPoint[]; places: StaysPlace[] }) {
   const w = text[lang];
   const [buildingId, setBuildingId] = useState('');
   const [kind, setKind] = useState('');
@@ -26,6 +28,8 @@ export function StaysSearch({ lang, items, upcoming, hasDates }: { lang: 'vi' | 
   const [picked, setPicked] = useState<string[]>([]);
   const [guests, setGuests] = useState(0);
   const [moreTags, setMoreTags] = useState(false);
+  const [hoverId, setHoverId] = useState('');
+  const [mapOpen, setMapOpen] = useState(false);
   const buildings = [...new Map(items.map(item => [item.buildingId, item.building])).entries()];
   const kinds = [...new Set(items.map(item => kindOf(`${item.name} ${item.kindText}`)))];
   const kindLabel = (key: string) => key === 'studio' ? w.studio : key === 'oneBed' ? w.oneBed : key === 'twoBed' ? w.twoBed : w.other;
@@ -39,7 +43,11 @@ export function StaysSearch({ lang, items, upcoming, hasDates }: { lang: 'vi' | 
   const guestSteps = [2, 3, 4, 6].filter(n => n <= maxGuests);
   const togglePicked = (key: string) => setPicked(list => list.includes(key) ? list.filter(own => own !== key) : [...list, key]);
   const hasFreeInfo = hasDates && items.some(item => item.free !== null);
-  let shown = items.filter(item => (!buildingId || item.buildingId === buildingId) && (!kind || kindOf(`${item.name} ${item.kindText}`) === kind) && (!onlyFree || item.free === null || item.free > 0) && (!guests || item.guests >= guests) && picked.every(key => item.tags.some(tag => tagKey(tag) === key)));
+  const matches = (item: StayItem) => (!kind || kindOf(`${item.name} ${item.kindText}`) === kind) && (!onlyFree || item.free === null || item.free > 0) && (!guests || item.guests >= guests) && picked.every(key => item.tags.some(tag => tagKey(tag) === key));
+  const matching = items.filter(matches);
+  let shown = matching.filter(item => !buildingId || item.buildingId === buildingId);
+  const pins = points.flatMap(point => { if (point.latitude === null || point.longitude === null) return []; const own = matching.filter(item => item.buildingId === point.id); if (!own.length) return []; const low = Math.min(...own.map(item => item.price || Infinity)); return [{ id: point.id, name: own[0].building, latitude: point.latitude, longitude: point.longitude, approximate: point.approximate, label: Number.isFinite(low) ? `${(low / 1_000_000).toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', { maximumFractionDigits: 1 })}${lang === 'vi' ? 'tr' : 'M'}` : '' }]; });
+  const pickBuilding = (id: string) => setBuildingId(current => current === id ? '' : id);
   if (sort === 'up') shown = [...shown].sort((a, b) => (a.price || Infinity) - (b.price || Infinity));
   if (sort === 'down') shown = [...shown].sort((a, b) => b.price - a.price);
   const filtered = !!buildingId || !!kind || onlyFree || !!guests || picked.length > 0;
@@ -72,10 +80,12 @@ export function StaysSearch({ lang, items, upcoming, hasDates }: { lang: 'vi' | 
       </div>
     </div>
 
+    <div className={`stays-split${mapOpen ? ' is-map' : ''}`}>
+    <div className="stays-results">
     {shown.length === 0 ? <p className="rt-empty">{w.empty} {filtered && <button type="button" className="stays-reset" onClick={reset}>{w.reset}</button>}</p> : <ul className="stays-grid">{shown.map((item, index) => {
       const first = item.images[0], second = item.images[1];
       const facts = [item.areaSqm > 0 ? `${item.areaSqm} m²` : '', item.guests > 0 ? `${item.guests} ${w.guests}` : '', item.beds > 0 ? `${item.beds} ${w.beds}` : '', item.count > 1 ? `${item.count} ${w.rooms}` : ''].filter(Boolean).join(' · ');
-      return <li key={item.key} style={{ '--i': index % 8 } as React.CSSProperties}><Link className="rt-card stays-card-item" href={item.href}>
+      return <li key={item.key} style={{ '--i': index % 8 } as React.CSSProperties} onMouseEnter={() => setHoverId(item.buildingId)} onMouseLeave={() => setHoverId('')}><Link className="rt-card stays-card-item" href={item.href}>
         <span className="rt-media stays-media">
           {first ? <img src={first.url} alt={first.alt || item.name} loading="lazy" {...imgSize(first)} /> : <span className="rt-blank" aria-hidden="true" />}
           {second && <img className="rt-second" src={second.url} alt="" loading="lazy" {...imgSize(second)} />}
@@ -86,6 +96,10 @@ export function StaysSearch({ lang, items, upcoming, hasDates }: { lang: 'vi' | 
         <span className="rt-meta">{item.price > 0 ? <strong>{w.from} {money(item.price)} ₫ / {w.month}</strong> : <strong>{w.noPrice}</strong>}{facts && <small>{facts}</small>}</span>
       </Link></li>;
     })}</ul>}
+    </div>
+    <aside className="stays-aside"><StaysMap lang={lang} pins={pins} places={places} activeId={buildingId} hoverId={hoverId} onPick={pickBuilding} /></aside>
+    </div>
+    <button type="button" className="stays-map-toggle" onClick={() => setMapOpen(value => !value)}>{mapOpen ? w.showList : w.showMap}</button>
 
     {upcoming.length > 0 && <div className="stays-soon">
       <h2>{w.soonTitle}</h2>
