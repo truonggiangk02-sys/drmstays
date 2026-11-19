@@ -18,11 +18,11 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
   const images = photos.length ? photos : [{ id: 'fallback', url: '/drm-stay-logo.png', alt: name }];
   // Every photo is shown below the mosaic, grouped by the part of the home it shows (bedroom, living room, bathroom ...).
   const groups = (() => {
-    if (!areas || photos.length <= 1) return [];
+    if (photos.length <= 1) return [];
     const labels = AREA_LABELS[lang];
-    const tagged = photos.some(photo => photo.area && isImageArea(photo.area));
-    // Nothing tagged yet: the mosaic (up to 5 photos) and the full-screen viewer already show everything, so no second list.
-    if (!tagged) return [];
+    const tagged = areas && photos.some(photo => photo.area && isImageArea(photo.area));
+    // Nothing tagged yet: one block with every photo, no headings.
+    if (!tagged) return [{ key: 'all', label: '', items: photos }];
     const list = IMAGE_AREAS.map(area => ({ key: area as string, label: labels[area], items: photos.filter(photo => photo.area === area) }));
     list.push({ key: 'other', label: labels.other, items: photos.filter(photo => !photo.area || !isImageArea(photo.area)) });
     return list.filter(group => group.items.length);
@@ -52,11 +52,15 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [images.length]);
 
-  return <><div className={`dv-gallery has-${shown.length}`} style={{ '--r': shape.toFixed(3) } as React.CSSProperties} role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
+  return <>
+  {groups.length === 0 ? <div className={`dv-gallery has-${shown.length}`} style={{ '--r': shape.toFixed(3) } as React.CSSProperties} role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
     {shown.map((image, position) => <button key={image.id} type="button" className="dv-tile" style={{ '--i': position } as React.CSSProperties} aria-label={`${w.open} ${position + 1}`} onClick={() => open(position)}>
       <img src={image.url} alt={image.alt || name} loading={position === 0 ? 'eager' : 'lazy'} {...size(image)} />
     </button>)}
-    {images.length > 1 && <button type="button" className="dv-all" onClick={() => open(0)}>{w.all(images.length)}</button>}
+  </div> : <div className="dv-areas" role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
+    {groups.length > 1 && <nav className="dv-areas-nav" aria-label={w.byArea}>{groups.map(group => <a key={group.key} href={`#dv-area-${group.key}`} onClick={event => { event.preventDefault(); document.getElementById(`dv-area-${group.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{group.label}<b>{group.items.length}</b></a>)}</nav>}
+    {groups.map(group => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area">{group.label && <h3>{group.label}<small>{group.items.length} {w.photos}</small></h3>}<JustifiedPhotos photos={group.items} label={`${name}${group.label ? ` — ${group.label}` : ''}`} target={230} maxRowHeight={340} onOpen={at => openPhoto(group.items[at])} /></section>)}
+  </div>}
     <dialog ref={dialog} className="dv-viewer" aria-label={name} onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
       <button type="button" className="dv-viewer-close" aria-label={w.close} onClick={() => dialog.current?.close()}>×</button>
       <div className="dv-viewer-stage">
@@ -67,10 +71,5 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
       <p className="dv-viewer-count" aria-live="polite">{(() => { const area = images[index].area; return area && isImageArea(area) ? `${AREA_LABELS[lang][area]} · ` : ''; })()}{index + 1} / {images.length}</p>
       {images.length > 1 && <div className="dv-viewer-strip">{images.map((image, position) => <button key={image.id} type="button" aria-pressed={position === index} aria-label={`${w.photo} ${position + 1}`} onClick={() => setIndex(position)}><img src={image.url} alt="" loading="lazy" /></button>)}</div>}
     </dialog>
-  </div>
-  {groups.length > 0 && <div className="dv-areas" aria-label={w.byArea}>
-    {groups.length > 1 && <nav className="dv-areas-nav" aria-label={w.byArea}>{groups.map(group => <a key={group.key} href={`#dv-area-${group.key}`} onClick={event => { event.preventDefault(); document.getElementById(`dv-area-${group.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{group.label}<b>{group.items.length}</b></a>)}</nav>}
-    {groups.map(group => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area"><h3>{group.label}<small>{group.items.length} {w.photos}</small></h3><JustifiedPhotos photos={group.items} label={`${name} — ${group.label}`} target={190} maxRowHeight={300} onOpen={at => openPhoto(group.items[at])} /></section>)}
-  </div>}
   </>;
 }
