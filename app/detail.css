@@ -177,3 +177,21 @@
 .dv-card-list li::before{content:'';position:absolute;left:2px;top:12px;width:7px;height:7px;border-radius:50%;background:#8a5f33}
 .dv-card-address a{margin-left:4px;color:#8a5f33;font-weight:700;text-decoration:none;white-space:nowrap}.dv-card-address a:hover{text-decoration:underline}
 .dv-card .dv-facts{margin-bottom:12px}
+
+/* Every photo of a stay, grouped by area (bedroom, living room, bathroom ...) */
+.dv-areas { margin: 34px 0 10px; }
+.dv-areas-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; position: sticky; top: 74px; z-index: 5; padding: 10px 0; background: linear-gradient(#f8f8f4 80%, rgba(248, 248, 244, 0)); }
+.dv-areas-nav a { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border: 1px solid #cfd8cf; border-radius: 99px; background: #fff; color: #17372d; font-size: 14px; font-weight: 600; text-decoration: none; transition: background .25s, color .25s, border-color .25s, transform .25s; }
+.dv-areas-nav a:hover { background: #17372d; border-color: #17372d; color: #fff; transform: translateY(-1px); }
+.dv-areas-nav b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: #eef2ec; color: #17372d; font-size: 12px; }
+.dv-areas-nav a:hover b { background: rgba(255, 255, 255, .2); color: #fff; }
+.dv-area { scroll-margin-top: 140px; padding: 26px 0 8px; }
+.dv-area h3 { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; font: 400 clamp(24px, 2.4vw, 32px)/1.15 'Playfair Display', Georgia, serif; color: #17372d; }
+.dv-area h3 small { font: 500 13px 'Be Vietnam Pro', Arial, sans-serif; color: #5c6c61; letter-spacing: .04em; }
+.jp-open { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; min-width: 0; }
+.jp-open img { transition: transform .8s cubic-bezier(.22, 1, .36, 1); }
+.jp-open:hover img { transform: scale(1.03); }
+.jp-open:focus-visible { outline: 3px solid #7d5636; outline-offset: 2px; }
+.jp-row .jp-open { flex: var(--r, 1.4) 1 0%; width: 0; }
+.jp-row .jp-open img { display: block; width: 100%; height: auto; flex: none; aspect-ratio: var(--r, 1.4); object-fit: cover; }
+.jp-row.is-wrap .jp-open { flex: calc(var(--r, 1.4) * 100) 1 calc(var(--r, 1.4) * 220px); width: auto; }
