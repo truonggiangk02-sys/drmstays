@@ -34,8 +34,8 @@ import { InvestorPage } from '@/components/investor-page';
 import { buildingStatusLabel } from '@/lib/building-status';
 import { getHomeContent } from '@/lib/home-content';
 import { jsonLd } from '@/lib/site';
-import { imgSize, LOGO_SIZE } from '@/lib/image-url';
-import { homeMeta, pageMeta } from '@/lib/page-meta';
+import { imgSize, LOGO_SIZE, OG_DEFAULT } from '@/lib/image-url';
+import { homeMeta, listingDescription, pageMeta } from '@/lib/page-meta';
 
 export const dynamic = 'force-dynamic';
 type Lang = 'vi' | 'en';
@@ -95,7 +95,12 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     const found = building || room || roomType;
     if (!found) return data ? { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } } : {};
     title = building ? propertyName(building.name) : roomType ? roomType.name : room!.name;
-    description = summarize(found.description || description);
+    const inBuilding = building ? undefined : data?.buildings.find(item => item.types.some(entry => entry.id === id) || item.rooms.some(entry => entry.id === id));
+    description = summarize(found.description || (building
+      ? listingDescription(lang, { kind: 'building', name: title, address: building.address, propertyType: building.propertyType, priceFrom: buildingFromPrice(building) })
+      : roomType
+        ? listingDescription(lang, { kind: 'type', name: title, building: inBuilding ? propertyName(inBuilding.name) : undefined, areaSqm: roomType.areaSqm, beds: roomType.beds, maxGuests: roomType.maxGuests, priceFrom: roomType.priceFrom })
+        : listingDescription(lang, { kind: 'room', name: title, building: inBuilding ? propertyName(inBuilding.name) : undefined, areaSqm: room!.areaSqm, beds: room!.beds, maxGuests: room!.maxGuests, priceFrom: room!.monthlyPrice })));
     const cover = building ? buildingPhotos(building)[0] : found.images[0];
     image = cover?.url;
     imageSize = imgSize(cover);
@@ -116,13 +121,13 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     const policy = policies[lang][section as PolicySection];
     if (policy) description = summarize(policy.intro);
   }
-  const ogImage = absoluteUrl(image || '/drm-stay-logo.png');
+  const ogImage = absoluteUrl(image || OG_DEFAULT.url);
   return {
     ...(title ? { title: section ? title : { absolute: title } } : {}),
     description,
     // Canonical and hreflang URLs must be absolute, so they are only emitted once SITE_URL is configured.
     ...(siteUrl() ? { alternates: { canonical: `/${lang}${path}`, languages: { vi: `/vi${path}`, en: `/en${path}`, 'x-default': `/vi${path}` } } } : {}),
-    openGraph: { type: 'website', locale: lang === 'vi' ? 'vi_VN' : 'en_US', title: title || homeTitle[lang], description, ...(siteUrl() ? { url: `/${lang}${path}` } : {}), ...(ogImage ? { images: [{ url: ogImage, ...(image ? imageSize : LOGO_SIZE) }] } : {}) },
+    openGraph: { type: 'website', locale: lang === 'vi' ? 'vi_VN' : 'en_US', title: title || homeTitle[lang], description, ...(siteUrl() ? { url: `/${lang}${path}` } : {}), ...(ogImage ? { images: [{ url: ogImage, ...(image ? imageSize : { width: OG_DEFAULT.width, height: OG_DEFAULT.height }) }] } : {}) },
   };
 }
 

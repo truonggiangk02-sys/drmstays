@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { homeMeta, pageMeta } from "@/lib/page-meta";
+import { homeMeta, listingDescription, pageMeta } from "@/lib/page-meta";
 import { propertyName } from "@/lib/site";
 import { sampleContent } from "@/lib/site-content";
 
@@ -58,4 +58,29 @@ describe("propertyName", () => {
     expect(propertyName("Doraemon Land Đỗ Bá")).toBe("Doraemon's Land Đỗ Bá");
   });
   it("leaves other names alone", () => expect(propertyName("AnLiu Apartment")).toBe("AnLiu Apartment"));
+});
+
+describe("listingDescription", () => {
+  it("describes a building from its facts (vi)", () => {
+    expect(listingDescription("vi", { kind: "building", name: "AnLiu Apartment", address: "Mai Thúc Lân", propertyType: "Căn hộ dịch vụ", priceFrom: 13000000 }))
+      .toBe("AnLiu Apartment, căn hộ dịch vụ tại Mai Thúc Lân. Giá thuê từ 13.000.000 đồng/tháng. Xem ảnh, tiện ích và gửi yêu cầu tư vấn.");
+  });
+  it("describes a room type with building, size, beds, guests and price (en)", () => {
+    expect(listingDescription("en", { kind: "type", name: "Studio 02", building: "Doraemon's Land", areaSqm: 28, beds: 1, maxGuests: 2, priceFrom: 11000000 }))
+      .toBe("Studio 02 at Doraemon's Land: 28 m², 1 bed, up to 2 guests. Rent from 11,000,000 VND per month. See photos and send an inquiry.");
+  });
+  it("copes with missing facts without leaving gaps or stray punctuation", () => {
+    expect(listingDescription("vi", { kind: "room", name: "301" })).toBe("Phòng 301. Xem ảnh và gửi yêu cầu tư vấn.");
+    expect(listingDescription("vi", { kind: "building", name: "AnLiu" })).toBe("AnLiu tại Đà Nẵng. Xem ảnh, tiện ích và gửi yêu cầu tư vấn.");
+    expect(listingDescription("en", { kind: "type", name: "Studio", priceFrom: 0 })).toBe("Studio. See photos and send an inquiry.");
+  });
+  it("is different for different pages, never the home description, and not too long", () => {
+    for (const lang of langs) {
+      const a = listingDescription(lang, { kind: "type", name: "Studio 02", building: "A", areaSqm: 28 });
+      const b = listingDescription(lang, { kind: "type", name: "Studio 03", building: "A", areaSqm: 28 });
+      expect(a).not.toBe(b);
+      expect(a).not.toBe(homeMeta[lang].description);
+      expect(listingDescription(lang, { kind: "building", name: "X".repeat(200), address: "Y".repeat(200) }).length).toBeLessThanOrEqual(160);
+    }
+  });
 });

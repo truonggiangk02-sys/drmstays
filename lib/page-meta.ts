@@ -1,4 +1,4 @@
-import { CONTACT } from "./site";
+import { CONTACT, summarize } from "./site";
 
 type Lang = "vi" | "en";
 type Meta = { title: string; description: string };
@@ -39,3 +39,44 @@ export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" |
     contact: { h1: "Contact DRM Stays in Da Nang", title: "Contact us for advice or a room in Da Nang", description: `Call ${CONTACT.phoneDisplay} or send an inquiry. Office open 8:00–17:00, multilingual support.` },
   },
 };
+
+export type ListingFacts = {
+  kind: "building" | "type" | "room";
+  name: string;
+  /** For a room type or room: the building it is in. */
+  building?: string;
+  address?: string;
+  propertyType?: string;
+  areaSqm?: number;
+  beds?: number;
+  maxGuests?: number;
+  /** Lowest monthly rent in VND (0 or missing when unknown). */
+  priceFrom?: number;
+};
+
+/**
+ * A description for a building, room type or room page that has none of its own, built from facts the page already shows, so no two
+ * listing pages repeat the home page's text. Always mentions the page's own name.
+ */
+export function listingDescription(lang: Lang, facts: ListingFacts): string {
+  const vi = lang === "vi";
+  const money = new Intl.NumberFormat(vi ? "vi-VN" : "en-US").format(facts.priceFrom || 0);
+  const price = facts.priceFrom && facts.priceFrom > 0 ? (vi ? ` Giá thuê từ ${money} đồng/tháng.` : ` Rent from ${money} VND per month.`) : "";
+  if (facts.kind === "building") {
+    const kind = facts.propertyType ? `, ${facts.propertyType.toLowerCase()}` : "";
+    const where = facts.address || (vi ? "Đà Nẵng" : "Da Nang");
+    return summarize(vi
+      ? `${facts.name}${kind} tại ${where}.${price} Xem ảnh, tiện ích và gửi yêu cầu tư vấn.`
+      : `${facts.name}${kind} at ${where}.${price} See photos and amenities, and send an inquiry.`);
+  }
+  const details = [
+    facts.areaSqm ? `${facts.areaSqm} m²` : "",
+    facts.beds ? (vi ? `${facts.beds} giường` : `${facts.beds} ${facts.beds === 1 ? "bed" : "beds"}`) : "",
+    facts.maxGuests ? (vi ? `tối đa ${facts.maxGuests} khách` : `up to ${facts.maxGuests} guests`) : "",
+  ].filter(Boolean).join(", ");
+  const label = facts.kind === "room" ? (vi ? `Phòng ${facts.name}` : `Room ${facts.name}`) : facts.name;
+  const place = facts.building ? (vi ? ` tại ${facts.building}` : ` at ${facts.building}`) : "";
+  return summarize(vi
+    ? `${label}${place}${details ? `: ${details}` : ""}.${price} Xem ảnh và gửi yêu cầu tư vấn.`
+    : `${label}${place}${details ? `: ${details}` : ""}.${price} See photos and send an inquiry.`);
+}
