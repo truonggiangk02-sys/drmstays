@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
+import { saveInquiry } from '@/lib/inquiries';
 
 export async function POST(request: NextRequest) {
   if (!(await isAdmin()) || !validOrigin(request))
@@ -11,8 +12,6 @@ export async function POST(request: NextRequest) {
   const status = String(form.get('status') || '');
   if (!/^[0-9a-f-]{36}$/i.test(id) || !['new', 'contacted', 'closed'].includes(status))
     return new NextResponse('Invalid contact', { status: 400 });
-  await env.DB.prepare('UPDATE catalog_inquiries SET status = ? WHERE id = ?')
-    .bind(status, id)
-    .run();
+  await saveInquiry('catalog_inquiries', id, status, form.has('note') ? String(form.get('note') || '') : null);
   return NextResponse.redirect(new URL('/admin/catalog-inquiries', request.url), 303);
 }

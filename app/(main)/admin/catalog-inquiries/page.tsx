@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
+import { InquiryFilters } from '@/components/inquiry-filters';
+import { listInquiries } from '@/lib/inquiries';
 import { getFreshStaydeskCatalog } from '@/lib/staydesk-catalog';
 
 export const dynamic = 'force-dynamic';
@@ -19,12 +21,13 @@ type Contact = {
   status: string;
   telegram_status: string;
   created_at: string;
+  note?: string;
 };
 
 export default async function CatalogInquiries({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; q?: string }>;
 }) {
   if (!(await isAdmin())) redirect('/admin/login');
   if (!env.DB)
@@ -33,19 +36,10 @@ export default async function CatalogInquiries({
         <p>Database unavailable.</p>
       </AdminShell>
     );
-  const requestedPage = Number((await searchParams).page || 1);
-  const page =
-    Number.isSafeInteger(requestedPage) &&
-    requestedPage > 0 &&
-    Number.isSafeInteger((requestedPage - 1) * 50)
-      ? requestedPage
-      : 1;
-  const [rows, source, typeRows] = await Promise.all([
-    env.DB.prepare(
-      'SELECT id, source_room_id, source_type_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at FROM catalog_inquiries ORDER BY created_at DESC, id DESC LIMIT 51 OFFSET ?',
-    )
-      .bind((page - 1) * 50)
-      .all<Contact>(),
+  const query = await searchParams;
+  const page = Number(query.page || 1);
+  const [list, source, typeRows] = await Promise.all([
+    listInquiries<Contact>('catalog_inquiries', 'id, source_room_id, source_type_id, name, phone, email, check_in, check_out, message, status, telegram_status, created_at', ['name', 'phone', 'email', 'message'], { status: query.status, q: query.q, page }),
     getFreshStaydeskCatalog().catch(() => null),
     env.DB.prepare('SELECT id, name_vi, name_en FROM catalog_room_types').all<{ id: string; name_vi: string; name_en: string }>(),
   ]);
@@ -55,13 +49,17 @@ export default async function CatalogInquiries({
       building.rooms.map((room) => [room.id, room.name] as const),
     ) || [],
   );
-  const items = (rows.results || []).slice(0, 50);
-  const hasNext = (rows.results || []).length > 50;
+  const items = list.rows;
+  const hasNext = list.hasNext;
+  const keep = new URLSearchParams(); if (query.status) keep.set('status', query.status); if (query.q) keep.set('q', query.q);
+  const pageHref = (n: number) => { const params = new URLSearchParams(keep); params.set('page', String(n)); return `/admin/catalog-inquiries?${params}`; };
   return (
     <AdminShell title="Catalog contacts">
       <p className="admin-hint">
         Guest requests saved from the public catalog. Each request is also sent to Telegram; if the alert shows Failed, contact the guest from this list.
       </p>
+      {!list.hasNote && <p className="cx-flash" role="alert">Chưa áp dụng migration <strong>0018_inquiry_notes</strong>: chưa lưu được ghi chú. Deploy với -Migrate (Windows) hoặc --migrate (Mac).</p>}
+      <InquiryFilters base="/admin/catalog-inquiries" status={query.status} q={query.q} counts={list.counts} />
       <div className="admin-table-wrap cms-inquiries">
         <table>
           <thead>
@@ -95,13 +93,14 @@ export default async function CatalogInquiries({
                 </td>
                 <td>{item.message || '—'}</td>
                 <td>
-                  <form action="/api/admin/catalog-inquiries" method="post">
+                  <form action="/api/admin/catalog-inquiries" method="post" data-save-in-place="">
                     <input type="hidden" name="id" value={item.id} />
                     <select name="status" defaultValue={item.status}>
                       <option value="new">New</option>
                       <option value="contacted">Contacted</option>
                       <option value="closed">Closed</option>
                     </select>
+                    {list.hasNote && <textarea name="note" rows={2} maxLength={1000} defaultValue={item.note || ''} placeholder="Ghi chú nội bộ (chỉ admin thấy)" />}
                     <button>Save</button>
                   </form>
                   <small className={item.telegram_status === 'failed' ? 'alert-failed' : undefined}>
@@ -113,12 +112,12 @@ export default async function CatalogInquiries({
             ))}
           </tbody>
         </table>
-        {!items.length && <p className="empty">No contacts on this page.</p>}
+        {!items.length && <p className="empty">{query.q || query.status ? 'Không có yêu cầu nào khớp bộ lọc.' : 'No contacts on this page.'}</p>}
       </div>
       <nav aria-label="Contact pages">
-        {page > 1 && <Link href={`/admin/catalog-inquiries?page=${page - 1}`}>← Previous</Link>}
+        {page > 1 && <Link href={pageHref(page - 1)}>← Previous</Link>}
         <span> Page {page} </span>
-        {hasNext && <Link href={`/admin/catalog-inquiries?page=${page + 1}`}>Next →</Link>}
+        {hasNext && <Link href={pageHref(page + 1)}>Next →</Link>}
       </nav>
     </AdminShell>
   );
