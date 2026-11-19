@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { buildingFromPrice, buildingPhotos, buildingRoomCount } from './building-media';
+import { latestBackup } from './backup';
 import { pendingMigrations } from './migrations';
 import { getPublicCatalog } from './public-catalog';
 import { getFreshStaydeskCatalog } from './staydesk-catalog';
@@ -59,6 +60,15 @@ export async function runHealthChecks(): Promise<Check[]> {
       for (const row of sample.results || []) if (!(await env.BUCKET.head(row.object_key))) lost.push(row.id.slice(0, 8));
       checks.push(lost.length ? fail('Kho ảnh', 'r2', 'Ảnh trong kho', `${lost.length}/${(sample.results || []).length} ảnh mẫu có trong danh sách nhưng thiếu file: ${lost.join(', ')}`) : ok('Kho ảnh', 'r2', 'Ảnh trong kho', `${(sample.results || []).length} ảnh mẫu đều có file.`));
     } catch (error) { checks.push(fail('Kho ảnh', 'r2', 'Ảnh trong kho', reason(error))); }
+  }
+
+  // 5b. Backups
+  if (env.BUCKET) {
+    try {
+      const last = await latestBackup(env.BUCKET);
+      const age = last ? (Date.now() - Date.parse(last.date)) / 86_400_000 : Infinity;
+      checks.push(!last ? warn('Sao lưu', 'backup', 'Sao lưu database', 'Chưa có bản sao lưu nào. Bản đầu tiên chạy lúc 03:00 sáng sau khi deploy bản có lịch sao lưu.') : age > 2.5 ? warn('Sao lưu', 'backup', 'Sao lưu database', `Bản mới nhất đã cũ: ${last.date}. Kiểm tra lịch chạy (Cron Triggers) của Worker.`) : ok('Sao lưu', 'backup', 'Sao lưu database', `Bản mới nhất ${last.date}, ${last.rows} dòng dữ liệu.`));
+    } catch (error) { checks.push(warn('Sao lưu', 'backup', 'Sao lưu database', reason(error))); }
   }
 
   // 6. Alerts

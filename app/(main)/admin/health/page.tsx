@@ -6,12 +6,17 @@ import { runHealthChecks } from '@/lib/health';
 export const dynamic = 'force-dynamic';
 const icon = { ok: '✔', warn: '!', fail: '✖' } as const;
 
-export default async function HealthPage() {
+export default async function HealthPage({ searchParams }: { searchParams: Promise<{ backup?: string }> }) {
   if (!(await isAdmin())) redirect('/admin/login');
+  const backup = (await searchParams).backup || '';
   const checks = await runHealthChecks();
   const groups = [...new Set(checks.map(check => check.group))];
   const failed = checks.filter(check => check.status === 'fail').length, warned = checks.filter(check => check.status === 'warn').length;
   return <AdminShell title="Kiểm tra web">
+    {backup.startsWith('ok:') && <p className="cx-flash" role="status">Đã sao lưu xong ({backup.slice(3)} dòng dữ liệu).</p>}
+    {backup === 'failed' && <p className="cx-flash" role="alert">Sao lưu thất bại. Xem lỗi bằng <code>wrangler tail</code> (dòng “Manual backup failed”). Trên gói Cloudflare miễn phí, nguyên nhân thường là vượt giới hạn thời gian CPU hoặc số truy vấn.</p>}
+    {backup === 'unavailable' && <p className="cx-flash" role="alert">Chưa có kết nối database hoặc kho ảnh (R2) để sao lưu.</p>}
+    <form action="/api/admin/backup" method="post"><button type="submit">Sao lưu database ngay</button></form>
     <p className={`hc-summary ${failed ? 'is-fail' : warned ? 'is-warn' : 'is-ok'}`}>{failed ? `${failed} lỗi cần sửa` : warned ? `Không có lỗi, ${warned} điều cần chú ý` : 'Mọi thứ đều ổn'} · {checks.length} mục kiểm tra. Tải lại trang để kiểm tra lại.</p>
     {groups.map(group => <section className="hc-group" key={group}><h2>{group}</h2><ul>{checks.filter(check => check.group === group).map(check => <li key={check.id} className={`is-${check.status}`}><i aria-hidden="true">{icon[check.status]}</i><div><strong>{check.label}</strong><span>{check.detail}</span></div></li>)}</ul></section>)}
     <style>{`.hc-summary{padding:14px 18px;font-weight:700;border-left:5px solid}.hc-summary.is-ok{background:#e3f1e8;border-color:#2f8f5b}.hc-summary.is-warn{background:#fbf1de;border-color:#c98a1b}.hc-summary.is-fail{background:#fbe5e1;border-color:#c24433}
