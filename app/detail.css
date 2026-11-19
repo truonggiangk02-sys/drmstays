@@ -200,3 +200,4 @@
 .dv-area h3 { font-size: clamp(20px, 1.8vw, 24px); margin-bottom: 10px; }
 .dv-area .jp { gap: 6px; } .dv-area .jp-row { gap: 6px; }
 .dv-areas-nav a { min-height: 34px; padding: 0 13px; font-size: 13px; }
+.dv-viewer-stage img { width: auto; height: auto; }
