@@ -142,7 +142,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
 
     {reviewCards.length > 0 && <section className="home-reviews structure-section" aria-labelledby="home-reviews-title" data-reveal>
       <div className="home-reviews-head"><span className="editorial-section-label">{vi ? 'KHÁCH HÀNG NÓI GÌ' : 'GUEST REVIEWS'}</span><h2 id="home-reviews-title">{vi ? 'Khách đã ở nói gì về chúng tôi' : 'What our guests are saying'}</h2><p>{vi ? 'Đánh giá thật từ Airbnb và Google Maps, giữ nguyên lời khách.' : 'Real reviews from Airbnb and Google Maps, in the guests’ own words.'}</p></div>
-      <ReviewCards items={reviewCards} prev={vi ? 'Đánh giá trước' : 'Previous reviews'} next={vi ? 'Đánh giá tiếp' : 'Next reviews'} />
+      <ReviewCards items={reviewCards} />
     </section>}
 
     <section className="editorial-details structure-section" aria-label={lang === 'vi' ? 'Vì sao thuê tại DRM Stays' : 'Why rent with DRM Stays'}>

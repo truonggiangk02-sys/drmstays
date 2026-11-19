@@ -301,3 +301,5 @@
 .abt .abt-hero-text { margin-top: clamp(12px, 2.4vh, 30px); }
 .abt .abt-hero-actions { margin-top: clamp(14px, 2.4vh, 30px); }
 .inv2-title { font-size: clamp(30px, min(4.6vw, 7.4vh), 68px); }
+.inv2-shots.is-3, .inv2-shots.is-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.inv2-how .is-stage { max-width: 440px; margin-top: 18px; }

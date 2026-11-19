@@ -78,34 +78,37 @@ const initials = (name: string) => name.replace(/\(.*?\)/g, '').split(/[\s·,-]+
 
 export type ReviewCard = { id: string; name: string; detail: string; source: string; date: string; note: string; stars: boolean; quote: string; image?: { url: string; alt: string; width?: number; height?: number } };
 
-/** Photo cards, each with one guest review; swipe or use the arrows to see more. */
-export function ReviewCards({ items, prev, next }: { items: ReviewCard[]; prev: string; next: string }) {
+/** Photo cards, each with one guest review. They glide along by themselves (pausing while the visitor hovers, touches or focuses them); swiping still works. */
+export function ReviewCards({ items }: { items: ReviewCard[] }) {
   const track = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [edge, setEdge] = useState({ start: true, end: false });
   useEffect(() => {
     const element = track.current;
-    if (!element) return;
-    const update = () => {
+    if (!element || reduced() || items.length < 2) return;
+    let paused = false, visible = false;
+    const hold = () => { paused = true; };
+    const release = () => { paused = false; };
+    const observer = new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? false; }, { threshold: 0.3 });
+    observer.observe(element);
+    const timer = window.setInterval(() => {
+      if (paused || !visible || document.hidden) return;
       const max = element.scrollWidth - element.clientWidth;
-      setProgress(max > 0 ? element.scrollLeft / max : 1);
-      setEdge({ start: element.scrollLeft < 8, end: element.scrollLeft >= max - 8 });
+      if (max <= 8) return;
+      if (element.scrollLeft >= max - 8) { element.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+      const cards = element.children;
+      const step = cards.length > 1 ? (cards[1] as HTMLElement).offsetLeft - (cards[0] as HTMLElement).offsetLeft : element.clientWidth * 0.8;
+      element.scrollBy({ left: step, behavior: 'smooth' });
+    }, 4200);
+    element.addEventListener('pointerenter', hold); element.addEventListener('pointerleave', release);
+    element.addEventListener('focusin', hold); element.addEventListener('focusout', release);
+    element.addEventListener('touchstart', hold, { passive: true }); element.addEventListener('touchend', () => window.setTimeout(release, 3000), { passive: true });
+    return () => {
+      window.clearInterval(timer); observer.disconnect();
+      element.removeEventListener('pointerenter', hold); element.removeEventListener('pointerleave', release);
+      element.removeEventListener('focusin', hold); element.removeEventListener('focusout', release);
+      element.removeEventListener('touchstart', hold);
     };
-    update();
-    element.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => { element.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
   }, [items.length]);
-  const go = (direction: 1 | -1) => {
-    const element = track.current;
-    if (element) element.scrollBy({ left: direction * Math.min(element.clientWidth * 0.8, 460), behavior: reduced() ? 'auto' : 'smooth' });
-  };
   return <div className="home-rcards">
-    <div className="home-rcards-controls">
-      <div className="home-rcards-bar" aria-hidden="true"><i style={{ width: `${Math.max(12, progress * 100)}%` }} /></div>
-      <button type="button" aria-label={prev} disabled={edge.start} onClick={() => go(-1)}>←</button>
-      <button type="button" aria-label={next} disabled={edge.end} onClick={() => go(1)}>→</button>
-    </div>
     <div className="home-rcards-track" ref={track} tabIndex={0} role="group" aria-roledescription="carousel">
       {items.map(item => {
         
