@@ -21,16 +21,16 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
     if (!areas || photos.length <= 1) return [];
     const labels = AREA_LABELS[lang];
     const tagged = photos.some(photo => photo.area && isImageArea(photo.area));
-    // Nothing tagged yet: do not repeat the mosaic; just show the photos the mosaic leaves out.
-    if (!tagged) return photos.length > 3 ? [{ key: 'more', label: w.more, items: photos.slice(3) }] : [];
+    // Nothing tagged yet: the mosaic (up to 5 photos) and the full-screen viewer already show everything, so no second list.
+    if (!tagged) return [];
     const list = IMAGE_AREAS.map(area => ({ key: area as string, label: labels[area], items: photos.filter(photo => photo.area === area) }));
     list.push({ key: 'other', label: labels.other, items: photos.filter(photo => !photo.area || !isImageArea(photo.area)) });
     return list.filter(group => group.items.length);
   })();
   const [index, setIndex] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
-  // 1, 2 or 3 tiles: one large photo plus two beside it keeps every tile close to a photo's own shape, so little is cropped
-  const shown = images.slice(0, Math.min(3, images.length));
+  // 1, 2, 3 or 5 tiles: one large photo plus a few beside it keeps every tile close to a photo's own shape, so little is cropped
+  const shown = images.slice(0, images.length >= 5 ? 5 : Math.min(3, images.length));
   // the frame follows the shape of the first photo (kept within a sensible range)
   const first = images[0] as Photo;
   const shape = first.width && first.height ? Math.min(1.9, Math.max(1.15, first.width / first.height)) : 1.5;
