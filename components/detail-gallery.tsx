@@ -8,8 +8,8 @@ import { JustifiedPhotos } from '@/components/justified-photos';
 type Photo = { id: string; url: string; alt: string; width?: number; height?: number; area?: string };
 
 const words = {
-  vi: { all: (n: number) => `Xem tất cả ${n} ảnh`, close: 'Đóng', previous: 'Ảnh trước', next: 'Ảnh tiếp', photo: 'Ảnh', open: 'Phóng to ảnh', byArea: 'Ảnh theo khu vực', every: 'Tất cả ảnh', photos: 'ảnh' },
-  en: { all: (n: number) => `Show all ${n} photos`, close: 'Close', previous: 'Previous photo', next: 'Next photo', photo: 'Photo', open: 'Enlarge photo', byArea: 'Photos by area', every: 'All photos', photos: 'photos' },
+  vi: { all: (n: number) => `Xem tất cả ${n} ảnh`, close: 'Đóng', previous: 'Ảnh trước', next: 'Ảnh tiếp', photo: 'Ảnh', open: 'Phóng to ảnh', byArea: 'Ảnh theo khu vực', every: 'Tất cả ảnh', more: 'Thêm ảnh', photos: 'ảnh' },
+  en: { all: (n: number) => `Show all ${n} photos`, close: 'Close', previous: 'Previous photo', next: 'Next photo', photo: 'Photo', open: 'Enlarge photo', byArea: 'Photos by area', every: 'All photos', more: 'More photos', photos: 'photos' },
 } as const;
 
 /** Photo mosaic (one big photo plus a few small ones, like a listing page) with a full-screen viewer. */
@@ -21,7 +21,8 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
     if (!areas || photos.length <= 1) return [];
     const labels = AREA_LABELS[lang];
     const tagged = photos.some(photo => photo.area && isImageArea(photo.area));
-    if (!tagged) return [{ key: 'all', label: w.every, items: photos }];
+    // Nothing tagged yet: do not repeat the mosaic; just show the photos the mosaic leaves out.
+    if (!tagged) return photos.length > 3 ? [{ key: 'more', label: w.more, items: photos.slice(3) }] : [];
     const list = IMAGE_AREAS.map(area => ({ key: area as string, label: labels[area], items: photos.filter(photo => photo.area === area) }));
     list.push({ key: 'other', label: labels.other, items: photos.filter(photo => !photo.area || !isImageArea(photo.area)) });
     return list.filter(group => group.items.length);
