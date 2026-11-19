@@ -1,7 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, SlidersHorizontal, X } from 'lucide-react';
 import { imgSize } from '@/lib/image-url';
 import { kindOf } from '@/lib/room-kind';
 import { StaysMap, type StaysPlace } from '@/components/stays-map';
@@ -13,8 +13,8 @@ export type StaysBuildingPoint = { id: string; latitude: number | null; longitud
 export type UpcomingBuilding = { id: string; name: string; address: string; status: string; href: string; photo?: Photo };
 
 const text = {
-  vi: { building: 'Tòa nhà', kind: 'Kiểu phòng', all: 'Tất cả', sort: 'Sắp xếp', sortDefault: 'Gợi ý', showMap: 'Xem bản đồ', showList: 'Xem danh sách', sortUp: 'Giá thấp đến cao', sortDown: 'Giá cao đến thấp', onlyFree: 'Chỉ phòng còn trống', amenities: 'Tiện nghi cần có', guestsFilter: 'Số khách', guestsOpt: 'khách trở lên', showMoreTags: 'Xem thêm tiện nghi', fewerTags: 'Thu gọn', results: 'kết quả', from: 'Từ', month: 'tháng', guests: 'khách', beds: 'giường', free: 'còn phòng', none: 'hết phòng', rooms: 'phòng', noPrice: 'Liên hệ để biết giá', empty: 'Chưa có phòng phù hợp với bộ lọc này.', reset: 'Bỏ lọc', studio: 'Studio', oneBed: '1 phòng ngủ', twoBed: '2 phòng ngủ', other: 'Khác', soon: 'SẮP MỞ', soonTitle: 'Tòa nhà sắp mở', soonCta: 'Đăng ký nhận thông tin' },
-  en: { building: 'Building', kind: 'Room style', all: 'All', sort: 'Sort', sortDefault: 'Suggested', showMap: 'Show map', showList: 'Show list', sortUp: 'Price, low to high', sortDown: 'Price, high to low', onlyFree: 'Available rooms only', amenities: 'Must-have amenities', guestsFilter: 'Guests', guestsOpt: 'guests or more', showMoreTags: 'More amenities', fewerTags: 'Show fewer', results: 'results', from: 'From', month: 'month', guests: 'guests', beds: 'beds', free: 'available', none: 'fully booked', rooms: 'rooms', noPrice: 'Contact us for the price', empty: 'No rooms match these filters yet.', reset: 'Clear filters', studio: 'Studio', oneBed: '1 bedroom', twoBed: '2 bedrooms', other: 'Other', soon: 'OPENING SOON', soonTitle: 'Buildings opening soon', soonCta: 'Register your interest' },
+  vi: { building: 'Tòa nhà', kind: 'Kiểu phòng', all: 'Tất cả', sort: 'Sắp xếp', sortDefault: 'Gợi ý', showMap: 'Xem bản đồ', showList: 'Xem danh sách', sortUp: 'Giá thấp đến cao', sortDown: 'Giá cao đến thấp', onlyFree: 'Chỉ phòng còn trống', amenities: 'Tiện nghi cần có', guestsFilter: 'Số khách', guestsOpt: 'khách trở lên', filters: 'Bộ lọc', close: 'Đóng', clearAll: 'Xóa tất cả', showResults: 'Xem', results: 'kết quả', from: 'Từ', month: 'tháng', guests: 'khách', beds: 'giường', free: 'còn phòng', none: 'hết phòng', rooms: 'phòng', noPrice: 'Liên hệ để biết giá', empty: 'Chưa có phòng phù hợp với bộ lọc này.', reset: 'Bỏ lọc', studio: 'Studio', oneBed: '1 phòng ngủ', twoBed: '2 phòng ngủ', other: 'Khác', soon: 'SẮP MỞ', soonTitle: 'Tòa nhà sắp mở', soonCta: 'Đăng ký nhận thông tin' },
+  en: { building: 'Building', kind: 'Room style', all: 'All', sort: 'Sort', sortDefault: 'Suggested', showMap: 'Show map', showList: 'Show list', sortUp: 'Price, low to high', sortDown: 'Price, high to low', onlyFree: 'Available rooms only', amenities: 'Must-have amenities', guestsFilter: 'Guests', guestsOpt: 'guests or more', filters: 'Filters', close: 'Close', clearAll: 'Clear all', showResults: 'Show', results: 'results', from: 'From', month: 'month', guests: 'guests', beds: 'beds', free: 'available', none: 'fully booked', rooms: 'rooms', noPrice: 'Contact us for the price', empty: 'No rooms match these filters yet.', reset: 'Clear filters', studio: 'Studio', oneBed: '1 bedroom', twoBed: '2 bedrooms', other: 'Other', soon: 'OPENING SOON', soonTitle: 'Buildings opening soon', soonCta: 'Register your interest' },
 } as const;
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
@@ -27,7 +27,7 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
   const [onlyFree, setOnlyFree] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [guests, setGuests] = useState(0);
-  const [moreTags, setMoreTags] = useState(false);
+  const [open, setOpen] = useState(false);
   const [hoverId, setHoverId] = useState('');
   const [mapOpen, setMapOpen] = useState(false);
   const buildings = [...new Map(items.map(item => [item.buildingId, item.building])).entries()];
@@ -38,7 +38,6 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
   const tagCount = new Map<string, { label: string; n: number }>();
   for (const item of items) for (const tag of new Set(item.tags.map(tagKey))) { if (!tag) continue; const entry = tagCount.get(tag) || { label: item.tags.find(own => tagKey(own) === tag)!.trim(), n: 0 }; entry.n += 1; tagCount.set(tag, entry); }
   const allTags = [...tagCount.entries()].sort((a, b) => b[1].n - a[1].n || a[1].label.localeCompare(b[1].label));
-  const visibleTags = moreTags ? allTags : allTags.slice(0, 10);
   const maxGuests = Math.max(0, ...items.map(item => item.guests));
   const guestSteps = [2, 3, 4, 6].filter(n => n <= maxGuests);
   const togglePicked = (key: string) => setPicked(list => list.includes(key) ? list.filter(own => own !== key) : [...list, key]);
@@ -51,34 +50,55 @@ export function StaysSearch({ lang, items, upcoming, hasDates, points, places }:
   if (sort === 'up') shown = [...shown].sort((a, b) => (a.price || Infinity) - (b.price || Infinity));
   if (sort === 'down') shown = [...shown].sort((a, b) => b.price - a.price);
   const filtered = !!buildingId || !!kind || onlyFree || !!guests || picked.length > 0;
+  const activeCount = (buildingId ? 1 : 0) + (kind ? 1 : 0) + (guests ? 1 : 0) + (onlyFree ? 1 : 0) + picked.length;
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
+    const before = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = before; };
+  }, [open]);
   const reset = () => { setBuildingId(''); setKind(''); setOnlyFree(false); setGuests(0); setPicked([]); };
 
   return <section className="stays-search rt structure-section" id="stays-search" aria-label={lang === 'vi' ? 'Tìm phòng' : 'Find a room'}>
-    <div className="stays-filters">
-      {buildings.length > 1 && <div className="rt-chips" role="group" aria-label={w.building}><span>{w.building}</span>
+    <div className="stays-toolbar">
+      <button type="button" className="stays-filter-btn" onClick={() => setOpen(true)} aria-haspopup="dialog"><SlidersHorizontal size={16} aria-hidden="true" />{w.filters}{activeCount > 0 && <b>{activeCount}</b>}</button>
+      <ul className="stays-active" aria-label={w.filters}>
+        {buildingId && <li><button type="button" onClick={() => setBuildingId('')}>{buildings.find(([id]) => id === buildingId)?.[1]} ×</button></li>}
+        {kind && <li><button type="button" onClick={() => setKind('')}>{kindLabel(kind)} ×</button></li>}
+        {guests > 0 && <li><button type="button" onClick={() => setGuests(0)}>{guests}+ {w.guests} ×</button></li>}
+        {onlyFree && <li><button type="button" onClick={() => setOnlyFree(false)}>{w.onlyFree} ×</button></li>}
+        {picked.map(key => <li key={key}><button type="button" onClick={() => togglePicked(key)}>{tagCount.get(key)?.label} ×</button></li>)}
+        {filtered && <li><button type="button" className="is-clear" onClick={reset}>{w.reset}</button></li>}
+      </ul>
+      <p className="stays-count" aria-live="polite"><strong>{shown.length}</strong> {w.results}</p>
+      <label className="stays-sort">{w.sort}<select value={sort} onChange={event => setSort(event.target.value)}><option value="default">{w.sortDefault}</option><option value="up">{w.sortUp}</option><option value="down">{w.sortDown}</option></select></label>
+    </div>
+    {open && <div className="stays-modal" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
+      <div className="stays-dialog" role="dialog" aria-modal="true" aria-label={w.filters}>
+        <header><h2>{w.filters}</h2><button type="button" className="stays-close" aria-label={w.close} onClick={() => setOpen(false)}><X size={20} aria-hidden="true" /></button></header>
+        <div className="stays-dialog-body">
+      {buildings.length > 1 && <div className="rt-chips is-block" role="group" aria-label={w.building}><span>{w.building}</span>
         <button type="button" aria-pressed={!buildingId} className={!buildingId ? 'is-on' : ''} onClick={() => setBuildingId('')}>{w.all}</button>
         {buildings.map(([id, name]) => <button type="button" key={id} aria-pressed={buildingId === id} className={buildingId === id ? 'is-on' : ''} onClick={() => setBuildingId(id)}>{name}</button>)}
       </div>}
-      {kinds.length > 1 && <div className="rt-chips" role="group" aria-label={w.kind}><span>{w.kind}</span>
+      {kinds.length > 1 && <div className="rt-chips is-block" role="group" aria-label={w.kind}><span>{w.kind}</span>
         <button type="button" aria-pressed={!kind} className={!kind ? 'is-on' : ''} onClick={() => setKind('')}>{w.all}</button>
         {kinds.map(key => <button type="button" key={key} aria-pressed={kind === key} className={kind === key ? 'is-on' : ''} onClick={() => setKind(key)}>{kindLabel(key)}</button>)}
       </div>}
-      {guestSteps.length > 0 && <div className="rt-chips" role="group" aria-label={w.guestsFilter}><span>{w.guestsFilter}</span>
+      {guestSteps.length > 0 && <div className="rt-chips is-block" role="group" aria-label={w.guestsFilter}><span>{w.guestsFilter}</span>
         <button type="button" aria-pressed={!guests} className={!guests ? 'is-on' : ''} onClick={() => setGuests(0)}>{w.all}</button>
         {guestSteps.map(n => <button type="button" key={n} aria-pressed={guests === n} className={guests === n ? 'is-on' : ''} onClick={() => setGuests(n)}>{n}+ {w.guestsOpt.split(' ')[0]}</button>)}
       </div>}
-      {allTags.length > 0 && <div className="rt-chips stays-tags" role="group" aria-label={w.amenities}><span>{w.amenities}</span>
-        {visibleTags.map(([key, tag]) => <button type="button" key={key} aria-pressed={picked.includes(key)} className={picked.includes(key) ? 'is-on' : ''} onClick={() => togglePicked(key)}>{tag.label}</button>)}
-        {allTags.length > 10 && <button type="button" className="stays-more" onClick={() => setMoreTags(value => !value)}>{moreTags ? w.fewerTags : `${w.showMoreTags} (${allTags.length - 10})`}</button>}
+      {allTags.length > 0 && <div className="rt-chips is-block stays-tags" role="group" aria-label={w.amenities}><span>{w.amenities}</span>
+        {allTags.map(([key, tag]) => <button type="button" key={key} aria-pressed={picked.includes(key)} className={picked.includes(key) ? 'is-on' : ''} onClick={() => togglePicked(key)}>{tag.label}</button>)}
       </div>}
-      <div className="stays-bar">
-        <p aria-live="polite"><strong>{shown.length}</strong> {w.results}</p>
-        <div className="stays-bar-tools">
           {hasFreeInfo && <label className="stays-check"><input type="checkbox" checked={onlyFree} onChange={event => setOnlyFree(event.target.checked)} />{w.onlyFree}</label>}
-          <label className="stays-sort">{w.sort}<select value={sort} onChange={event => setSort(event.target.value)}><option value="default">{w.sortDefault}</option><option value="up">{w.sortUp}</option><option value="down">{w.sortDown}</option></select></label>
         </div>
+        <footer><button type="button" className="stays-clear" onClick={reset} disabled={!filtered}>{w.clearAll}</button><button type="button" className="stays-apply" onClick={() => setOpen(false)}>{w.showResults} {shown.length} {w.results}</button></footer>
       </div>
-    </div>
+    </div>}
 
     <div className={`stays-split${mapOpen ? ' is-map' : ''}`}>
     <div className="stays-results">
