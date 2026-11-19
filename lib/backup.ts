@@ -32,7 +32,7 @@ export async function dumpDatabase(db: D1Database, now = new Date()): Promise<{ 
   let rows = 0;
   for (const name of names) {
     const table = quoteName(name);
-    const pageSize = 500;
+    const pageSize = 2000;
     for (let offset = 0; ; offset += pageSize) {
       const page = await db.prepare(`SELECT * FROM ${table} LIMIT ${pageSize} OFFSET ${offset}`).all<Record<string, unknown>>();
       const chunk = page.results || [];

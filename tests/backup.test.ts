@@ -32,10 +32,10 @@ describe("dumpDatabase", () => {
   });
 
   it("reads big tables in pages", async () => {
-    const full = Array.from({ length: 500 }, (_, i) => ({ id: i }));
-    const d1 = createD1([[/FROM sqlite_master/, { all: [{ name: "t" }] }], [/FROM "t" LIMIT 500 OFFSET 0/, { all: full }], [/FROM "t" LIMIT 500 OFFSET 500/, { all: [{ id: 500 }] }]]);
+    const full = Array.from({ length: 2000 }, (_, i) => ({ id: i }));
+    const d1 = createD1([[/FROM sqlite_master/, { all: [{ name: "t" }] }], [/FROM "t" LIMIT 2000 OFFSET 0/, { all: full }], [/FROM "t" LIMIT 2000 OFFSET 2000/, { all: [{ id: 500 }] }]]);
     const dump = await dumpDatabase(d1.db as unknown as D1Database, NOW);
-    expect(dump.rows).toBe(501);
+    expect(dump.rows).toBe(2001);
   });
 });
 
