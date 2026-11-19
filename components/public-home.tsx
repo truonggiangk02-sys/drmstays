@@ -11,7 +11,7 @@ import { CountUp } from '@/components/smooth-motion';
 import { OfficeMap } from '@/components/office-map';
 import { addonIcons, stayIcons } from '@/components/services-showcase';
 import { Sparkles, ArrowUpRight } from 'lucide-react';
-import { HomeGallery, type GalleryItem } from '@/components/home-gallery';
+import type { GalleryItem } from '@/components/home-gallery';
 import { HomeBento, type BentoSlide } from '@/components/home-bento';
 import { HomeLoader } from '@/components/home-loader';
 import { addonSpans } from '@/lib/addon-spans';
@@ -74,7 +74,6 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
     return [...own, ...typeItems, ...roomItems];
   });
   const galleryByBuilding = buildings.map(building => galleryRaw.filter(item => item.buildingId === building.id));
-  const galleryItems = [...new Map(Array.from({ length: Math.max(0, ...galleryByBuilding.map(list => list.length)) }, (_, round) => galleryByBuilding.map(list => list[round]).filter(Boolean)).flat().map(item => [item.url, item])).values()];
   const bentoSlides: BentoSlide[] = buildings.map((building, index) => {
     let list = [...new Map(galleryByBuilding[index].map(item => [item.url, item])).values()];
     let note = '';
@@ -173,11 +172,6 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
           </Link></li>; })}</ul>
       </div>}
       <Link className="editorial-text-link" href={`/${lang}/services`}>{vi ? 'Xem tất cả dịch vụ và chi phí' : 'See all services and costs'}<span aria-hidden="true">↗</span></Link>
-    </section>}
-
-    {galleryItems.length >= 2 && <section className="home-photos structure-section" aria-labelledby="home-photos-title" data-reveal>
-      <div className="editorial-section-head"><div><span className="editorial-section-label">DRM STAYS / GALLERY</span><h2 id="home-photos-title">{t.gallery}</h2></div><p>{t.galleryLead}</p></div>
-      <HomeGallery lang={lang} items={galleryItems} buildings={buildings.filter(building => galleryRaw.some(item => item.buildingId === building.id)).map(building => ({ id: building.id, name: displayName(building.name) }))} all={vi ? 'Tất cả' : 'All'} more={vi ? 'Xem thêm ảnh' : 'Show more photos'} less={vi ? 'Thu gọn' : 'Show less'} />
     </section>}
 
     {faq.length > 0 && <section className="home-faq structure-section" aria-labelledby="home-faq-title" data-reveal>
