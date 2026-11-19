@@ -189,7 +189,6 @@
 .inv2 .abt-head { display: block; font-weight: 300; font-size: clamp(30px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -.025em; }
 .inv2 .abt-head .abt-line { display: inline; padding-left: 0; }
 .inv2 .abt-head .abt-line:last-child { padding-left: .28em; }
-.inv2 .abt-hero { min-height: min(62svh, 620px); }
 .inv2 .abt-hero-inner { padding-top: clamp(70px, 8vw, 120px); padding-bottom: clamp(30px, 4vw, 56px); }
 .inv2-title { font-weight: 300; font-size: clamp(30px, 4.6vw, 68px); line-height: 1.05; letter-spacing: -.03em; max-width: 980px; }
 .inv2 .abt-hero-text { max-width: 560px; margin-top: 18px; }
@@ -215,7 +214,6 @@
 .abt:not(.inv2) .abt-head { display: block; font-weight: 300; font-size: clamp(30px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -.025em; }
 .abt:not(.inv2) .abt-head .abt-line { display: inline; padding-left: 0; }
 .abt:not(.inv2) .abt-head .abt-line:last-child { padding-left: .28em; }
-.abt:not(.inv2) .abt-hero { min-height: min(70svh, 700px); }
 .abt:not(.inv2) .abt-brand { font-size: clamp(48px, min(9vw, 15vh), 150px); }
 .abt:not(.inv2) .abt-sub { font-size: clamp(16px, 1.6vw, 24px); }
 .abt:not(.inv2) .abt-number { font-size: clamp(44px, 5vw, 72px); font-weight: 300; }
@@ -297,7 +295,7 @@
 @media (max-width: 900px) { .svc2-cost-inner, .svc2-compact { grid-template-columns: 1fr; } }
 
 /* The hero always fits the window (the text sits at its bottom, so a hero taller than the window would push it off the screen) */
-.abt .abt-hero { min-height: calc(100svh - 120px); }
+.abt .abt-hero { min-height: calc(100svh - 78px); }
 .abt .abt-hero-inner { padding-top: clamp(56px, 9vh, 120px); padding-bottom: clamp(24px, 5vh, 56px); }
 .abt:not(.inv2) .abt-brand { font-size: clamp(44px, min(9vw, 14vh), 140px); }
 .abt .abt-hero-text { margin-top: clamp(12px, 2.4vh, 30px); }
