@@ -107,6 +107,7 @@ export default async function CatalogInquiries({
                   <small className={item.telegram_status === 'failed' ? 'alert-failed' : undefined}>
                     {item.telegram_status === 'failed' ? 'Telegram alert FAILED' : item.telegram_status === 'sent' ? 'Telegram alert sent' : item.telegram_status === 'pending' ? 'Telegram alert pending' : 'No Telegram alert'}
                   </small>
+                  {item.telegram_status !== 'sent' && <form action="/api/admin/inquiry-alerts" method="post"><input type="hidden" name="kind" value="catalog" /><input type="hidden" name="id" value={item.id} /><button>Resend Telegram alert</button></form>}
                 </td>
               </tr>
             ))}
