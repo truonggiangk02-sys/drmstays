@@ -2,7 +2,7 @@
 
 /** Dropdown under an admin photo: choosing an area saves it straight away. */
 export function AreaSelect({ kind, sourceId, imageId, value, options, label }: { kind: string; sourceId: string; imageId: string; value: string; options: Array<[string, string]>; label: string }) {
-  return <form action="/api/admin/catalog-images" method="post" className="area-select">
+  return <form action="/api/admin/catalog-images" method="post" className="area-select" data-save-in-place="quiet">
     <input type="hidden" name="kind" value={kind} /><input type="hidden" name="sourceId" value={sourceId} /><input type="hidden" name="returnTo" value="media" />
     <input type="hidden" name="imageId" value={imageId} /><input type="hidden" name="action" value="area" />
     <select name="area" defaultValue={value} aria-label={label} onChange={event => event.currentTarget.form?.requestSubmit()}>
