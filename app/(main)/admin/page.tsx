@@ -2,22 +2,26 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
+import { CODE_ONLY_PAGES, SITE_AREAS } from '@/lib/admin-map';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOverview() {
   if (!(await isAdmin())) redirect('/admin/login');
-  return <AdminShell title="Website overview">
-    <p className="admin-hint">DRM Stays company website. Doraemon Land is one of the listed properties. This preview uses sample catalog data; live Staydesk availability is not connected.</p>
-    <div className="cms-cards">
-      <Link href="/admin/catalog"><span>01 / CATALOG</span><h2>Buildings & rooms</h2><p>Choose published items and manage bilingual details, monthly rent, photos and floor plans.</p><b>Manage catalog →</b></Link>
-      <Link href="/admin/content"><span>02 / CONTENT</span><h2>Company & articles</h2><p>Edit or delete company copy, services, partner content, journal articles and FAQ in Vietnamese and English.</p><b>Manage content →</b></Link>
-      <Link href="/admin/catalog-inquiries"><span>02 / GUESTS</span><h2>Guest inquiries</h2><p>Review requests sent by guests and update follow-up status.</p><b>View requests →</b></Link>
-      <Link href="/admin/partner-inquiries"><span>03 / PARTNERS</span><h2>Owner inquiries</h2><p>Review inquiries from building owners and partners.</p><b>View partners →</b></Link>
-      <Link href="/vi"><span>04 / WEBSITE</span><h2>Vietnamese site</h2><p>Review the public site structure in Vietnamese.</p><b>Open site →</b></Link>
-      <Link href="/en"><span>05 / WEBSITE</span><h2>English site</h2><p>Review the same structure in English.</p><b>Open site →</b></Link>
-    </div>
-    <p className="admin-hint">Company copy is provisional. Replace it with official information in Website content when ready.</p>
+  return <AdminShell title="Bạn muốn sửa gì?">
+    <p className="admin-hint">Tìm theo <strong>trang trên website</strong>: mỗi dòng dưới đây là một trang khách nhìn thấy, bên cạnh là nơi sửa nó. Khi đang đăng nhập admin, mỗi trang trên web còn có nút <strong>“✎ Sửa trang này”</strong> ở dưới màn hình, bấm vào là tới đúng chỗ sửa.</p>
+    <ul className="adm-map">
+      {SITE_AREAS.map(area => <li key={area.id}>
+        <div><h2>{area.title}</h2><p>{area.summary}</p><a href={`/vi${area.publicPath}`} target="_blank" rel="noreferrer">Xem trang này trên web ↗</a></div>
+        <div className="adm-map-links">{area.links.map(link => <Link key={link.href} href={link.href}>{link.label} →</Link>)}</div>
+      </li>)}
+    </ul>
+    <h2 className="adm-sub">Việc khác</h2>
+    <ul className="adm-map">
+      <li><div><h2>Yêu cầu của khách và chủ tòa</h2><p>Người để lại thông tin trên web. Có trạng thái, ghi chú và ô tìm.</p></div><div className="adm-map-links"><Link href="/admin/catalog-inquiries">Yêu cầu của khách →</Link><Link href="/admin/partner-inquiries">Yêu cầu của chủ tòa →</Link></div></li>
+      <li><div><h2>Ảnh hàng loạt</h2><p>Tải và sắp xếp ảnh cho nhiều mục cùng lúc.</p></div><div className="adm-map-links"><Link href="/admin/media">Ảnh & mặt bằng →</Link></div></li>
+      <li><div><h2>Kiểm tra web và sao lưu</h2><p>Xem web có đang ổn không, bấm sao lưu database.</p></div><div className="adm-map-links"><Link href="/admin/health">Kiểm tra web →</Link></div></li>
+      {CODE_ONLY_PAGES.map(name => <li key={name}><div><h2>Chưa sửa được trong admin</h2><p>{name}: chữ nằm trong mã nguồn, cần nhờ Claude sửa.</p></div></li>)}
+    </ul>
   </AdminShell>;
 }
-

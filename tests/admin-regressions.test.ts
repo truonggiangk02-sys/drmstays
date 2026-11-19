@@ -21,6 +21,11 @@ describe("admin behaviour that must survive merges", () => {
     expect(read("app/(main)/admin/home/page.tsx")).toContain("hm-photos");
   });
 
+  it("keeps the page-to-editor map (start page and the edit button on public pages)", () => {
+    expect(read("app/[lang]/layout.tsx")).toContain("<AdminEditLink />");
+    expect(read("app/(main)/admin/page.tsx")).toContain("SITE_AREAS");
+  });
+
   it("keeps the confirmed wording", () => {
     expect(read("lib/home-content.ts")).toContain("Căn hộ đủ nội thất tại Đà Nẵng, kèm dịch vụ trọn gói.");
     expect(read("lib/site-content.ts")).toContain("800+");
