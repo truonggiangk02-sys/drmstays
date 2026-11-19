@@ -19,8 +19,8 @@ export type InvestorBuilding = {
 
 const words = {
   vi: {
-    cta: 'Nhận tư vấn', ctaSecond: 'Xem cách làm',
-    howHead: ['CÁCH', 'CHÚNG TÔI LÀM'], howLabel: 'TRỌN VÒNG ĐỜI TÀI SẢN', howLead: 'Bạn có thể giao toàn bộ hoặc chỉ những phần bạn cần.',
+    cta: 'Nhận tư vấn', ctaSecond: 'Xem dịch vụ',
+    howHead: ['DỊCH VỤ DÀNH', 'CHO CHỦ ĐẦU TƯ'], howLabel: 'TỪ CHỌN MUA ĐẾN VẬN HÀNH', howLead: 'Bạn có thể giao toàn bộ hoặc chỉ những phần bạn cần.',
     modelsHead: ['HÌNH THỨC', 'HỢP TÁC'], modelsLabel: 'CHỌN PHẦN BẠN CẦN',
     modelA: 'Tư vấn', modelAText: 'Dành cho chủ đầu tư cần ý kiến chuyên môn ở từng giai đoạn.', modelB: 'Vận hành trọn gói', modelBText: 'Dành cho chủ đầu tư muốn tài sản tạo dòng tiền mà không phải tự điều hành.', feeLabel: 'Phí hợp tác',
     reportHead: ['BÁO CÁO', 'CHO CHỦ NHÀ'], reportLabel: 'MINH BẠCH TỪNG KHOẢN', reportLead: 'Mỗi chủ nhà nhận một đường dẫn riêng đến báo cáo của chính tài sản mình, cập nhật theo tháng và theo năm.',
@@ -40,8 +40,8 @@ const words = {
     privacy: 'Thông tin chỉ dùng để liên hệ hợp tác.', policy: 'Chính sách quyền riêng tư',
   },
   en: {
-    cta: 'Get advice', ctaSecond: 'See how we work',
-    howHead: ['HOW', 'WE WORK'], howLabel: 'THE WHOLE LIFE OF AN ASSET', howLead: 'Hand over everything, or only the parts you need.',
+    cta: 'Get advice', ctaSecond: 'See our services',
+    howHead: ['SERVICES FOR', 'PROPERTY OWNERS'], howLabel: 'FROM PURCHASE TO OPERATION', howLead: 'Hand over everything, or only the parts you need.',
     modelsHead: ['WAYS TO', 'WORK TOGETHER'], modelsLabel: 'CHOOSE THE PART YOU NEED',
     modelA: 'Advisory', modelAText: 'For owners who want expert input at each stage.', modelB: 'Full operation', modelBText: 'For owners who want their property to earn without running it themselves.', feeLabel: 'Fees',
     reportHead: ['OWNER', 'REPORTS'], reportLabel: 'EVERY LINE IN THE OPEN', reportLead: 'Each owner gets a private link to the report for their own property, updated monthly and yearly.',
@@ -73,16 +73,17 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
   const byId = (id: string) => items.find(item => item.id === id);
   const intro = pick(byId('sample-partner-1'), lang), fee = pick(byId('sample-partner-2'), lang);
   const stageIds = ['sample-partner-3', 'sample-partner-4', 'sample-partner-5', 'sample-partner-6', 'sample-partner-7'];
-  const known = new Set(['sample-partner-1', 'sample-partner-2', 'sample-partner-8', ...stageIds]);
+  const known = new Set(['sample-partner-1', 'sample-partner-2', 'sample-partner-8', 'sample-partner-9', ...stageIds]);
   const stages = [...stageIds.map(byId), ...items.filter(item => !known.has(item.id))].filter((item): item is ContentItem => !!item).map(item => ({ id: item.id, ...pick(item, lang) }));
   const metric = (id: string) => { const item = metrics.find(entry => entry.id === id); return item ? { value: lang === 'vi' ? item.title_vi : item.title_en || item.title_vi, label: pick(item, lang).body } : null; };
   const occupancy = metric('sample-metric-occupancy'), reports = metric('sample-metric-reports');
   const operating = buildings.filter(building => building.status === 'open');
-  const reportShots = images['sample-partner-7'] || [];
+  // Owner report screenshots are uploaded on the item "Ảnh báo cáo cho chủ nhà" (older uploads on the monthly-report item still work).
+  const reportShots = (images['sample-partner-9']?.length ? images['sample-partner-9'] : images['sample-partner-7']) || [];
 
   const perBuilding = buildings.map(buildingPhotos);
   const pool = [...new Map(Array.from({ length: Math.max(0, ...perBuilding.map(list => list.length)) }, (_, round) => perBuilding.map(list => list[round]).filter(Boolean)).flat().map(photo => [photo.url, photo])).values()];
-  const hero = pool[0], howPhoto = pool[1] || pool[0];
+  const hero = images['sample-partner-1']?.[0] || pool[0], howPhoto = pool[1] || pool[0];
   // "Completed" photos are the building's own, room type and room photos: progress photos and renders never stand in for them here.
   const finished = (building: InvestorBuilding) => buildingPhotos(building);
   const compareBuilding = buildings.find(building => building.renders.length && finished(building).length);
@@ -104,7 +105,7 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
       <div className="abt-top" data-reveal><span className="abt-small">{w.howLabel}</span><Staggered lines={w.howHead} id="inv-how-title" /></div>
       <div className="inv2-how" data-reveal>
         <div className="inv2-how-side abt-rise"><Frame photo={howPhoto} alt="" /><p>{w.howLead}</p></div>
-        <ol>{stages.map((stage, index) => <li key={stage.id} className="abt-rise" style={{ '--d': `${index * 0.09}s` } as React.CSSProperties}><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{stage.title}</h3><p>{stage.body}</p></div></li>)}</ol>
+        <ol>{stages.map((stage, index) => <li key={stage.id} className="abt-rise" style={{ '--d': `${index * 0.09}s` } as React.CSSProperties}><span className="abt-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h3>{stage.title}</h3><p>{stage.body}</p>{stage.id !== 'sample-partner-7' && images[stage.id]?.[0] && <Frame photo={images[stage.id][0]} alt={images[stage.id][0].alt || stage.title} className="is-stage" />}</div></li>)}</ol>
       </div>
     </section>}
 
@@ -121,7 +122,7 @@ export function InvestorPage({ lang, title, items, metrics, buildings, images, s
       <div className="abt-top" data-reveal><span className="abt-small">{w.reportLabel}</span><Staggered lines={w.reportHead} id="inv-report-title" /></div>
       <div className="inv2-report" data-reveal>
         <div className="inv2-report-text abt-rise"><p>{w.reportLead}</p><ul>{w.reportItems.map((entry, index) => <li key={entry}><span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>{entry}</li>)}</ul></div>
-        {reportShots.length > 0 && <div className={`inv2-shots is-${Math.min(reportShots.length, 2)}`}>{reportShots.slice(0, 2).map(shot => <Frame key={shot.id} photo={shot} alt={shot.alt || ''} className="is-shot" />)}</div>}
+        {reportShots.length > 0 && <div className={`inv2-shots is-${Math.min(reportShots.length, 4)}`}>{reportShots.slice(0, 4).map(shot => <Frame key={shot.id} photo={shot} alt={shot.alt || ''} className="is-shot" />)}</div>}
       </div>
     </section>
 
