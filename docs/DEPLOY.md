@@ -248,7 +248,11 @@ Trong dashboard Cloudflare: Workers & Pages → chọn Worker `drmstays` → Set
 pnpm exec wrangler rollback --config dist/server/wrangler.deploy.json
 ```
 
-**Sao lưu database:** xuất định kỳ ra file SQL và cất ở nơi an toàn. Yêu cầu của khách chỉ nằm trong D1 nên đây là dữ liệu cần bảo vệ.
+**Sao lưu tự động:** mỗi ngày lúc 03:00 sáng (giờ Việt Nam) Worker tự xuất toàn bộ dữ liệu D1 thành file SQL trong bucket R2, tại `backups/db-YYYY-MM-DD.sql`, kèm file `.json` ghi số dòng và số lượng/dung lượng ảnh. Giữ 14 bản gần nhất; sao lưu lỗi thì báo Telegram. Trang `/admin/health` hiện ngày bản mới nhất. Ảnh không được chép thêm (đã nằm trong R2). Bản sao lưu nằm cùng bucket nên **không thay thế** việc tải về một bản cất ngoài Cloudflare lúc cần (xem lệnh bên dưới).
+
+Khôi phục: tải file `backups/db-....sql` từ R2 (Cloudflare → R2 → bucket), áp migration cho database trống, rồi chạy `pnpm exec wrangler d1 execute DB --remote --file db-....sql --config dist/server/wrangler.deploy.json`.
+
+**Sao lưu database thủ công:** xuất định kỳ ra file SQL và cất ở nơi an toàn. Yêu cầu của khách chỉ nằm trong D1 nên đây là dữ liệu cần bảo vệ.
 
 ```bash
 pnpm exec wrangler d1 export DB --remote --output backup.sql --config dist/server/wrangler.deploy.json

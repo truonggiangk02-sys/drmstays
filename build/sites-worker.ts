@@ -3,6 +3,8 @@ import { runWithConnectorBinding } from "../lib/connector-context";
 import { canonicalRedirect } from "../lib/canonical-host";
 import { asComingSoonResponse, shouldShowComingSoon } from "../lib/coming-soon";
 import { indexingAllowed } from "../lib/site";
+import { runBackup } from "../lib/backup";
+import { alertOutage } from "../lib/alerts";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 let warnedMissingSiteUrl = false;
@@ -18,6 +20,17 @@ function withIndexingHeader(response: Response, request: Request, env: Cloudflar
 export default {
   fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
     return Promise.resolve(route(request, env, ctx)).then((response) => withIndexingHeader(response, request, env));
+  },
+  /** Cron trigger (see deploy-config.mjs): the daily database backup. A failure is reported on Telegram. */
+  async scheduled(_event: ScheduledController, env: Cloudflare.Env, ctx: ExecutionContext) {
+    if (!env.DB || !env.BUCKET) return;
+    const job = runBackup(env.DB, env.BUCKET).then((result) => console.log(`Backup ${result.key}: ${result.rows} rows, ${result.tables} tables, ${result.removed} old removed`)).catch(async (error) => {
+      const why = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      console.error("Backup failed:", why);
+      await alertOutage("backup-failed", `the daily database backup failed.\n${why.slice(0, 200)}`);
+    });
+    ctx.waitUntil(job);
+    await job;
   },
 };
 

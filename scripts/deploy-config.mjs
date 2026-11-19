@@ -56,6 +56,9 @@ config.r2_buckets = process.env.NO_R2 === "1"
   ? []
   : [{ binding: "BUCKET", bucket_name: process.env.R2_BUCKET_NAME?.trim() || "drmstays-media" }];
 
+// Daily database backup at 20:00 UTC (03:00 in Vietnam). Needs the R2 bucket; staging without R2 skips it.
+if (process.env.NO_R2 !== "1") config.triggers = { crons: ["0 20 * * *"] };
+
 const vars = { ...(config.vars || {}) };
 for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS", "COMING_SOON", "STAGING", "GA_MEASUREMENT_ID"]) {
   const value = process.env[key]?.trim();
