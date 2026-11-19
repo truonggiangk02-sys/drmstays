@@ -195,3 +195,8 @@
 .jp-row .jp-open { flex: var(--r, 1.4) 1 0%; width: 0; }
 .jp-row .jp-open img { display: block; width: 100%; height: auto; flex: none; aspect-ratio: var(--r, 1.4); object-fit: cover; }
 .jp-row.is-wrap .jp-open { flex: calc(var(--r, 1.4) * 100) 1 calc(var(--r, 1.4) * 220px); width: auto; }
+.dv-areas { margin-top: 24px; }
+.dv-area { padding: 16px 0 4px; }
+.dv-area h3 { font-size: clamp(20px, 1.8vw, 24px); margin-bottom: 10px; }
+.dv-area .jp { gap: 6px; } .dv-area .jp-row { gap: 6px; }
+.dv-areas-nav a { min-height: 34px; padding: 0 13px; font-size: 13px; }

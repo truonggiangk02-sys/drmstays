@@ -69,7 +69,7 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
   </div>
   {groups.length > 0 && <div className="dv-areas" aria-label={w.byArea}>
     {groups.length > 1 && <nav className="dv-areas-nav" aria-label={w.byArea}>{groups.map(group => <a key={group.key} href={`#dv-area-${group.key}`} onClick={event => { event.preventDefault(); document.getElementById(`dv-area-${group.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{group.label}<b>{group.items.length}</b></a>)}</nav>}
-    {groups.map(group => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area"><h3>{group.label}<small>{group.items.length} {w.photos}</small></h3><JustifiedPhotos photos={group.items} label={`${name} — ${group.label}`} target={260} maxRowHeight={520} onOpen={at => openPhoto(group.items[at])} /></section>)}
+    {groups.map(group => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area"><h3>{group.label}<small>{group.items.length} {w.photos}</small></h3><JustifiedPhotos photos={group.items} label={`${name} — ${group.label}`} target={190} maxRowHeight={300} onOpen={at => openPhoto(group.items[at])} /></section>)}
   </div>}
   </>;
 }
