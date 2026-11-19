@@ -65,11 +65,11 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
       <button type="button" className="dv-viewer-close" aria-label={w.close} onClick={() => dialog.current?.close()}>×</button>
       <div className="dv-viewer-stage">
         {images.length > 1 && <button type="button" className="dv-viewer-nav is-prev" aria-label={w.previous} onClick={() => step(-1)}>‹</button>}
-        <img key={images[index].id} src={images[index].url} alt={images[index].alt || name} />
+        <img key={images[index].id} src={images[index].url} alt={images[index].alt || name} {...size(images[index])} />
         {images.length > 1 && <button type="button" className="dv-viewer-nav is-next" aria-label={w.next} onClick={() => step(1)}>›</button>}
       </div>
       <p className="dv-viewer-count" aria-live="polite">{(() => { const area = images[index].area; return area && isImageArea(area) ? `${AREA_LABELS[lang][area]} · ` : ''; })()}{index + 1} / {images.length}</p>
-      {images.length > 1 && <div className="dv-viewer-strip">{images.map((image, position) => <button key={image.id} type="button" aria-pressed={position === index} aria-label={`${w.photo} ${position + 1}`} onClick={() => setIndex(position)}><img src={image.url} alt="" loading="lazy" /></button>)}</div>}
+      {images.length > 1 && <div className="dv-viewer-strip">{images.map((image, position) => <button key={image.id} type="button" aria-pressed={position === index} aria-label={`${w.photo} ${position + 1}`} onClick={() => setIndex(position)}><img src={image.url} alt="" loading="lazy" {...size(image)} /></button>)}</div>}
     </dialog>
   </>;
 }
