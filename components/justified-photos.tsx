@@ -23,11 +23,11 @@ export function useJustifiedRows(ratios: number[], target: number) {
 }
 
 /** A set of photos laid out in full-width rows, none of them cropped. */
-export function JustifiedPhotos({ photos, label, target = 240 }: { photos: Photo[]; label: string; target?: number }) {
+export function JustifiedPhotos({ photos, label, target = 240, onOpen, maxRowHeight }: { photos: Photo[]; label: string; target?: number; onOpen?: (index: number) => void; maxRowHeight?: number }) {
   const ratios = photos.map(photoRatio);
   const { ref, rows } = useJustifiedRows(ratios, target);
-  const render = (index: number) => <img key={photos[index].url} src={photos[index].url} alt={photos[index].alt || label} loading="lazy" style={{ '--r': ratios[index], '--i': index } as React.CSSProperties} {...imgSize(photos[index])} />;
+  const render = (index: number) => onOpen ? <button type="button" className="jp-open" key={photos[index].url} style={{ '--r': ratios[index], '--i': index } as React.CSSProperties} aria-label={`${label} ${index + 1}`} onClick={() => onOpen(index)}><img src={photos[index].url} alt={photos[index].alt || label} loading="lazy" {...imgSize(photos[index])} /></button> : <img key={photos[index].url} src={photos[index].url} alt={photos[index].alt || label} loading="lazy" style={{ '--r': ratios[index], '--i': index } as React.CSSProperties} {...imgSize(photos[index])} />;
   return <div className="jp" ref={ref}>
-    {rows ? rows.map((row, i) => <div className="jp-row" key={i}>{row.map(render)}</div>) : <div className="jp-row is-wrap">{photos.map((_, index) => render(index))}</div>}
+    {rows ? rows.map((row, i) => <div className="jp-row" key={i} style={maxRowHeight ? { maxWidth: Math.round(maxRowHeight * row.reduce((sum, index) => sum + ratios[index], 0) + (row.length - 1) * 6) } : undefined}>{row.map(render)}</div>) : <div className="jp-row is-wrap">{photos.map((_, index) => render(index))}</div>}
   </div>;
 }
