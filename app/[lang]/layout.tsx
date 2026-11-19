@@ -3,7 +3,9 @@ import { Analytics } from "@/components/analytics";
 import { generateMetadata as rootMetadata } from "../(main)/layout";
 import { FontLinks } from "@/components/font-links";
 import { SmoothMotion } from "@/components/smooth-motion";
+import { AdminEditLink } from "@/components/admin-edit-link";
 import { BackToTop } from "@/components/back-to-top";
+import { isAdmin } from "@/lib/admin";
 import "../globals.css";
 import "../cms.css";
 import "../catalog.css";
@@ -29,10 +31,11 @@ export const generateMetadata = rootMetadata;
 export default async function LangLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (lang !== "vi" && lang !== "en") notFound();
+  const admin = await isAdmin().catch(() => false);
   return (
     <html lang={lang}>
       <head><FontLinks /></head>
-      <body className="antialiased">{children}<SmoothMotion /><BackToTop lang={lang} /><Analytics /></body>
+      <body className="antialiased">{children}<SmoothMotion /><BackToTop lang={lang} />{admin && <AdminEditLink />}<Analytics /></body>
     </html>
   );
 }
