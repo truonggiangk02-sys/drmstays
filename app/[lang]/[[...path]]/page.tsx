@@ -206,8 +206,21 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   if ((section === 'buildings' || section === 'rooms' || section === 'types') && !id) notFound();
   if (id && !['buildings', 'rooms', 'types', 'journal'].includes(section)) notFound();
   const needsCatalog = !section || ['stays', 'room-types', 'buildings', 'rooms', 'types', 'contact', 'services', 'partners', 'about'].includes(section);
-  const data = needsCatalog ? await catalog(dateQuery ? q.checkIn : undefined, dateQuery ? q.checkOut : undefined, lang) : null;
-  const landmarks = section === 'stays' || section === 'buildings' ? await getPublicLandmarks() : [];
+  // Everything the page reads is independent, so it is requested at once: one round of database queries instead of a dozen in a row.
+  const none = <T,>(value: T) => Promise.resolve(value);
+  const [data, landmarks, content, journalOnly, homeContent, homeServices, metricItems, homeReviews, homeFaq, contactChannels, socialSetting] = await Promise.all([
+    needsCatalog ? catalog(dateQuery ? q.checkIn : undefined, dateQuery ? q.checkOut : undefined, lang) : none(null),
+    section === 'stays' || section === 'buildings' ? getPublicLandmarks() : none([] as Awaited<ReturnType<typeof getPublicLandmarks>>),
+    !section || isContent ? getContentItems((section || 'journal') as ContentSection) : none([] as ContentItem[]),
+    !section || section === 'journal' ? none(null) : getContentItems('journal').catch(() => [] as ContentItem[]),
+    !section ? getHomeContent(lang) : none(null),
+    !section ? getContentItems('services').catch(() => [] as ContentItem[]) : none([] as ContentItem[]),
+    section === 'partners' || section === 'about' ? getContentItems('metrics').catch(() => [] as ContentItem[]) : none([] as ContentItem[]),
+    !section ? getContentItems('reviews').catch(() => [] as ContentItem[]) : none([] as ContentItem[]),
+    !section ? getContentItems('faq').catch(() => [] as ContentItem[]) : none([] as ContentItem[]),
+    getContactChannels(),
+    getSocialLinks(),
+  ]);
   const building = section === 'buildings' ? data?.buildings.find(item => item.id === id) : undefined;
   const room = section === 'rooms' ? data?.buildings.flatMap(item => item.rooms).find(item => item.id === id) : undefined;
   const roomType = section === 'types' ? data?.buildings.flatMap(item => item.types.map(entry => ({ ...entry, building: item }))).find(item => item.id === id) : undefined;
@@ -216,25 +229,20 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     if (typed) redirect(`/${lang}/types/${typed.id}${dateQuery}`);
   }
   if ((section === 'buildings' && data && !building) || (section === 'rooms' && data && !room) || (section === 'types' && data && !roomType)) notFound();
-  const content = !section || isContent ? await getContentItems((section || 'journal') as ContentSection) : [];
-  const journalItems = !section || section === 'journal' ? content : await getContentItems('journal').catch(() => [] as ContentItem[]);
+  const journalItems = journalOnly ?? content;
   const showJournal = journalItems.length > 0;
   if (section === 'journal' && !showJournal) notFound();
-  const contentImages = isContent ? await getContentImages(content) : {};
+  const [contentImages, reviewImages, homeServiceImages] = await Promise.all([
+    isContent ? getContentImages(content) : none({} as Record<string, ContentImage[]>),
+    !section ? getContentImages(homeReviews).catch(() => ({} as Record<string, ContentImage[]>)) : none({} as Record<string, ContentImage[]>),
+    !section ? getContentImages(homeServices).catch(() => ({} as Record<string, ContentImage[]>)) : none({} as Record<string, ContentImage[]>),
+  ]);
   const article = section === 'journal' && id ? content.find(item => item.id === id) : undefined;
   if (section === 'journal' && id && !article) notFound();
   const sectionTitles: Record<string,string> = { privacy: policies[lang].privacy.title, cancellation: policies[lang].cancellation.title, terms: policies[lang].terms.title, stays: t.navStays, 'room-types': t.navRoomTypes, services: t.navServices, partners: t.partnerTitle, about: t.navAbout, journal: t.navJournal, faq: t.navFaq, contact: t.navContact };
   const sectionH1 = section && section in pageMeta[lang] ? pageMeta[lang][section as keyof typeof pageMeta['vi']].h1 : undefined;
   const title = building ? propertyName(building.name) : roomType ? roomType.name : room?.name || (article ? contentTitle(article, lang) : sectionH1 || sectionTitles[section || ''] || '');
-  const homeContent = !section ? await getHomeContent(lang) : null;
-  const homeServices = !section ? await getContentItems('services').catch(() => [] as ContentItem[]) : [];
-  const metricItems = section === 'partners' || section === 'about' ? await getContentItems('metrics').catch(() => [] as ContentItem[]) : [];
-  const homeReviews = !section ? await getContentItems('reviews').catch(() => [] as ContentItem[]) : [];
-  const reviewImages = !section ? await getContentImages(homeReviews).catch(() => ({})) : {};
-  const homeServiceImages = !section ? await getContentImages(homeServices).catch(() => ({})) : {};
-  const homeFaq = !section ? await getContentItems('faq').catch(() => [] as ContentItem[]) : [];
-  const contactChannels = await getContactChannels();
-  const socialLinks = publicSocialLinks(contactChannels, await getSocialLinks());
+  const socialLinks = publicSocialLinks(contactChannels, socialSetting);
   const facebookLink = socialLinks.find(link => link.name === 'Facebook')?.url;
   const facebookMessenger = facebookLink ? messengerUrl(facebookLink) : undefined;
   const instagramLink = socialLinks.find(link => link.name === 'Instagram')?.url;
