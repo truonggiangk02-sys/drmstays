@@ -16,6 +16,7 @@ describe("resized catalog photos", () => {
     expect(resizedUrl(photo.url, 800)).toBe("/cdn-cgi/image/width=800,quality=80,format=auto,fit=scale-down/media/catalog/f3cd253e-a15e-4e8b-8cbe-f3397781a398");
     const set = photoSrcSet(photo)!.split(", ");
     expect(set.map(entry => entry.split(" ")[1])).toEqual(["400w", "800w", "1200w", "1600w", "1837w"]);
+    expect(set[4]).toBe("/cdn-cgi/image/width=1837,quality=80,format=auto,fit=scale-down/media/catalog/f3cd253e-a15e-4e8b-8cbe-f3397781a398 1837w");
     expect(imgSize(photo, "50vw")).toMatchObject({ width: 1837, height: 2400, sizes: "50vw" });
   });
 

@@ -26,7 +26,8 @@ export function photoSrcSet(photo?: { url?: string; width?: number }): string | 
   if (!resizing() || !photo?.url || !photo.url.startsWith('/media/catalog/')) return undefined;
   const widths = PHOTO_WIDTHS.filter(width => !photo.width || width < photo.width);
   if (!widths.length) return undefined;
-  return [...widths.map(width => `${resizedUrl(photo.url!, width)} ${width}w`), ...(photo.width && photo.width <= 2400 ? [`${photo.url} ${photo.width}w`] : [])].join(', ');
+  // The largest entry is the photo at its own size, still re-encoded (AVIF/WebP, quality 80): a fraction of the JPEG original.
+  return [...widths.map(width => `${resizedUrl(photo.url!, width)} ${width}w`), ...(photo.width && photo.width <= 2400 ? [`${resizedUrl(photo.url!, photo.width)} ${photo.width}w`] : [])].join(', ');
 }
 
 /**
