@@ -72,14 +72,14 @@ export async function getHomeContent(lang: HomeLang): Promise<HomeContent> {
   const overrides: Partial<Record<HomeKey, string>> = {};
   const images: HomeContent['images'] = { 'home-hero': [], 'home-intro': [], 'home-gallery': [], 'home-contact': [] };
   if (env.DB) {
-    try {
-      const texts = await env.DB.prepare('SELECT key, value FROM home_texts WHERE lang = ?').bind(lang).all<{ key: string; value: string }>();
-      for (const row of texts.results || []) if (HOME_KEYS.has(row.key) && row.value.trim()) overrides[row.key as HomeKey] = row.value;
-    } catch { /* table missing: defaults */ }
-    try {
-      const rows = await env.DB.prepare("SELECT id, owner_id, alt, width, height FROM catalog_images WHERE owner_type = 'home' ORDER BY position, id").all<{ id: string; owner_id: string; alt: string; width: number | null; height: number | null }>();
-      for (const row of rows.results || []) if (isHomeSlot(row.owner_id)) images[row.owner_id].push({ id: row.id, url: catalogImageUrl(row.id), alt: row.alt, ...(row.width && row.height ? { width: row.width, height: row.height } : {}) });
-    } catch { /* no photos of its own */ }
+    // Both reads are independent: run them together. Either one failing just keeps its defaults.
+    const db = env.DB;
+    const [texts, rows] = await Promise.all([
+      (async () => db.prepare('SELECT key, value FROM home_texts WHERE lang = ?').bind(lang).all<{ key: string; value: string }>())().catch(() => null), // table missing: defaults
+      (async () => db.prepare("SELECT id, owner_id, alt, width, height FROM catalog_images WHERE owner_type = 'home' ORDER BY position, id").all<{ id: string; owner_id: string; alt: string; width: number | null; height: number | null }>())().catch(() => null), // no photos of its own
+    ]);
+    for (const row of texts?.results || []) if (HOME_KEYS.has(row.key) && row.value.trim()) overrides[row.key as HomeKey] = row.value;
+    for (const row of rows?.results || []) if (isHomeSlot(row.owner_id)) images[row.owner_id].push({ id: row.id, url: catalogImageUrl(row.id), alt: row.alt, ...(row.width && row.height ? { width: row.width, height: row.height } : {}) });
   }
   return { text: { ...HOME_TEXT[lang], ...overrides }, overrides, images };
 }

@@ -59,7 +59,7 @@ export function DetailGallery({ photos, name, lang, areas = true }: { photos: Ph
     </button>)}
   </div> : <div className="dv-areas" role="group" aria-label={`${name} — ${w.photo.toLowerCase()}`}>
     {groups.length > 1 && <nav className="dv-areas-nav" aria-label={w.byArea}>{groups.map(group => <a key={group.key} href={`#dv-area-${group.key}`} onClick={event => { event.preventDefault(); document.getElementById(`dv-area-${group.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>{group.label}<b>{group.items.length}</b></a>)}</nav>}
-    {groups.map(group => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area">{group.label && <h3>{group.label}<small>{group.items.length} {w.photos}</small></h3>}<JustifiedPhotos photos={group.items} label={`${name}${group.label ? ` — ${group.label}` : ''}`} target={230} maxRowHeight={340} onOpen={at => openPhoto(group.items[at])} /></section>)}
+    {groups.map((group, groupIndex) => <section key={group.key} id={`dv-area-${group.key}`} className="dv-area">{group.label && <h3>{group.label}<small>{group.items.length} {w.photos}</small></h3>}<JustifiedPhotos photos={group.items} label={`${name}${group.label ? ` — ${group.label}` : ''}`} target={230} maxRowHeight={340} eager={groupIndex === 0 ? 3 : 0} onOpen={at => openPhoto(group.items[at])} /></section>)}
   </div>}
     <dialog ref={dialog} className="dv-viewer" aria-label={name} onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }}>
       <button type="button" className="dv-viewer-close" aria-label={w.close} onClick={() => dialog.current?.close()}>×</button>
