@@ -52,6 +52,8 @@ async function main() {
   // robots + sitemap
   const robots = await get('/robots.txt');
   add(robots.response?.ok ? 'ok' : 'fail', 'SEO', 'robots.txt', robots.response ? `HTTP ${robots.response.status}` : robots.error);
+  const llms = await get('/llms.txt'); const llmsText = llms.response?.ok ? await llms.response.text() : '';
+  add(llms.response?.ok && llmsText.startsWith('# DRM Stays') ? 'ok' : 'warn', 'SEO', 'llms.txt (cho AI)', llms.response ? `HTTP ${llms.response.status}${llms.response.ok ? '' : ' (bình thường khi chưa mở site cho Google)'}` : llms.error);
   const sitemap = await get('/sitemap.xml'); const sitemapText = sitemap.response?.ok ? await sitemap.response.text() : '';
   const sitemapUrls = [...sitemapText.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   add(sitemap.response?.ok ? (sitemapUrls.length ? 'ok' : 'warn') : 'fail', 'SEO', 'sitemap.xml', sitemap.response ? `${sitemapUrls.length} địa chỉ${sitemapUrls.length ? '' : ' (rỗng: bình thường khi đang "Sắp ra mắt")'}` : sitemap.error);

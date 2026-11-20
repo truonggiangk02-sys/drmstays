@@ -20,7 +20,7 @@ export const homeMeta: Record<Lang, Meta> = {
 export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" | "partners" | "about" | "journal" | "faq" | "contact", PageMeta>> = {
   vi: {
     stays: { h1: "Phòng cho thuê tại Đà Nẵng", title: "Xem tòa nhà và phòng cho thuê tại Đà Nẵng", description: "Doraemon's Land Đỗ Bá và AnLiu Apartment: phòng có sẵn nội thất, thuê ngắn ngày và dài ngày. Xem ảnh, giá và gửi yêu cầu." },
-    "room-types": { h1: "Khám phá các loại phòng tiêu biểu", title: "Các loại phòng tiêu biểu tại DRM Stays", description: "Xem các kiểu phòng có sẵn nội thất tại Đà Nẵng: studio, căn hộ một phòng ngủ. So sánh diện tích, giá và tòa nhà." },
+    "room-types": { h1: "Khám phá các loại phòng tiêu biểu", title: "Loại phòng studio, căn hộ 1 phòng ngủ tại Đà Nẵng", description: "Xem các kiểu phòng có sẵn nội thất tại Đà Nẵng: studio, căn hộ một phòng ngủ. So sánh diện tích, giá và tòa nhà." },
     services: { h1: "Dịch vụ và chi phí khi thuê phòng", title: "Dịch vụ và chi phí khi thuê phòng", description: "Thuê ngắn ngày và dài ngày, phòng có sẵn nội thất, chi phí điện nước rõ ràng và hỗ trợ nhiều ngôn ngữ tại các tòa nhà DRM Stays." },
     partners: { h1: "Dành cho chủ đầu tư bất động sản cho thuê", title: "Dành cho chủ đầu tư: tư vấn và vận hành", description: "Tư vấn chọn mua, thiết kế, thi công và vận hành bất động sản cho thuê tại Đà Nẵng, kèm báo cáo tài chính hằng tháng. Liên hệ để biết phí." },
     about: { h1: "DRM Stays: tư vấn và vận hành bất động sản cho thuê", title: "Giới thiệu: 3 năm vận hành bất động sản cho thuê", description: "DRM Stays vận hành 2 tòa nhà với 35 căn tại Đà Nẵng, hơn 800 lượt khách từ 2025 và đã tư vấn hơn 10 dự án. Tìm hiểu về đội ngũ và hệ sinh thái từ thiết kế đến vận hành." },
@@ -30,10 +30,10 @@ export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" |
   },
   en: {
     stays: { h1: "Rooms for rent in Da Nang", title: "Buildings and rooms for rent in Da Nang", description: "Doraemon's Land Đỗ Bá and AnLiu Apartment: furnished rooms for short and long stays. See photos, prices and send an inquiry." },
-    "room-types": { h1: "Explore our featured room types", title: "Featured room types at DRM Stays", description: "Browse furnished room types in Da Nang: studios and one-bedroom apartments. Compare size, price and building." },
+    "room-types": { h1: "Explore our featured room types", title: "Studio and 1-bedroom room types in Da Nang", description: "Browse furnished room types in Da Nang: studios and one-bedroom apartments. Compare size, price and building." },
     services: { h1: "Services and costs when renting a room", title: "Services and costs when renting a room", description: "Short and long stays, furnished rooms, clear utility costs and multilingual support at DRM Stays buildings." },
     partners: { h1: "For rental property investors", title: "For investors: consulting and operations", description: "Advice on buying, design, construction and operation of rental property in Da Nang, with monthly financial reports. Contact us for fees." },
-    about: { h1: "DRM Stays: rental property consulting and operations", title: "About us: 3 years operating rental property", description: "DRM Stays operates four buildings in Da Nang and has advised more than 10 projects. Learn about the team and our ecosystem from design to operation." },
+    about: { h1: "DRM Stays: rental property consulting and operations", title: "About us: 3 years operating rental property", description: "DRM Stays operates 2 buildings with 35 units in Da Nang, has hosted 800+ guests since 2025 and advised 10+ projects. Meet the team behind design and operations." },
     journal: { h1: "Rental property journal", title: "Rental property journal", description: "Tips on renting a room and operating rental property in Da Nang from the DRM Stays team." },
     faq: { h1: "FAQ: renting a room in Da Nang", title: "FAQ: renting a room in Da Nang", description: "Rent, deposit, utilities, stay length and languages supported at DRM Stays buildings in Da Nang." },
     contact: { h1: "Contact DRM Stays in Da Nang", title: "Contact us for advice or a room in Da Nang", description: `Call ${CONTACT.phoneDisplay} or send an inquiry. Office open 8:00–17:00, multilingual support.` },
