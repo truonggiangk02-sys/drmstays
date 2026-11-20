@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { getPublicCatalog } from "@/lib/public-catalog";
 import { getContentItems } from "@/lib/site-content";
 import { buildLlmsTxt } from "@/lib/llms-txt";
+import { getJournalPosts } from "@/lib/journal";
 import { isIndexable, siteUrl } from "@/lib/site";
 
 /**
@@ -14,11 +15,12 @@ export async function GET(request: NextRequest) {
   const hidden = env.PREVIEW_DEMO === "1" || env.COMING_SOON === "1" || !isIndexable(request.nextUrl.hostname);
   if (hidden) return new Response("Not found\n", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
   const origin = siteUrl() || request.nextUrl.origin;
-  const [vi, en, faqItems] = await Promise.all([
+  const [vi, en, faqItems, posts] = await Promise.all([
     getPublicCatalog(undefined, undefined, "vi").catch(() => null),
     getPublicCatalog(undefined, undefined, "en").catch(() => null),
     getContentItems("faq").catch(() => []),
+    getJournalPosts("en").catch(() => []),
   ]);
-  const body = buildLlmsTxt(origin, { vi: vi?.buildings || [], en: en?.buildings || [] }, faqItems);
+  const body = buildLlmsTxt(origin, { vi: vi?.buildings || [], en: en?.buildings || [] }, faqItems, posts);
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
 }

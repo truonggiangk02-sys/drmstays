@@ -75,3 +75,18 @@ export function faqData(items: Array<{ question: string; answer: string }>, lang
     mainEntity: shown.map(item => ({ '@type': 'Question', name: item.question.trim(), acceptedAnswer: { '@type': 'Answer', text: item.answer.trim() } })),
   };
 }
+
+/** BlogPosting for a journal post, published by DRM Stays. Null without SITE_URL. */
+export function articleData(post: { slug: string; lang: Lang; title: string; excerpt: string; publishedAt: string; updatedAt: string }, imageUrls: string[] = []): object | null {
+  const base = siteUrl();
+  if (!base) return null;
+  const url = `${base}/${post.lang}/journal/${post.slug}`;
+  return clean({
+    '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.excerpt, inLanguage: post.lang,
+    url, mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    datePublished: post.publishedAt || undefined, dateModified: post.updatedAt || post.publishedAt || undefined,
+    image: imageUrls.map(image => absoluteUrl(image)).filter(Boolean).slice(0, 5),
+    author: { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, url: base },
+    publisher: { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${base}/drm-stay-logo.png` } },
+  });
+}

@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { NextRequest } from "next/server";
-import { getContentItems } from "@/lib/site-content";
+import { getPublishedJournal, rowLanguages } from "@/lib/journal";
 import { getPublicCatalog } from "@/lib/public-catalog";
 import { siteUrl } from "@/lib/site";
 import { absoluteImage, buildSitemap, toLastmod, type SitemapEntry } from "@/lib/sitemap";
@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
       }
     } catch { /* The catalog source is down: still list the static pages. */ }
     try {
-      // The journal is hidden until it has an article. Posts have no "last changed" date yet, so they are listed without <lastmod>.
-      const posts = await getContentItems("journal");
+      // The journal is hidden until it has a published post. Each post is listed in the languages it is written in.
+      const posts = await getPublishedJournal();
       if (posts.length) entries.push({ path: "/journal" });
-      for (const item of posts) entries.push({ path: `/journal/${item.id}` });
+      for (const row of posts) entries.push({ path: `/journal/${row.slug || row.id}`, lastmod: row.updated_at ? `${row.updated_at}T00:00:00Z` : undefined, langs: rowLanguages(row) });
     } catch { /* Journal is optional. */ }
   }
   return new Response(buildSitemap(origin, entries), { headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=600" } });

@@ -18,7 +18,7 @@ const line = (text: string) => text.replace(/\s+/g, " ").trim();
  * The /llms.txt document (https://llmstxt.org): who DRM Stays is, the facts an AI answer needs (place, prices, sizes,
  * languages, contact) and links to the page that holds each fact, in English with the Vietnamese pages linked too.
  */
-export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: LlmsBuilding[] }, faq: ContentItem[]): string {
+export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: LlmsBuilding[] }, faq: ContentItem[], posts: Array<{ slug: string; title: string; excerpt: string }> = []): string {
   const out: string[] = [];
   const buildings = catalog.en.length ? catalog.en : catalog.vi;
   const prices = buildings.map(building => buildingFromPrice(building)).filter(price => price > 0);
@@ -82,6 +82,12 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
       out.push(`Q: ${line(item.title_en || item.title_vi)}`);
       out.push(`A: ${line(item.body_en || item.body_vi)}`);
     }
+    out.push("");
+  }
+
+  if (posts.length) {
+    out.push("## Guides (DRM Stays journal)");
+    for (const post of posts) out.push(`- [${line(post.title)}](${origin}/en/journal/${post.slug}): ${line(post.excerpt)}`);
     out.push("");
   }
 
