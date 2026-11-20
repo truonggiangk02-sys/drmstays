@@ -18,7 +18,8 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
     '@graph': [
       {
         '@type': 'LodgingBusiness', '@id': `${base}/#org`, name: SITE_NAME, url: base, logo: `${base}/drm-stay-logo.png`, image: `${base}/drm-stay-logo.png`,
-        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', ...(extra.sameAs?.length ? { sameAs: extra.sameAs } : {}),
+        alternateName: CONTACT.businessProfileName, hasMap: CONTACT.googleMaps,
+        telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', sameAs: [...new Set([...(extra.sameAs || []), CONTACT.googleMaps])],
         description: lang === 'vi' ? 'Đơn vị tư vấn phát triển, thiết kế và vận hành bất động sản cho thuê tại Đà Nẵng.' : 'Consultancy for the development, design and operation of rental property in Da Nang.',
         knowsLanguage: ['vi', 'en', 'ja', 'ko', 'zh', 'ru'],
         ...(extra.priceFrom && extra.priceFrom > 0 ? { priceRange: lang === 'vi' ? `Từ ${new Intl.NumberFormat('vi-VN').format(extra.priceFrom)} VND/tháng` : `From ${new Intl.NumberFormat('en-US').format(extra.priceFrom)} VND/month`, currenciesAccepted: 'VND' } : {}),
