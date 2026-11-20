@@ -30,7 +30,8 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
   out.push("");
   out.push("Key facts:");
   out.push(`- Location: Da Nang, Vietnam (office: ${CONTACT.address}).`);
-  if (buildings.length) out.push(`- Buildings: ${buildings.map(building => propertyName(building.name)).join("; ")}.`);
+  out.push("- Company: 4 buildings in Da Nang, 2 operating (35 units, occupancy over 80%) and 2 opening in March 2027; more than 10 rental projects advised in 3 years.");
+  if (buildings.length) out.push(`- Buildings listed on the site: ${buildings.map(building => propertyName(building.name)).join("; ")}.`);
   if (prices.length) out.push(`- Monthly rent from ${vnd(Math.min(...prices))}.`);
   out.push("- Stays: short stays and long stays (monthly, yearly). Rooms are furnished.");
   out.push("- Languages: Vietnamese, English, Japanese, Korean, Chinese, Russian. Office hours 8:00-17:00.");
@@ -53,7 +54,7 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
       out.push("");
       out.push(`### ${name}`);
       out.push(`- Page: ${origin}/en/buildings/${building.id} (Tiếng Việt: ${origin}/vi/buildings/${building.id})`);
-      if (building.address) out.push(`- Address: ${building.address}, Da Nang`);
+      if (building.address) out.push(`- Address: ${/đà nẵng|da nang/i.test(building.address) ? building.address : `${building.address}, Da Nang`}`);
       if (building.propertyType) out.push(`- Type: ${building.propertyType}`);
       if (building.floorCount) out.push(`- Floors: ${building.floorCount}`);
       const count = buildingRoomCount(building);

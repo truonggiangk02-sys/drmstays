@@ -62,5 +62,12 @@ describe("llms.txt", () => {
     expect(text).toContain("- Room type [Studio](https://drmstays.test/en/types/t1): 30 m², up to 2 guests, 1 bed, from 13,000,000 VND/month");
     expect(text).toContain("Q: Deposit?\nA: One month's rent.");
     expect(text).toContain("https://drmstays.test/vi/faq");
+    expect(text).toContain("- Address: 70 Mai Thúc Lân, Da Nang");
+    expect(text).toContain("4 buildings in Da Nang, 2 operating");
+  });
+
+  it("does not repeat the city when the address already names it", () => {
+    const text = buildLlmsTxt("https://drmstays.test", { vi: [], en: [{ ...building, address: "K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng" }] }, []);
+    expect(text).toContain("- Address: K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng\n");
   });
 });
