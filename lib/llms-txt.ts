@@ -21,7 +21,6 @@ const line = (text: string) => text.replace(/\s+/g, " ").trim();
 export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: LlmsBuilding[] }, faq: ContentItem[]): string {
   const out: string[] = [];
   const buildings = catalog.en.length ? catalog.en : catalog.vi;
-  const viById = new Map(catalog.vi.map(building => [building.id, building]));
   const prices = buildings.map(building => buildingFromPrice(building)).filter(price => price > 0);
 
   out.push("# DRM Stays");
@@ -36,7 +35,7 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
   out.push("- Stays: short stays and long stays (monthly, yearly). Rooms are furnished.");
   out.push("- Languages: Vietnamese, English, Japanese, Korean, Chinese, Russian. Office hours 8:00-17:00.");
   out.push(`- Contact: phone ${CONTACT.phoneIntl} (${CONTACT.phoneDisplay}), email ${CONTACT.email}, form ${origin}/en/contact`);
-  out.push("- Website languages: Vietnamese (/vi) and English (/en). Prices are in Vietnamese dong (VND).");
+  out.push("- Website languages: English (/en, the default) and Vietnamese (/vi). Prices are in Vietnamese dong (VND).");
   out.push("");
 
   out.push("## Main pages");
@@ -50,7 +49,7 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
     for (const building of buildings) {
       const name = propertyName(building.name);
       const from = buildingFromPrice(building);
-      const own = ownLanguageText(building.description, "en") || ownLanguageText(viById.get(building.id)?.description, "vi");
+      const own = ownLanguageText(building.description, "en");
       out.push("");
       out.push(`### ${name}`);
       out.push(`- Page: ${origin}/en/buildings/${building.id} (Tiếng Việt: ${origin}/vi/buildings/${building.id})`);

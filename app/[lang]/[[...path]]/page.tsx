@@ -6,7 +6,7 @@ import { env } from 'cloudflare:workers';
 import { getPublicCatalog } from '@/lib/public-catalog';
 import { getContentItems, getContentImages, pageSections, type ContentItem, type ContentSection, type ContentImage } from '@/lib/site-content';
 import { getPublicLandmarks } from '@/lib/landmarks';
-import { absoluteUrl, CONTACT, propertyName, siteUrl, summarize } from '@/lib/site';
+import { absoluteUrl, CONTACT, contactAddress, propertyName, siteUrl, summarize } from '@/lib/site';
 import { DetailGallery } from '@/components/detail-gallery';
 import { DetailBlock, FactRows, FeatureGrid, RuleRows, StatTiles } from '@/components/detail-parts';
 import { Ico, type Accent, type IconName } from '@/components/detail-icons';
@@ -127,7 +127,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     ...(title ? { title: section ? title : { absolute: title } } : {}),
     description,
     // Canonical and hreflang URLs must be absolute, so they are only emitted once SITE_URL is configured.
-    ...(siteUrl() ? { alternates: { canonical: `/${lang}${path}`, languages: { vi: `/vi${path}`, en: `/en${path}`, 'x-default': `/vi${path}` } } } : {}),
+    ...(siteUrl() ? { alternates: { canonical: `/${lang}${path}`, languages: { vi: `/vi${path}`, en: `/en${path}`, 'x-default': `/en${path}` } } } : {}),
     openGraph: { type: 'website', locale: lang === 'vi' ? 'vi_VN' : 'en_US', title: title || homeTitle[lang], description, ...(siteUrl() ? { url: `/${lang}${path}` } : {}), ...(ogImage ? { images: [{ url: ogImage, ...(image ? imageSize : { width: OG_DEFAULT.width, height: OG_DEFAULT.height }) }] } : {}) },
   };
 }
@@ -151,11 +151,11 @@ const contentBody = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.body
 function Header({ lang, segments, dateQuery, showJournal }: { lang: Lang; segments: string[]; dateQuery: string; showJournal: boolean }) {
   const t = copy[lang], suffix = segments.length ? `/${segments.join('/')}` : '';
   const links = [['stays', t.navStays], ['room-types', t.navRoomTypes], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['partners', t.navPartners], ['contact', t.navContact]] as const;
-  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link><span>/</span><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link></div></header>;
+  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link><span>/</span><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link></div></header>;
 }
 function ContactDetails({ lang, socials }: { lang: Lang; socials: SocialLink[] }) {
   const vi = lang === 'vi';
-  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {CONTACT.address}</span>{socials.length > 0 && <span><b>{vi ? 'Mạng xã hội' : 'Social'}</b> {socials.map((link, index) => <span key={link.name}>{index > 0 && ' · '}<a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a></span>)}</span>}</address>;
+  return <address className="structure-address"><span><b>{vi ? 'Điện thoại' : 'Phone'}</b> <a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a></span><span><b>Email</b> <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></span><span><b>{vi ? 'Địa chỉ' : 'Address'}</b> {contactAddress(lang)}</span>{socials.length > 0 && <span><b>{vi ? 'Mạng xã hội' : 'Social'}</b> {socials.map((link, index) => <span key={link.name}>{index > 0 && ' · '}<a href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a></span>)}</span>}</address>;
 }
 function Footer({ lang, showJournal, socials }: { lang: Lang; showJournal: boolean; socials: SocialLink[] }) {
   const t = copy[lang];

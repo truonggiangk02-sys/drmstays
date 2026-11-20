@@ -17,7 +17,7 @@ describe("buildSitemap", () => {
     const xml = buildSitemap(O, [{ path: "/about" }]);
     expect(xml).toContain("<loc>https://drmstays.vn/vi/about</loc>");
     expect(xml).toContain("<loc>https://drmstays.vn/en/about</loc>");
-    expect(xml.match(/hreflang="x-default" href="https:\/\/drmstays.vn\/vi\/about"/g)).toHaveLength(2);
+    expect(xml.match(/hreflang="x-default" href="https:\/\/drmstays.vn\/en\/about"/g)).toHaveLength(2);
     expect(xml).not.toContain("<lastmod>");
     expect(xml).not.toContain("<image:image>");
   });

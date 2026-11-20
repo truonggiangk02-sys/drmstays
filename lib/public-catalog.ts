@@ -5,6 +5,10 @@ import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding }
 import { areaOf } from './image-area';
 import { effectivePrice, priceFrom, availableCount, byRoomName, type TypeDetails } from './room-types';
 import { catalogImageUrl } from './image-url';
+import { englishAddress } from './site';
+
+/** English pages show addresses without Vietnamese marks; Vietnamese pages keep them as entered. */
+const localAddress = (address: string, lang: 'vi' | 'en') => (lang === 'en' ? englishAddress(address) : address);
 import { inferFloor, parseDetails, detailText, detailNumber, detailList, detailStatus, detailMonth, type BuildingDetails, type RoomDetails } from './catalog-details';
 
 type BuildingRow = { source_id: string; updated_at?: string | null; published: number; description: string; address: string; services: string; details_json: string };
@@ -64,7 +68,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
     const photoGallery = gallery('building', building.id, 'photo');
     const description = pickText(lang === 'vi' ? detail.descriptionVi : detail.descriptionEn, lang === 'vi' ? detail.descriptionEn : detail.descriptionVi, profile.description);
     return [{
-      id: building.id, updatedAt: profile.updated_at || undefined, name: building.name, description, address: profile.address || firstSample?.address || '',
+      id: building.id, updatedAt: profile.updated_at || undefined, name: building.name, description, address: localAddress(profile.address || firstSample?.address || '', lang),
       latitude: hasCoordinates ? detail.latitude! : demoPoint?.latitude ?? null,
       longitude: hasCoordinates ? detail.longitude! : demoPoint?.longitude ?? null,
       coordinateApproximate: hasCoordinates ? detail.coordinateApproximate === true : !!demoPoint,

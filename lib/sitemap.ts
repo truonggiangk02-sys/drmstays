@@ -19,7 +19,7 @@ export function absoluteImage(origin: string, url: string): string {
 /** One <url> per page per language, each pointing at both languages (hreflang). <lastmod> and <image:image> only when known. */
 export function buildSitemap(origin: string, entries: SitemapEntry[]): string {
   const rows = entries.flatMap(({ path, lastmod, images = [] }) => {
-    const links = [["vi", `${origin}/vi${path}`], ["en", `${origin}/en${path}`], ["x-default", `${origin}/vi${path}`]]
+    const links = [["vi", `${origin}/vi${path}`], ["en", `${origin}/en${path}`], ["x-default", `${origin}/en${path}`]]
       .map(([lang, href]) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(href)}"/>`).join("");
     const stamp = lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "";
     const pictures = [...new Set(images)].slice(0, MAX_IMAGES).map((src) => `<image:image><image:loc>${escapeXml(src)}</image:loc></image:image>`).join("");

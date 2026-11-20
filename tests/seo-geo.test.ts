@@ -71,3 +71,13 @@ describe("llms.txt", () => {
     expect(text).toContain("- Address: K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng\n");
   });
 });
+
+describe("English pages", () => {
+  it("write addresses without Vietnamese marks", async () => {
+    const { englishAddress, contactAddress, CONTACT } = await import("@/lib/site");
+    expect(englishAddress("K234/29-31 Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng")).toBe("K234/29-31 Do Ba, Ngu Hanh Son, Da Nang");
+    expect(englishAddress("240 Lê Thanh Nghị, Hòa Cường, Đà Nẵng")).toBe("240 Le Thanh Nghi, Hoa Cuong, Da Nang");
+    expect(contactAddress("en")).toBe(englishAddress(CONTACT.address));
+    expect(contactAddress("vi")).toBe(CONTACT.address);
+  });
+});
