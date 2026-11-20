@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
   for (const row of rows.results || []) {
     const object = await env.BUCKET.get(row.object_key, { range: { offset: 0, length: HEAD_BYTES } });
     const size = object ? imageSize(new Uint8Array(await new Response(object.body).arrayBuffer())) : null;
-    if (!size) continue;
-    await env.DB.prepare('UPDATE catalog_images SET width = ?, height = ? WHERE id = ?').bind(size.width, size.height, row.id).run();
-    filled += 1;
+    // 0 x 0 means "checked, size unreadable" (pages treat it like no size). Leaving it NULL made the same
+    // unreadable photos come back first in every batch, so once there were BATCH of them nothing else got filled.
+    await env.DB.prepare('UPDATE catalog_images SET width = ?, height = ? WHERE id = ?').bind(size?.width ?? 0, size?.height ?? 0, row.id).run();
+    if (size) filled += 1;
   }
   const destination = new URL('/admin/media', request.url);
   destination.searchParams.set('sizes', String(filled));
