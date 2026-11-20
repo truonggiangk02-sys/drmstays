@@ -22,7 +22,8 @@ import { PublicHome } from '@/components/public-home';
 import { getContactChannels, instagramMessageUrl, messengerUrl } from '@/lib/contact-channels';
 import { getSocialLinks, publicSocialLinks, type SocialLink } from '@/lib/social-links';
 import { policies, policySections, POLICIES_UPDATED, type PolicySection } from '@/lib/policies';
-import { breadcrumbData, structuredData } from '@/lib/structured-data';
+import { breadcrumbData, faqData, structuredData } from '@/lib/structured-data';
+import { ownLanguageText } from '@/lib/seo-copy';
 import { groupByFloor } from '@/lib/catalog-progress';
 import { buildingCover, buildingFromPrice, buildingPhotos, buildingRoomCount, mixedBuildingPhotos } from '@/lib/building-media';
 import { ServicesShowcase } from '@/components/services-showcase';
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     if (!found) return data ? { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } } : {};
     title = building ? propertyName(building.name) : roomType ? roomType.name : room!.name;
     const inBuilding = building ? undefined : data?.buildings.find(item => item.types.some(entry => entry.id === id) || item.rooms.some(entry => entry.id === id));
-    description = summarize(found.description || (building
+    description = summarize(ownLanguageText(found.description, lang) || (building
       ? listingDescription(lang, { kind: 'building', name: title, address: building.address, propertyType: building.propertyType, priceFrom: buildingFromPrice(building) })
       : roomType
         ? listingDescription(lang, { kind: 'type', name: title, building: inBuilding ? propertyName(inBuilding.name) : undefined, areaSqm: roomType.areaSqm, beds: roomType.beds, maxGuests: roomType.maxGuests, priceFrom: roomType.priceFrom })
@@ -131,6 +132,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   };
 }
 
+/** Lowest positive price, or 0 when none is known. */
+const lowestPrice = (prices: number[]) => { const known = prices.filter(price => price > 0); return known.length ? Math.min(...known) : 0; };
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 function selectedDateQuery(checkIn?: string, checkOut?: string) {
   const validDate = (value?: string) => {
@@ -237,7 +240,9 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const instagramLink = socialLinks.find(link => link.name === 'Instagram')?.url;
   const instagramDm = instagramLink ? instagramMessageUrl(instagramLink) : undefined;
   const contactPhoto = section === 'contact' ? data?.buildings.map(item => buildingPhotos(item)[0]).find(Boolean) : undefined;
-  const ld = env.PREVIEW_DEMO === '1' ? null : !section ? structuredData('home', lang, undefined, undefined, { sameAs: socialLinks.map(link => link.url) }) : building ? structuredData('building', lang, building) : room ? structuredData('room', lang, room, data?.buildings.find(item => item.rooms.some(r => r.id === room.id))) : roomType ? structuredData('type', lang, { id: roomType.id, name: roomType.name, description: roomType.description, monthlyPrice: roomType.priceFrom, areaSqm: roomType.areaSqm, maxGuests: roomType.maxGuests, beds: roomType.beds, images: roomType.images }, roomType.building) : null;
+  const ld = env.PREVIEW_DEMO === '1' ? null : !section ? structuredData('home', lang, undefined, undefined, { sameAs: socialLinks.map(link => link.url), buildings: data?.buildings || [], priceFrom: lowestPrice((data?.buildings || []).map(buildingFromPrice)) }) : building ? structuredData('building', lang, { ...building, description: ownLanguageText(building.description, lang) }) : room ? structuredData('room', lang, { ...room, description: ownLanguageText(room.description, lang) }, data?.buildings.find(item => item.rooms.some(r => r.id === room.id))) : roomType ? structuredData('type', lang, { id: roomType.id, name: roomType.name, description: ownLanguageText(roomType.description, lang), monthlyPrice: roomType.priceFrom, areaSqm: roomType.areaSqm, maxGuests: roomType.maxGuests, beds: roomType.beds, images: roomType.images }, roomType.building) : null;
+  const faqItems = section === 'faq' ? content : !section ? homeFaq.slice(0, 6) : [];
+  const faqLd = env.PREVIEW_DEMO === '1' ? null : faqData(faqItems.map(item => ({ question: contentTitle(item, lang), answer: contentBody(item, lang) })), lang);
   const homeCrumb = { name: lang === 'vi' ? 'Trang chủ' : 'Home', path: `/${lang}` };
   const staysCrumb = { name: t.navStays, path: `/${lang}/stays` };
   const roomBuilding = room ? data?.buildings.find(item => item.rooms.some(r => r.id === room.id)) : undefined;
@@ -246,7 +251,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     : room ? breadcrumbData([homeCrumb, staysCrumb, ...(roomBuilding ? [buildingCrumb(roomBuilding)] : []), { name: title, path: `/${lang}/rooms/${room.id}` }])
     : roomType ? breadcrumbData([homeCrumb, staysCrumb, buildingCrumb(roomType.building), { name: title, path: `/${lang}/types/${roomType.id}` }])
     : article ? breadcrumbData([homeCrumb, { name: t.navJournal, path: `/${lang}/journal` }, { name: title, path: `/${lang}/journal/${article.id}` }]) : null;
-  return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
+  return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
     <main id="main-content"><PageTransition>
     {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={content} home={homeContent!} services={homeServices} serviceImages={homeServiceImages} faq={homeFaq} reviews={homeReviews} reviewImages={reviewImages} roomTypes={(data?.buildings || []).flatMap(item => item.types.map(type => ({ id: type.id, name: type.name, building: propertyName(item.name), image: type.images[0], priceFrom: type.priceFrom, areaSqm: type.areaSqm, beds: type.beds, maxGuests: type.maxGuests })))} />}
     {section === 'room-types' && <RoomTypesPage lang={lang} title={title} dateQuery={dateQuery} empty={t.empty} buildings={(data?.buildings || []).filter(item => item.types.length).map(item => ({ id: item.id, name: propertyName(item.name), address: item.address, cover: buildingPhotos(item).find(photo => !item.types.some(type => type.images.slice(0, 2).some(shown => shown.url === photo.url))), types: item.types.map(type => ({ id: type.id, name: type.name, images: type.images.slice(0, 2), priceFrom: type.priceFrom, areaSqm: type.areaSqm, beds: type.beds, maxGuests: type.maxGuests, roomCount: type.rooms.length, availableCount: type.availableCount })) }))} />}

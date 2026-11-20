@@ -10,7 +10,7 @@ const clean = <T extends Record<string, unknown>>(value: T): T =>
 const images = (photos: Photo[]) => photos.map(photo => absoluteUrl(photo.url)).filter((url): url is string => !!url).slice(0, 5);
 
 /** JSON-LD for the page, or null when the public origin (SITE_URL) is unknown: structured data needs absolute URLs. */
-export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData, extra: { sameAs?: string[] } = {}): object | null {
+export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang: Lang, data?: BuildingData | RoomData, building?: BuildingData, extra: { sameAs?: string[]; buildings?: Array<{ id: string; name: string }>; priceFrom?: number } = {}): object | null {
   const base = siteUrl();
   if (!base) return null;
   if (kind === 'home') return {
@@ -21,6 +21,8 @@ export function structuredData(kind: 'home' | 'building' | 'room' | 'type', lang
         telephone: CONTACT.phoneIntl, email: CONTACT.email, areaServed: 'Da Nang, Vietnam', ...(extra.sameAs?.length ? { sameAs: extra.sameAs } : {}),
         description: lang === 'vi' ? 'Đơn vị tư vấn phát triển, thiết kế và vận hành bất động sản cho thuê tại Đà Nẵng.' : 'Consultancy for the development, design and operation of rental property in Da Nang.',
         knowsLanguage: ['vi', 'en', 'ja', 'ko', 'zh', 'ru'],
+        ...(extra.priceFrom && extra.priceFrom > 0 ? { priceRange: lang === 'vi' ? `Từ ${new Intl.NumberFormat('vi-VN').format(extra.priceFrom)} VND/tháng` : `From ${new Intl.NumberFormat('en-US').format(extra.priceFrom)} VND/month`, currenciesAccepted: 'VND' } : {}),
+        ...(extra.buildings?.length ? { owns: extra.buildings.map(item => ({ '@type': 'ApartmentComplex', name: propertyName(item.name), url: `${base}/${lang}/buildings/${item.id}` })) } : {}),
         address: { '@type': 'PostalAddress', streetAddress: CONTACT.street, addressLocality: CONTACT.city, addressRegion: CONTACT.district, addressCountry: 'VN' },
       },
       { '@type': 'WebSite', '@id': `${base}/#site`, name: SITE_NAME, url: `${base}/${lang}`, inLanguage: lang, publisher: { '@id': `${base}/#org` } },
@@ -58,5 +60,18 @@ export function breadcrumbData(items: Array<{ name: string; path: string }>): ob
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: items.map((item, index) => ({ '@type': 'ListItem', position: index + 1, name: item.name, item: `${base}${item.path}` })),
+  };
+}
+
+/** FAQPage for questions shown on the page (Google and AI answers quote these). Null without SITE_URL or questions. */
+export function faqData(items: Array<{ question: string; answer: string }>, lang: Lang): object | null {
+  const base = siteUrl();
+  const shown = items.filter(item => item.question.trim() && item.answer.trim());
+  if (!base || !shown.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    inLanguage: lang,
+    mainEntity: shown.map(item => ({ '@type': 'Question', name: item.question.trim(), acceptedAnswer: { '@type': 'Answer', text: item.answer.trim() } })),
   };
 }
