@@ -16,6 +16,10 @@ export const CONTACT = {
   /** The same address as written for international guests (no Vietnamese marks; Grab and Google Maps read it too). */
   addressEn: "K234/29-31 Do Ba, Ngu Hanh Son, Da Nang",
   facebook: "https://www.facebook.com/profile.php?id=61589018612745",
+  /** Name of the Google Business Profile ("DRM Stays Da Nang"), declared as alternateName so Google links the two. */
+  businessProfileName: "DRM Stays Da Nang",
+  /** The Google Business Profile on Maps (stable ?cid= link of the place at K234/29-31 Đỗ Bá). */
+  googleMaps: "https://maps.google.com/?cid=3992503975227340057",
 } as const;
 /**
  * An address as written for English pages: Vietnamese marks removed ("Đỗ Bá, Ngũ Hành Sơn, Đà Nẵng" ->
