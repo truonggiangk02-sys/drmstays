@@ -14,6 +14,8 @@ $env:STAYDESK_CATALOG_URL = 'https://staydesk-nine.vercel.app'
 $env:SITE_URL = 'https://drmstays.vn'
 # Google Analytics (GA4) measurement ID: not a secret. It only runs once the site is live (never while COMING_SOON is set).
 $env:GA_MEASUREMENT_ID = 'G-Z2LGZVSCP5'
+# Cloudflare Images > Transformations is enabled for drmstays.vn: pages ask for resized catalog photos (lib/image-url.ts).
+$env:IMAGE_RESIZE = '1'
 # Only domains already Active in this Cloudflare account can be attached. When drmstays.com is added there,
 # append ',drmstays.com,www.drmstays.com' to both lines.
 $env:CUSTOM_DOMAINS = 'drmstays.vn,www.drmstays.vn'
