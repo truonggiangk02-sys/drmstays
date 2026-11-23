@@ -29,7 +29,11 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
   out.push("");
   out.push("Key facts:");
   out.push(`- Location: Da Nang, Vietnam (office: ${CONTACT.address}).`);
-  out.push("- Company: 4 buildings in Da Nang, 2 operating (35 units, occupancy over 80%) and 2 opening in March 2027; more than 10 rental projects advised in 3 years.");
+  // Counted from the catalog, so it follows the buildings the owner publishes instead of a number typed here.
+  const open = buildings.filter(building => !building.status || building.status === "open");
+  const units = open.reduce((sum, building) => sum + buildingRoomCount(building), 0);
+  const soon = buildings.length - open.length;
+  out.push(`- Company: ${open.length} building${open.length === 1 ? "" : "s"} in operation (${units} apartments, occupancy over 80%)${soon ? `, ${soon} more opening soon` : ""}; more than 10 rental projects advised in 3 years.`);
   if (buildings.length) out.push(`- Buildings listed on the site: ${buildings.map(building => propertyName(building.name)).join("; ")}.`);
   if (prices.length) out.push(`- Monthly rent from ${vnd(Math.min(...prices))}.`);
   out.push("- Stays: short stays and long stays (monthly, yearly). Rooms are furnished.");
@@ -39,9 +43,9 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
   out.push("");
 
   out.push("## Main pages");
-  const pages: Array<[keyof typeof pageMeta.en, string]> = [["stays", "/stays"], ["room-types", "/room-types"], ["services", "/services"], ["faq", "/faq"], ["about", "/about"], ["partners", "/partners"], ["contact", "/contact"]];
+  const pages: Array<[keyof typeof pageMeta.en, string]> = [["stays", "/stays"], ["long-stay", "/long-stay"], ["room-types", "/room-types"], ["services", "/services"], ["faq", "/faq"], ["about", "/about"], ["partners", "/partners"], ["contact", "/contact"]];
   out.push(`- [Home](${origin}/en) ([Tiếng Việt](${origin}/vi)): furnished apartments for rent in Da Nang.`);
-  for (const [key, path] of pages) out.push(`- [${pageMeta.en[key].title}](${origin}/en${path}) ([Tiếng Việt](${origin}/vi${path})): ${line(pageMeta.en[key].description)}`);
+  for (const [key, path] of pages) out.push(`- [${pageMeta.en[key].title}](${origin}/en${path})${key === "long-stay" ? "" : ` ([Tiếng Việt](${origin}/vi${path}))`}: ${line(pageMeta.en[key].description)}`);
   out.push("");
 
   if (buildings.length) {

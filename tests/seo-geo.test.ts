@@ -63,7 +63,7 @@ describe("llms.txt", () => {
     expect(text).toContain("Q: Deposit?\nA: One month's rent.");
     expect(text).toContain("https://drmstays.test/vi/faq");
     expect(text).toContain("- Address: 70 Mai Thúc Lân, Da Nang");
-    expect(text).toContain("4 buildings in Da Nang, 2 operating");
+    expect(text).toContain("1 building in operation (2 apartments, occupancy over 80%)");
   });
 
   it("does not repeat the city when the address already names it", () => {
