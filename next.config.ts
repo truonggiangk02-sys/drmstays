@@ -3,13 +3,14 @@ import type { NextConfig } from "next";
 // 'unsafe-inline' is required for the framework's inline hydration scripts and React style attributes; there is no nonce pipeline yet.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+  // Cloudflare Web Analytics injects its beacon script from static.cloudflareinsights.com and reports to cloudflareinsights.com.
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   // OpenStreetMap tiles feed the Leaflet map; room and building photos are served from this origin.
   "img-src 'self' data: blob: https://images.unsplash.com https://tile.openstreetmap.org https://*.tile.openstreetmap.fr https://server.arcgisonline.com https://www.google-analytics.com https://www.googletagmanager.com",
   // Google Analytics (GA4) sends its measurements to these hosts.
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://cloudflareinsights.com",
   // The office location is a Google Maps embed.
   "frame-src https://www.google.com",
   "form-action 'self'",
