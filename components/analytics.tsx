@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { analyticsId } from '@/lib/analytics';
+import { AnalyticsEvents } from '@/components/analytics-events';
 
 /** Google Analytics (GA4) for the public pages. Renders nothing unless GA_MEASUREMENT_ID is set and this is the real, indexable site. */
 export async function Analytics() {
@@ -9,5 +10,6 @@ export async function Analytics() {
   return <>
     <script async src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
     <script dangerouslySetInnerHTML={{ __html: init }} />
+    <AnalyticsEvents />
   </>;
 }
