@@ -5,12 +5,14 @@ import { getPublicCatalog } from "@/lib/public-catalog";
 import { siteUrl } from "@/lib/site";
 import { absoluteImage, buildSitemap, toLastmod, type SitemapEntry } from "@/lib/sitemap";
 
-const staticPaths = ["", "/stays", "/room-types", "/services", "/partners", "/about", "/faq", "/contact", "/privacy", "/cancellation", "/terms"];
+/** Pages written in English only: listed under /en only. */
+const englishOnly = ["/long-stay"];
+const staticPaths = ["", "/stays", "/room-types", "/services", "/partners", "/about", "/faq", "/long-stay", "/contact", "/privacy", "/cancellation", "/terms"];
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;
   const hidden = env.PREVIEW_DEMO === "1" || env.COMING_SOON === "1";
-  const entries: SitemapEntry[] = hidden ? [] : staticPaths.map((path) => ({ path }));
+  const entries: SitemapEntry[] = hidden ? [] : staticPaths.map((path) => (englishOnly.includes(path) ? { path, langs: ["en"] as const } : { path }));
   if (!hidden) {
     try {
       const catalog = await getPublicCatalog();

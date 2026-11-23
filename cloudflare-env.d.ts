@@ -11,6 +11,7 @@ declare namespace Cloudflare {
     PREVIEW_DEMO?: string;
     STAGING?: string;
     GA_MEASUREMENT_ID?: string;
+    USD_VND_RATE?: string;
     COMING_SOON?: string;
     REDIRECT_HOSTS?: string;
     OPENAI_API_KEY?: string;

@@ -90,3 +90,13 @@ export function articleData(post: { slug: string; lang: Lang; title: string; exc
     publisher: { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${base}/drm-stay-logo.png` } },
   });
 }
+
+/** WebPage for a page whose "last changed" date comes from live data. Null without SITE_URL. */
+export function webPageData(page: { name: string; description: string; path: string; dateModified?: string; lang: Lang }): object | null {
+  const base = siteUrl();
+  if (!base) return null;
+  return clean({
+    '@context': 'https://schema.org', '@type': 'WebPage', name: page.name, description: page.description, url: `${base}${page.path}`, inLanguage: 'en',
+    dateModified: page.dateModified || undefined, isPartOf: { '@id': `${base}/#site` }, about: { '@id': `${base}/#org` },
+  });
+}
