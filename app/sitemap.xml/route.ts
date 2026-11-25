@@ -6,8 +6,8 @@ import { siteUrl } from "@/lib/site";
 import { absoluteImage, buildSitemap, toLastmod, type SitemapEntry } from "@/lib/sitemap";
 
 /** Pages written in English only: listed under /en only. */
-const englishOnly = ["/long-stay"];
-const staticPaths = ["", "/stays", "/room-types", "/services", "/partners", "/about", "/faq", "/long-stay", "/contact", "/privacy", "/cancellation", "/terms"];
+const englishOnly = ["/monthly-rent"];
+const staticPaths = ["", "/stays", "/room-types", "/services", "/partners", "/about", "/faq", "/monthly-rent", "/contact", "/privacy", "/cancellation", "/terms"];
 
 export async function GET(request: NextRequest) {
   const origin = siteUrl() || request.nextUrl.origin;

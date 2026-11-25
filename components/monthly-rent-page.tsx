@@ -1,23 +1,23 @@
 import Link from 'next/link';
 import { formatPostDate } from '@/lib/journal';
-import { opening, priceRows, priceSummary, usd, vnd, type LongStayBuilding } from '@/lib/long-stay';
+import { opening, priceRows, priceSummary, usd, vnd, type RentBuilding } from '@/lib/monthly-rent';
 import type { ContentItem } from '@/lib/site-content';
 
 /** FAQ ids that answer money and terms questions. They are the site's own FAQ items (editable in the admin), so the page and the FAQ never disagree. */
 // The "how much is the rent" question is left out on purpose: the table above answers it from live prices, and a typed number could disagree with it.
-export const LONG_STAY_FAQ_IDS = ['sample-faq-n3', 'sample-faq-n4', 'sample-faq-n5', 'sample-faq-n1', 'sample-faq-n7'] as const;
+export const MONTHLY_RENT_FAQ_IDS = ['sample-faq-n3', 'sample-faq-n4', 'sample-faq-n5', 'sample-faq-n1', 'sample-faq-n7'] as const;
 
-export const longStayFaq = (items: ContentItem[]) => LONG_STAY_FAQ_IDS.map(id => items.find(item => item.id === id)).filter((item): item is ContentItem => !!item && !!item.title_en.trim() && !!item.body_en.trim());
+export const monthlyRentFaq = (items: ContentItem[]) => MONTHLY_RENT_FAQ_IDS.map(id => items.find(item => item.id === id)).filter((item): item is ContentItem => !!item && !!item.title_en.trim() && !!item.body_en.trim());
 
 /**
  * The page that answers "how much is a furnished apartment in Da Nang per month": the answer first, a table built from the
  * live catalog, the costs and terms from the FAQ, how renting works and a call to action. English only.
  */
-export function LongStayPage({ title, buildings, faq, rate, updated }: { title: string; buildings: LongStayBuilding[]; faq: ContentItem[]; rate: number; updated: string }) {
+export function MonthlyRentPage({ title, buildings, faq, rate, updated }: { title: string; buildings: RentBuilding[]; faq: ContentItem[]; rate: number; updated: string }) {
   const rows = priceRows(buildings, 'en');
   const summary = priceSummary(rows);
   const answer = opening(rows, rate);
-  const money = (value: number) => <>{vnd(value)}{usd(value, rate) && <small className="longstay-usd"> {usd(value, rate)}</small>}</>;
+  const money = (value: number) => <>{vnd(value)}{usd(value, rate) && <small className="monthlyrent-usd"> {usd(value, rate)}</small>}</>;
   const takeaways = [
     summary.studio > 0 && <>Studios from <strong>{vnd(summary.studio)}</strong> per month{usd(summary.studio, rate) && ` (${usd(summary.studio, rate)})`}.</>,
     summary.oneBedroom > 0 && <>One-bedroom apartments from <strong>{vnd(summary.oneBedroom)}</strong> per month{usd(summary.oneBedroom, rate) && ` (${usd(summary.oneBedroom, rate)})`}.</>,
@@ -26,9 +26,9 @@ export function LongStayPage({ title, buildings, faq, rate, updated }: { title: 
   ].filter(Boolean);
   const day = formatPostDate(updated, 'en');
   return <>
-    <section className="structure-page-hero journal-hero"><span className="eyebrow">DRM STAYS · LONG STAYS</span><h1>{title}</h1><p className="journal-lead">{answer}</p>{day && <p className="journal-meta">Prices last changed {day}. They come straight from our booking system, so they match each room page.</p>}</section>
-    <div className="structure-section journal-body-wrap longstay">
-      <aside className="longstay-takeaways" aria-label="Key takeaways"><h2>Key takeaways</h2><ul>{takeaways.map((item, index) => <li key={index}>{item}</li>)}</ul></aside>
+    <section className="structure-page-hero journal-hero"><span className="eyebrow">DRM STAYS · MONTHLY RENT</span><h1>{title}</h1><p className="journal-lead">{answer}</p>{day && <p className="journal-meta">Prices last changed {day}. They come straight from our booking system, so they match each room page.</p>}</section>
+    <div className="structure-section journal-body-wrap monthlyrent">
+      <aside className="monthlyrent-takeaways" aria-label="Key takeaways"><h2>Key takeaways</h2><ul>{takeaways.map((item, index) => <li key={index}>{item}</li>)}</ul></aside>
       <section aria-labelledby="ls-prices">
         <h2 id="ls-prices">Monthly rent by apartment type</h2>
         <p>Prices are per month in Vietnamese dong{rate ? ', with an approximate US dollar amount' : ''}. “From” is the lowest price for that type; each page shows the individual rooms.</p>

@@ -151,13 +151,13 @@
 .journal-cta .structure-button{margin:0}
 @media(max-width:700px){.journal-card{grid-template-columns:minmax(0,1fr)}.journal-gallery{grid-template-columns:minmax(0,1fr)}.journal-body{font-size:16px}}
 
-/* Long-stay (monthly rent) page */
-.longstay-takeaways{padding:clamp(18px,3vw,28px);background:#e9eee8;display:grid;gap:8px}
-.longstay-takeaways h2{font:400 clamp(24px,2.4vw,30px)/1.2 'Playfair Display',Georgia,serif;margin:0}
-.longstay-takeaways ul{margin:0;padding-left:1.2em;display:grid;gap:6px;line-height:1.7}
-.longstay h2{font:400 clamp(28px,3vw,38px)/1.25 'Playfair Display',Georgia,serif;margin:0 0 .5em;text-wrap:balance}
-.longstay h3{font-size:19px;font-weight:700;margin:1.3em 0 .3em}
-.longstay section>p,.longstay .journal-body p{max-width:70ch;line-height:1.8}
-.longstay-usd{display:block;color:var(--muted);font-size:12.5px}
-.longstay .journal-table a{color:#315d50;text-decoration:underline;text-underline-offset:3px}
-.longstay .journal-body ol{padding-left:1.3em}
+/* Monthly rent page */
+.monthlyrent-takeaways{padding:clamp(18px,3vw,28px);background:#e9eee8;display:grid;gap:8px}
+.monthlyrent-takeaways h2{font:400 clamp(24px,2.4vw,30px)/1.2 'Playfair Display',Georgia,serif;margin:0}
+.monthlyrent-takeaways ul{margin:0;padding-left:1.2em;display:grid;gap:6px;line-height:1.7}
+.monthlyrent h2{font:400 clamp(28px,3vw,38px)/1.25 'Playfair Display',Georgia,serif;margin:0 0 .5em;text-wrap:balance}
+.monthlyrent h3{font-size:19px;font-weight:700;margin:1.3em 0 .3em}
+.monthlyrent section>p,.monthlyrent .journal-body p{max-width:70ch;line-height:1.8}
+.monthlyrent-usd{display:block;color:var(--muted);font-size:12.5px}
+.monthlyrent .journal-table a{color:#315d50;text-decoration:underline;text-underline-offset:3px}
+.monthlyrent .journal-body ol{padding-left:1.3em}

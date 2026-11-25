@@ -1,11 +1,11 @@
 /**
- * Data for the long-stay (monthly rent) page, built from the live catalog so the prices on it can never disagree with
+ * Data for the monthly rent page, built from the live catalog so the prices on it can never disagree with
  * the room pages: nothing here is typed by hand except the wording.
  */
 type Photo = { url: string };
 type TypeLike = { id: string; name: string; areaSqm?: number; maxGuests?: number; beds?: number; priceFrom: number; depositVnd?: number; minStayMonths?: number; updatedAt?: string; rooms: unknown[] };
 type RoomLike = { id: string; name: string; areaSqm?: number; maxGuests?: number; beds?: number; monthlyPrice: number; depositVnd?: number; minStayMonths?: number; updatedAt?: string; images?: Photo[] };
-export type LongStayBuilding = { id: string; name: string; status?: string; address?: string; updatedAt?: string; types: TypeLike[]; rooms: RoomLike[] };
+export type RentBuilding = { id: string; name: string; status?: string; address?: string; updatedAt?: string; types: TypeLike[]; rooms: RoomLike[] };
 
 export type PriceRow = {
   buildingId: string; building: string; name: string; href: string; kind: 'studio' | 'one-bedroom' | 'other';
@@ -20,7 +20,7 @@ export function kindOf(name: string): PriceRow['kind'] {
 }
 
 /** One row per room type and per room shown on its own, only in buildings that are open and only with a known price, cheapest first. */
-export function priceRows(buildings: LongStayBuilding[], lang: 'vi' | 'en' = 'en'): PriceRow[] {
+export function priceRows(buildings: RentBuilding[], lang: 'vi' | 'en' = 'en'): PriceRow[] {
   const rows: PriceRow[] = [];
   for (const building of buildings) {
     if (building.status && building.status !== 'open') continue;
@@ -56,7 +56,7 @@ export function parseRate(value: string | undefined): number {
 }
 
 /** The latest day (YYYY-MM-DD) any price in these buildings was changed, or "" when unknown. */
-export function lastChanged(buildings: LongStayBuilding[]): string {
+export function lastChanged(buildings: RentBuilding[]): string {
   const days = buildings.flatMap(building => [building.updatedAt, ...building.types.map(type => type.updatedAt), ...building.rooms.map(room => room.updatedAt)])
     .map(value => /^(\d{4}-\d{2}-\d{2})/.exec(String(value || ''))?.[1]).filter((day): day is string => !!day);
   return days.sort().at(-1) || '';

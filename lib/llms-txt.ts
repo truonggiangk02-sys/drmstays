@@ -43,9 +43,9 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
   out.push("");
 
   out.push("## Main pages");
-  const pages: Array<[keyof typeof pageMeta.en, string]> = [["stays", "/stays"], ["long-stay", "/long-stay"], ["room-types", "/room-types"], ["services", "/services"], ["faq", "/faq"], ["about", "/about"], ["partners", "/partners"], ["contact", "/contact"]];
+  const pages: Array<[keyof typeof pageMeta.en, string]> = [["stays", "/stays"], ["monthly-rent", "/monthly-rent"], ["room-types", "/room-types"], ["services", "/services"], ["faq", "/faq"], ["about", "/about"], ["partners", "/partners"], ["contact", "/contact"]];
   out.push(`- [Home](${origin}/en) ([Tiếng Việt](${origin}/vi)): furnished apartments for rent in Da Nang.`);
-  for (const [key, path] of pages) out.push(`- [${pageMeta.en[key].title}](${origin}/en${path})${key === "long-stay" ? "" : ` ([Tiếng Việt](${origin}/vi${path}))`}: ${line(pageMeta.en[key].description)}`);
+  for (const [key, path] of pages) out.push(`- [${pageMeta.en[key].title}](${origin}/en${path})${key === "monthly-rent" ? "" : ` ([Tiếng Việt](${origin}/vi${path}))`}: ${line(pageMeta.en[key].description)}`);
   out.push("");
 
   if (buildings.length) {

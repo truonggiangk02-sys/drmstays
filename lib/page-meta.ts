@@ -17,7 +17,7 @@ export const homeMeta: Record<Lang, Meta> = {
 };
 
 /** One distinct title and description per page, so Google does not see the same text everywhere. */
-export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" | "partners" | "about" | "journal" | "faq" | "contact" | "long-stay", PageMeta>> = {
+export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" | "partners" | "about" | "journal" | "faq" | "contact" | "monthly-rent", PageMeta>> = {
   vi: {
     stays: { h1: "Phòng cho thuê tại Đà Nẵng", title: "Xem tòa nhà và phòng cho thuê tại Đà Nẵng", description: "Doraemon's Land Đỗ Bá và AnLiu Apartment: phòng có sẵn nội thất, thuê ngắn ngày và dài ngày. Xem ảnh, giá và gửi yêu cầu." },
     "room-types": { h1: "Khám phá các loại phòng tiêu biểu", title: "Các loại phòng tiêu biểu tại DRM Stays", description: "Xem các kiểu phòng có sẵn nội thất tại Đà Nẵng: studio, căn hộ một phòng ngủ. So sánh diện tích, giá và tòa nhà." },
@@ -26,7 +26,7 @@ export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" |
     about: { h1: "DRM Stays: tư vấn và vận hành bất động sản cho thuê", title: "Giới thiệu: 3 năm vận hành bất động sản cho thuê", description: "DRM Stays vận hành căn hộ có sẵn nội thất tại Đà Nẵng, tỷ lệ lấp đầy trên 80%, và đã tư vấn hơn 10 dự án cho thuê. Tìm hiểu về đội ngũ và các tòa nhà." },
     journal: { h1: "Cẩm nang bất động sản cho thuê", title: "Cẩm nang bất động sản cho thuê", description: "Kinh nghiệm thuê phòng và vận hành bất động sản cho thuê tại Đà Nẵng từ đội ngũ DRM Stays." },
     faq: { h1: "Câu hỏi thường gặp khi thuê phòng", title: "Câu hỏi thường gặp khi thuê phòng", description: "Giá thuê, tiền cọc, điện nước, thời gian thuê và ngôn ngữ hỗ trợ tại các tòa nhà DRM Stays ở Đà Nẵng." },
-    "long-stay": { h1: "Thuê căn hộ theo tháng tại Đà Nẵng: giá và chi phí", title: "Thuê căn hộ theo tháng tại Đà Nẵng: giá", description: "Giá thuê tháng căn hộ có sẵn nội thất tại Đà Nẵng, tiền cọc, điện nước và những gì đã gồm. Cập nhật từ giá thật của DRM Stays." },
+    "monthly-rent": { h1: "Thuê căn hộ theo tháng tại Đà Nẵng: giá và chi phí", title: "Thuê căn hộ theo tháng tại Đà Nẵng: giá", description: "Giá thuê tháng căn hộ có sẵn nội thất tại Đà Nẵng, tiền cọc, điện nước và những gì đã gồm. Cập nhật từ giá thật của DRM Stays." },
     contact: { h1: "Liên hệ DRM Stays tại Đà Nẵng", title: "Liên hệ tư vấn và thuê phòng tại Đà Nẵng", description: `Gọi ${CONTACT.phoneDisplay} hoặc gửi yêu cầu. Văn phòng làm việc 8:00 đến 17:00, hỗ trợ nhiều ngôn ngữ.` },
   },
   en: {
@@ -37,7 +37,7 @@ export const pageMeta: Record<Lang, Record<"stays" | "room-types" | "services" |
     about: { h1: "DRM Stays: rental property consulting and operations", title: "About us: 3 years operating rental property", description: "DRM Stays operates furnished apartments in Da Nang with over 80% occupancy and has advised 10+ rental projects. Meet the team and our buildings." },
     journal: { h1: "Rental property journal", title: "Rental property journal", description: "Tips on renting a room and operating rental property in Da Nang from the DRM Stays team." },
     faq: { h1: "FAQ: renting a room in Da Nang", title: "FAQ: renting a room in Da Nang", description: "Rent, deposit, utilities, stay length and languages supported at DRM Stays buildings in Da Nang." },
-    "long-stay": { h1: "Monthly Apartment Rental in Da Nang: Prices and Costs", title: "Monthly Apartment Rental in Da Nang", description: "What a furnished apartment in Da Nang costs per month: rent, deposit, electricity and what is included. Live prices from DRM Stays." },
+    "monthly-rent": { h1: "Monthly Apartment Rental in Da Nang: Prices and Costs", title: "Monthly Apartment Rental in Da Nang", description: "What a furnished apartment in Da Nang costs per month: rent, deposit, electricity and what is included. Live prices from DRM Stays." },
     contact: { h1: "Contact DRM Stays in Da Nang", title: "Contact us for advice or a room in Da Nang", description: `Call ${CONTACT.phoneDisplay} or send an inquiry. Office open 8:00–17:00, multilingual support.` },
   },
 };

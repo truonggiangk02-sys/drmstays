@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { kindOf, lastChanged, metaDescription, opening, parseRate, priceRows, priceSummary, usd, vnd, type LongStayBuilding } from "@/lib/long-stay";
+import { kindOf, lastChanged, metaDescription, opening, parseRate, priceRows, priceSummary, usd, vnd, type RentBuilding } from "@/lib/monthly-rent";
 
-const buildings: LongStayBuilding[] = [
+const buildings: RentBuilding[] = [
   { id: "b-anliu", name: "AnLiu Apartment", status: "open", updatedAt: "2026-11-10 02:00:00", types: [
     { id: "t-s2", name: "Studio 02", areaSqm: 28, maxGuests: 2, beds: 1, priceFrom: 13_000_000, depositVnd: 13_000_000, minStayMonths: 1, updatedAt: "2026-11-22 08:30:00", rooms: [{}] },
     { id: "t-1pn", name: "1-bedroom apartment", areaSqm: 35, maxGuests: 2, priceFrom: 15_000_000, minStayMonths: 1, rooms: [{}] },
@@ -13,7 +13,7 @@ const buildings: LongStayBuilding[] = [
   { id: "b-soon", name: "Doraemon's Land Le Thanh Nghi", status: "soon", types: [{ id: "t-x", name: "Studio", priceFrom: 9_000_000, rooms: [] }], rooms: [] },
 ];
 
-describe("long-stay data", () => {
+describe("monthly-rent data", () => {
   it("names what a room is", () => {
     expect(kindOf("Studio 02")).toBe("studio");
     expect(kindOf("1-bedroom apartment")).toBe("one-bedroom");
