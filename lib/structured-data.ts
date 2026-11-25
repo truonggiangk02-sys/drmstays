@@ -77,18 +77,34 @@ export function faqData(items: Array<{ question: string; answer: string }>, lang
   };
 }
 
-/** BlogPosting for a journal post, published by DRM Stays. Null without SITE_URL. */
-export function articleData(post: { slug: string; lang: Lang; title: string; excerpt: string; publishedAt: string; updatedAt: string }, imageUrls: string[] = []): object | null {
+/** Who wrote a post, for the BlogPosting data and the author block. */
+export type ArticleAuthor = { name: string; role?: string; url?: string; imageUrl?: string };
+
+/**
+ * BlogPosting for a journal post, published by DRM Stays. The author is a Person when the post has one (otherwise the
+ * organization), `image` falls back to the default share picture, and the keywords, topic and word count are included
+ * when known. Null without SITE_URL.
+ */
+export function articleData(
+  post: { slug: string; lang: Lang; title: string; excerpt: string; publishedAt: string; updatedAt: string },
+  imageUrls: string[] = [],
+  extra: { author?: ArticleAuthor | null; keywords?: string[]; section?: string; wordCount?: number } = {},
+): object | null {
   const base = siteUrl();
   if (!base) return null;
   const url = `${base}/${post.lang}/journal/${post.slug}`;
+  const pictures = imageUrls.map(image => absoluteUrl(image)).filter((image): image is string => !!image).slice(0, 5);
+  const author = extra.author?.name
+    ? clean({ '@type': 'Person', name: extra.author.name, jobTitle: extra.author.role, url: extra.author.url, image: extra.author.imageUrl ? absoluteUrl(extra.author.imageUrl) : undefined, worksFor: { '@id': `${base}/#org` } })
+    : { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, url: base };
   return clean({
     '@context': 'https://schema.org', '@type': 'BlogPosting', headline: post.title, description: post.excerpt, inLanguage: post.lang,
     url, mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     datePublished: post.publishedAt || undefined, dateModified: post.updatedAt || post.publishedAt || undefined,
-    image: imageUrls.map(image => absoluteUrl(image)).filter(Boolean).slice(0, 5),
-    author: { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, url: base },
+    image: pictures.length ? pictures : [`${base}/og-default.jpg`],
+    author,
     publisher: { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${base}/drm-stay-logo.png` } },
+    wordCount: extra.wordCount, keywords: extra.keywords?.length ? extra.keywords.join(', ') : undefined, articleSection: extra.section,
   });
 }
 

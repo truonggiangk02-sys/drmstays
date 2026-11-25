@@ -55,7 +55,7 @@ Khai báo kiểu ở `cloudflare-env.d.ts`. **Local:** `pnpm start` đọc biế
 
 ## Database và migration
 
-Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0016`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
+Schema ở `db/schema.ts`, SQL ở `drizzle/` (`0000` → `0021`). Mỗi file chỉ chạy **một lần**, theo thứ tự (một số là `ALTER TABLE`, chạy lại sẽ lỗi). Database mới thì áp đủ các file; database đã có thì chỉ chạy các file còn thiếu.
 
 Chạy trên D1 local (sau `pnpm build`):
 
@@ -89,13 +89,24 @@ API admin (cần cookie đăng nhập và `Origin` cùng site, nếu không `403
 
 Mọi yêu cầu từ khách được lưu D1 **trước**, rồi mới báo Telegram. Telegram lỗi không làm mất yêu cầu: trạng thái `telegram_status` ghi `failed` và trang admin hiện cảnh báo để chủ nhà liên hệ khách thủ công.
 
+## Cẩm nang (blog)
+
+Bài blog viết và đăng ở `/admin/journal` (mục "Cẩm nang" trên menu admin). Bài lưu trong `site_content_items` (section `journal`); tác giả ở bảng `authors`, địa chỉ cũ của bài đã đổi ở `journal_redirects` (migration `0019`, `0020`, `0021`).
+
+- **Tiêu chuẩn SEO–GEO** nằm trong code: mọi giới hạn số ở `lib/blog-standard.ts`, 24 quy tắc kiểm tra (R01–R24) ở `lib/blog-check.ts`. Trình soạn chạy các quy tắc này khi gõ; máy chủ chạy lại chính các quy tắc đó khi lưu (`lib/journal-admin.ts`), nên bài còn lỗi chặn không thể sẵn sàng hay lên web, dù gọi API trực tiếp.
+- **Quy trình:** Lưu nháp → Đánh dấu sẵn sàng (không còn lỗi chặn) → người duyệt tích đủ 6 ô → Đăng. Bài đang đăng sửa bằng "Cập nhật bài đã đăng"; "Gỡ xuống" trả bài về nháp (trang bài 404, rời sitemap). Địa chỉ bài bị khóa sau khi đăng; đổi cần xác nhận và địa chỉ cũ tự chuyển hướng.
+- **Dán cả bài:** khối thông tin giữa hai dòng `---` ở đầu bài (h1, seo_title, meta, slug, keyword, variations, intent, template, level, topic, author, date, cover_alt) rồi nội dung Markdown; đọc bởi `lib/blog-frontmatter.ts`. Ảnh `![mô tả](https://…)` của website khác được tải về kho ảnh khi người dùng bấm xác nhận (chỉ https, website công khai, tối đa 8 MB).
+- **Markdown** chỉ vẽ một tập con an toàn (`lib/journal-markdown.ts`): không bao giờ ra HTML từ bài viết; ảnh chỉ nhận `/media/catalog/<id>`.
+- **Xem trước** trang bài chạy trong khung `/admin/journal/preview` (cùng CSS với website); chỉ hai trang này được nhúng khung (xem `next.config.ts`), mọi trang khác vẫn `frame-ancestors 'none'`.
+- Cần tác giả (tên, chức danh, tiểu sử, ảnh) trước khi đăng bài đầu tiên: nhập ở mục "Tác giả" của `/admin/journal`.
+
 ## Bảo mật
 
 `next.config.ts` đặt CSP, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS và `nosniff` (chỉ ở production). CSP cho phép Google Fonts, `tile.openstreetmap.org` (nền bản đồ) và ảnh cùng origin. Nếu thêm tên miền ngoài cho ảnh, font hay bản đồ thì phải thêm vào CSP, nếu không trình duyệt sẽ chặn.
 
 ## Test
 
-Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` được alias sang `tests/stubs/cloudflare-workers.ts`; binding gán qua `tests/helpers/env.ts`; D1 giả lập ở `tests/helpers/d1.ts`; Telegram giả lập bằng cách thay `fetch` toàn cục, không test nào gọi mạng thật. Có test cho 2 route form công khai (`catalog-inquiries`, `partner-inquiries`), cho các hàm phụ (`lib/dates.ts`, `lib/request.ts`, `lib/rate-limit.ts`, `lib/room-copy.ts`) và `tests/admin-auth.test.ts`: tự quét **mọi** route trong `app/api/admin/` và kiểm tra chúng từ chối người chưa đăng nhập, cookie giả, phiên hết hạn và nguồn gửi lạ, nên route admin thêm sau này không thể quên khóa.
+Vitest (`vitest.config.ts`), test ở `tests/`. Module `cloudflare:workers` được alias sang `tests/stubs/cloudflare-workers.ts`; binding gán qua `tests/helpers/env.ts`; D1 giả lập ở `tests/helpers/d1.ts`; Telegram giả lập bằng cách thay `fetch` toàn cục, không test nào gọi mạng thật. Có test cho tiêu chuẩn blog (`tests/blog-standard.test.ts`, mỗi quy tắc một ca đạt một ca vi phạm), trình soạn và các route của cẩm nang, và cho 2 route form công khai (`catalog-inquiries`, `partner-inquiries`), cho các hàm phụ (`lib/dates.ts`, `lib/request.ts`, `lib/rate-limit.ts`, `lib/room-copy.ts`) và `tests/admin-auth.test.ts`: tự quét **mọi** route trong `app/api/admin/` và kiểm tra chúng từ chối người chưa đăng nhập, cookie giả, phiên hết hạn và nguồn gửi lạ, nên route admin thêm sau này không thể quên khóa.
 
 ## Deploy
 

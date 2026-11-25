@@ -17,8 +17,8 @@ export async function serveCatalogImage(request: Request, id: string): Promise<R
   const admin = await isAdmin();
   if (!admin) {
     let visible = false;
-    if (row.owner_type === 'home') {
-      visible = true;
+    if (row.owner_type === 'home' || row.owner_type === 'author') {
+      visible = true; // author photos are shown under every post they wrote
     } else if (row.owner_type === 'content') {
       const sample = sampleContent.find(item => item.id === row.owner_id);
       const section = sample?.section || (await env.DB.prepare('SELECT section FROM site_content_items WHERE id = ?').bind(row.owner_id).first<{ section: string }>())?.section;

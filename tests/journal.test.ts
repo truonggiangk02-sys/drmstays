@@ -8,7 +8,8 @@ resetEnvBeforeEach();
 
 const row = (over: Partial<JournalRow> = {}): JournalRow => ({
   id: "6f1c2a1e-1111-4222-8333-944455556666", title_vi: "", title_en: "Monthly rent in Da Nang", body_vi: "", body_en: "## Prices\n\nFrom **11 million VND**.",
-  published: 1, deleted: 0, position: 1, slug: "monthly-rent-da-nang", excerpt_vi: "", excerpt_en: "", published_at: "2027-01-15", updated_at: "2027-01-20", ...over,
+  published: 1, deleted: 0, position: 1, slug: "monthly-rent-da-nang", excerpt_vi: "", excerpt_en: "", published_at: "2027-01-15", updated_at: "2027-01-20",
+  seo_title_en: "", primary_keyword: "", keyword_variations: "", search_intent: "", post_template: "", post_level: "", topic: "", author_id: "", status: "published", checks_json: "", checked_by: "", checked_at: "", cover_alt_en: "", ...over,
 });
 
 describe("journal posts", () => {

@@ -73,6 +73,41 @@ export const siteContentItems = sqliteTable("site_content_items", {
   published: integer("published").notNull().default(1),
   deleted: integer("deleted").notNull().default(0),
   position: integer("position").notNull().default(0),
+  // Journal posts (migrations 0019-0020).
+  slug: text("slug").notNull().default(""),
+  excerptVi: text("excerpt_vi").notNull().default(""),
+  excerptEn: text("excerpt_en").notNull().default(""),
+  publishedAt: text("published_at").notNull().default(""),
+  updatedAt: text("updated_at").notNull().default(""),
+  seoTitleEn: text("seo_title_en").notNull().default(""),
+  primaryKeyword: text("primary_keyword").notNull().default(""),
+  keywordVariations: text("keyword_variations").notNull().default(""),
+  searchIntent: text("search_intent").notNull().default(""),
+  postTemplate: text("post_template").notNull().default(""),
+  postLevel: text("post_level").notNull().default(""),
+  topic: text("topic").notNull().default(""),
+  authorId: text("author_id").notNull().default(""),
+  status: text("status").notNull().default("draft"),
+  checksJson: text("checks_json").notNull().default(""),
+  checkedBy: text("checked_by").notNull().default(""),
+  checkedAt: text("checked_at").notNull().default(""),
+  coverAltEn: text("cover_alt_en").notNull().default(""),
+});
+
+/** Named authors of journal posts (migration 0021). */
+export const authors = sqliteTable("authors", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  role: text("role").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  photoId: text("photo_id").notNull().default(""),
+  url: text("url").notNull().default(""),
+});
+
+/** Old addresses of journal posts whose address changed after publishing (migration 0021). */
+export const journalRedirects = sqliteTable("journal_redirects", {
+  oldSlug: text("old_slug").primaryKey(),
+  postId: text("post_id").notNull(),
 });
 
 export const landmarks = sqliteTable("landmarks", {
