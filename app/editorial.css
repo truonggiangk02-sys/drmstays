@@ -124,7 +124,8 @@
 .journal-card h2{font:400 clamp(26px,2.6vw,36px)/1.2 'Playfair Display',Georgia,serif;margin:0;text-wrap:balance}
 .journal-card h2 a:hover{color:#b17d55}
 .journal-card-body>p:not(.journal-meta){margin:0;color:var(--muted);line-height:1.75;max-width:66ch}
-.journal-body-wrap{max-width:860px;display:grid;gap:34px}
+.journal-body-wrap{max-width:860px;display:grid;gap:34px;grid-template-columns:minmax(0,1fr)}
+.journal-body-wrap>*{min-width:0}
 .journal-cover{width:100%;height:auto;max-height:560px;object-fit:cover}
 .journal-body{font-size:17px;line-height:1.85;color:var(--ink);max-width:70ch;min-width:0}
 .journal-body>*{margin:0 0 1.1em}
@@ -161,3 +162,11 @@
 .monthlyrent-usd{display:block;color:var(--muted);font-size:12.5px}
 .monthlyrent .journal-table a{color:#315d50;text-decoration:underline;text-underline-offset:3px}
 .monthlyrent .journal-body ol{padding-left:1.3em}
+
+/* Hero, list and body share one column (1000px, centered, never wider than the screen), so their left edges line up
+   at every width; before, the hero sat at the screen edge while the body was a narrow centered strip. */
+.journal-hero,.journal-body-wrap,.journal-list{--side:max(clamp(24px,6vw,100px),calc((100% - 1000px) / 2))}
+.structure-site .structure-page-hero.journal-hero{padding-left:var(--side);padding-right:var(--side)}
+.journal-body-wrap.structure-section,.journal-list.structure-section{max-width:none;margin:0;padding-left:var(--side);padding-right:var(--side)}
+.structure-site .journal-hero h1{font-size:clamp(32px,3.6vw,52px);line-height:1.12;max-width:none;margin:14px 0}
+.monthlyrent-takeaways,.journal-cta{max-width:760px}
