@@ -6,7 +6,11 @@ import { BLOG, INTENTS, LEVELS, REVIEW_ITEMS, STATUSES, TEMPLATES, TOPICS, type 
 import { blockers, chars, checkPost, findVndAmounts, summary, type BlogContext, type BlogDraft, type Check } from '@/lib/blog-check';
 import { parsePastedPost, type PostFields } from '@/lib/blog-frontmatter';
 import { bodyWords, countTextWords, markdownLinks, mediaImageId, outline, readingMinutes, slugify } from '@/lib/journal-markdown';
-import { CTA_BLOCK, FAQ_BLOCK, KEY_TAKEAWAYS_BLOCK, TABLE_BLOCK, asBlock, makeLink, outlineWithWords, toggleHeading, toggleLinePrefix, wrapSelection, type TextEdit } from '@/lib/editor-text';
+import { asBlock, makeLink, outlineWithWords, wrapSelection, type TextEdit } from '@/lib/editor-text';
+import { cellRanges, insertRow, tableAt } from '@/lib/table-edit';
+import { replaceAllText } from '@/lib/find-replace';
+import { JournalToolbar, type LinkChoice } from '@/components/journal-toolbar';
+import { JournalFind } from '@/components/journal-find';
 import { caretTop } from '@/lib/textarea-caret';
 import { problemMarks, segments } from '@/lib/problem-marks';
 import type { JournalPost } from '@/lib/journal';
@@ -22,7 +26,7 @@ export type EditorFields = {
 
 type Props = {
   id: string; isNew: boolean; openPaste?: boolean; status: Status; everLive: boolean; initial: EditorFields; reviews: boolean[]; checkedAt: string;
-  authors: Array<Pick<Author, 'id' | 'name' | 'role' | 'bio' | 'photo_id' | 'url' | 'kind'>>; others: BlogContext['others']; knownPrices: number[]; knownPaths: string[]; photos: EditorPhoto[];
+  authors: Array<Pick<Author, 'id' | 'name' | 'role' | 'bio' | 'photo_id' | 'url' | 'kind'>>; links: LinkChoice[]; others: BlogContext['others']; knownPrices: number[]; knownPaths: string[]; photos: EditorPhoto[];
 };
 
 const tabs = [['checks', 'Kiểm tra'], ['outline', 'Dàn ý'], ['google', 'Google'], ['page', 'Xem trước trang'], ['money', 'Số tiền VND']] as const;
@@ -75,6 +79,8 @@ export function JournalEditor(props: Props) {
   const [focusMode, setFocusMode] = useState(false);
   const [showMarks, setShowMarks] = useState(true);
   const [caret, setCaret] = useState(0);
+  const [selEnd, setSelEnd] = useState(0);
+  const [findOpen, setFindOpen] = useState(false);
   const [checkedBody, setCheckedBody] = useState(props.initial.body);
   const [fieldWidth, setFieldWidth] = useState(0);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -243,8 +249,12 @@ export function JournalEditor(props: Props) {
     area.setSelectionRange(change.from, change.to);
     const done = typeof document.execCommand === 'function' && document.execCommand('insertText', false, change.text);
     if (!done) edit({ body: area.value.slice(0, change.from) + change.text + area.value.slice(change.to) });
-    requestAnimationFrame(() => area.setSelectionRange(change.selectFrom, change.selectTo));
+    requestAnimationFrame(() => { area.setSelectionRange(change.selectFrom, change.selectTo); syncSelection(); });
   }
+  /** Copies the box's real cursor into the editor's state (the toolbar draws itself from it). */
+  function syncSelection() { const area = bodyRef.current; if (area) { setCaret(area.selectionStart); setSelEnd(area.selectionEnd); } }
+  const liveSelection = () => ({ start: bodyRef.current?.selectionStart ?? 0, end: bodyRef.current?.selectionEnd ?? 0 });
+  const selectedText = () => { const { start, end } = liveSelection(); const text = f.body.slice(start, end); return text && !text.includes('\n') ? text : ''; };
   const selection = () => ({ start: bodyRef.current?.selectionStart ?? f.body.length, end: bodyRef.current?.selectionEnd ?? f.body.length });
   const run = (build: (value: string, start: number, end: number) => TextEdit) => { const { start, end } = selection(); applyChange(build(f.body, start, end)); };
   const putBlock = (block: string) => run((value, start, end) => asBlock(value, start, end, block));
@@ -256,6 +266,7 @@ export function JournalEditor(props: Props) {
     area.focus({ preventScroll: true });
     area.setSelectionRange(offset, offset + length);
     setCaret(offset);
+    setSelEnd(offset + length);
     area.scrollTo({ top: Math.max(0, caretTop(area, offset) - area.clientHeight / 3), behavior: 'smooth' });
     const rect = focusMode ? null : area.closest('.je-write')?.getBoundingClientRect();
     if (rect && (rect.top < 0 || rect.top > window.innerHeight * 0.5)) area.closest('.je-write')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -268,6 +279,21 @@ export function JournalEditor(props: Props) {
     putBlock(block);
   }
 
+  const undo = () => { bodyRef.current?.focus({ preventScroll: true }); document.execCommand('undo'); };
+  const redo = () => { bodyRef.current?.focus({ preventScroll: true }); document.execCommand('redo'); };
+  const goToPhotos = () => document.getElementById('jf-cover')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  /** Selects a stretch of the text and shows it (used by find). */
+  const goTo = (from: number, length: number) => { scrollToOffset(from, length); };
+  const replaceRange = (from: number, to: number, text: string) => { applyChange({ from, to, text, selectFrom: from + text.length, selectTo: from + text.length }); };
+  function replaceEverywhere(query: string, replacement: string, matchCase: boolean) {
+    const result = replaceAllText(f.body, query, replacement, matchCase);
+    if (!result.count) return;
+    applyChange({ from: 0, to: f.body.length, text: result.text, selectFrom: 0, selectTo: 0 });
+    setMessage({ kind: 'ok', text: `Đã thay ${result.count} chỗ. Bấm Ctrl/⌘+Z để hoàn tác.` });
+  }
+  /** Puts the cursor on a stretch and keeps the editor's idea of the selection in step. */
+  const select = (from: number, to: number) => { const area = bodyRef.current; if (!area) return; area.focus({ preventScroll: true }); area.setSelectionRange(from, to); setCaret(from); setSelEnd(to); };
+
   /** Goes to the next problem in the text after the cursor (a blocking one or a warning), and selects it; from the last one it starts over. */
   function nextProblem() {
     const area = bodyRef.current;
@@ -279,11 +305,30 @@ export function JournalEditor(props: Props) {
   }
 
   function onBodyKey(event: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+    // In a table, Tab moves to the next cell (Shift+Tab to the one before); Tab in the last cell adds a row, like a word processor.
+    if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      const area = event.currentTarget;
+      const model = tableAt(f.body, area.selectionStart);
+      if (!model || !model.hasHeader) return;
+      event.preventDefault();
+      const cells = cellRanges(f.body, model);
+      const here = cells.findIndex(cell => area.selectionStart >= cell.from && area.selectionStart <= cell.to + 1);
+      const index = here === -1 ? cells.findIndex(cell => cell.from > area.selectionStart) : here;
+      const target = cells[event.shiftKey ? index - 1 : index + 1];
+      if (target) select(target.from, target.to);
+      else if (!event.shiftKey && index === cells.length - 1) {
+        const change = insertRow({ ...model, rowIndex: model.rows.length - 1, colIndex: 0 }, 'below');
+        if (change) applyChange(change);
+      }
+      return;
+    }
+    if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
     const key = event.key.toLowerCase();
+    if (event.shiftKey) return;
     if (key === 'b') { event.preventDefault(); run((value, start, end) => wrapSelection(value, start, end, '**', 'bold text')); }
     else if (key === 'i') { event.preventDefault(); run((value, start, end) => wrapSelection(value, start, end, '*', 'italic text')); }
     else if (key === 'k') { event.preventDefault(); run(makeLink); }
+    else if (key === 'h') { event.preventDefault(); setFindOpen(true); }
   }
 
   function jump(check: Check) {
@@ -426,30 +471,18 @@ export function JournalEditor(props: Props) {
           {helpOpen && <div className="je-help">
             <p><code>## Tiêu đề mục</code> · <code>### Tiêu đề nhỏ</code> · <code>**đậm**</code> · <code>*nghiêng*</code> · <code>- danh sách</code> · <code>1. đánh số</code> · <code>&gt; trích dẫn</code> · <code>[chữ](https://…)</code> · bảng: <code>| A | B |</code> rồi dòng <code>| --- | --- |</code>.</p>
             <p>Ảnh: dùng nút “Chèn vào bài” ở mục ảnh bên dưới. Không dùng HTML và không dùng dòng bắt đầu bằng <code># </code> (trang đã có H1).</p>
-            <p>Phím tắt: <kbd>Ctrl/⌘</kbd>+<kbd>B</kbd> đậm, <kbd>I</kbd> nghiêng, <kbd>K</kbd> link, <kbd>Z</kbd> hoàn tác, <kbd>S</kbd> lưu nháp.</p>
+            <p>Phím tắt: <kbd>Ctrl/⌘</kbd>+<kbd>B</kbd> đậm, <kbd>I</kbd> nghiêng, <kbd>K</kbd> link, <kbd>H</kbd> tìm &amp; thay, <kbd>Z</kbd> hoàn tác, <kbd>S</kbd> lưu nháp. Trong bảng: <kbd>Tab</kbd> sang ô kế tiếp.</p>
           </div>}
-          <div className="je-tools" role="toolbar" aria-label="Định dạng">
-            <button type="button" title="Tiêu đề mục (##)" onClick={() => run((value, start, end) => toggleHeading(value, start, end, 2))}>H2</button>
-            <button type="button" title="Tiêu đề nhỏ (###)" onClick={() => run((value, start, end) => toggleHeading(value, start, end, 3))}>H3</button>
-            <button type="button" className="je-bold" title="Đậm (Ctrl/⌘+B)" onClick={() => run((value, start, end) => wrapSelection(value, start, end, '**', 'bold text'))}>B</button>
-            <button type="button" className="je-italic" title="Nghiêng (Ctrl/⌘+I)" onClick={() => run((value, start, end) => wrapSelection(value, start, end, '*', 'italic text'))}>I</button>
-            <button type="button" title="Danh sách gạch đầu dòng" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'bullet'))}>• Danh sách</button>
-            <button type="button" title="Danh sách đánh số" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'number'))}>1. Số</button>
-            <button type="button" title="Trích dẫn" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'quote'))}>&ldquo; Trích dẫn</button>
-            <button type="button" title="Chèn bảng" onClick={() => putBlock(TABLE_BLOCK)}>Bảng</button>
-            <button type="button" title="Chèn link (Ctrl/⌘+K)" onClick={() => run(makeLink)}>Link</button>
-            <span className="je-sep" aria-hidden="true" />
-            <button type="button" title="Chèn mục Key takeaways" onClick={() => addSection(BLOG.keyTakeawaysHeading, KEY_TAKEAWAYS_BLOCK)}>+ Ý chính</button>
-            <button type="button" title="Chèn mục hỏi đáp" onClick={() => addSection(BLOG.faqHeading, FAQ_BLOCK)}>+ Hỏi đáp</button>
-            <button type="button" title="Chèn lời mời liên hệ" onClick={() => putBlock(CTA_BLOCK)}>+ Mời liên hệ</button>
-          </div>
+          <JournalToolbar value={f.body} selStart={caret} selectedText={selectedText} photos={photos} links={props.links} run={run} apply={applyChange} put={putBlock} addSection={addSection} undo={undo} redo={redo} find={() => setFindOpen(open => !open)} goToPhotos={goToPhotos} />
+          {findOpen && <JournalFind value={f.body} getSelection={liveSelection} goTo={goTo} replaceRange={replaceRange} replaceAll={replaceEverywhere} close={() => { setFindOpen(false); bodyRef.current?.focus({ preventScroll: true }); }} />}
           <div className="je-field">
             <div className="je-backdrop" aria-hidden="true" style={{ width: fieldWidth || undefined }}><div ref={backdropRef}>{pieces.map((piece, index) => piece.mark ? <mark key={index} className={`je-mark is-${piece.mark.level}`}>{piece.text}</mark> : <span key={index}>{piece.text}</span>)}{'\n'}</div></div>
-            <textarea ref={bodyRef} id="jf-body" className="je-body" lang="en" aria-label="Nội dung bài viết (tiếng Anh, Markdown)" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} onKeyDown={onBodyKey} onScroll={syncBackdrop} onSelect={event => setCaret(event.currentTarget.selectionStart)} spellCheck />
+            <textarea ref={bodyRef} id="jf-body" className="je-body" lang="en" aria-label="Nội dung bài viết (tiếng Anh, Markdown)" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} onKeyDown={onBodyKey} onScroll={syncBackdrop} onSelect={syncSelection} onKeyUp={syncSelection} onMouseUp={syncSelection} onFocus={syncSelection} spellCheck />
           </div>
           <div className="je-statusbar" aria-live="polite">
             <span className={wordTone}>{words} từ{target ? ` · mục tiêu ${number(target.min)}–${number(target.max)} (mức ${f.level})` : ''}</span>
             <span>{number(chars(f.body))} ký tự</span><span>đọc khoảng {readingMinutes(f.body)} phút</span><span>{sections.h2} mục ##</span>
+            {selEnd > caret && <span>đã chọn {countTextWords(f.body.slice(caret, selEnd))} từ</span>}
             <span className="je-statusbar-tools">
               <label className="je-check"><input type="checkbox" checked={showMarks} onChange={event => setShowMarks(event.target.checked)} /> Tô lỗi</label>
               <button type="button" className="je-inline-btn" onClick={nextProblem} disabled={checkedBody !== f.body} title="Nhảy tới chỗ lỗi hoặc cảnh báo kế tiếp trong bài">Lỗi tiếp theo ↓</button>

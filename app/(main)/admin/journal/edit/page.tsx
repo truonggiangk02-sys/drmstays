@@ -1,14 +1,24 @@
 import { redirect } from 'next/navigation';
 import { AdminShell } from '@/components/admin-shell';
 import { JournalEditor, type EditorFields } from '@/components/journal-editor';
+import type { LinkChoice } from '@/components/journal-toolbar';
 import { isAdmin } from '@/lib/admin';
 import { getAuthors } from '@/lib/authors';
 import { isStatus } from '@/lib/blog-standard';
 import { getJournalRows } from '@/lib/journal';
 import { listPostPhotos } from '@/lib/journal-images';
 import { getPublicCatalog } from '@/lib/public-catalog';
+import { propertyName } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
+
+/** The pages the "Link" box offers first, with the names the reviewer knows them by. */
+const MAIN_PAGES: LinkChoice[] = [
+  { path: '/en/stays', label: 'Buildings and rooms', group: 'Trang chính' }, { path: '/en/monthly-rent', label: 'Monthly rent and costs', group: 'Trang chính' },
+  { path: '/en/room-types', label: 'Featured room types', group: 'Trang chính' }, { path: '/en/services', label: 'Services', group: 'Trang chính' },
+  { path: '/en/about', label: 'About DRM Stays', group: 'Trang chính' }, { path: '/en/faq', label: 'FAQ', group: 'Trang chính' },
+  { path: '/en/contact', label: 'Contact', group: 'Trang chính' }, { path: '/en/partners', label: 'For investors', group: 'Trang chính' }, { path: '/en/journal', label: 'Journal (all guides)', group: 'Trang chính' },
+];
 
 const STATIC_PATHS = ['/en', '/en/stays', '/en/room-types', '/en/services', '/en/about', '/en/faq', '/en/contact', '/en/partners', '/en/monthly-rent', '/en/journal', '/en/privacy', '/en/cancellation', '/en/terms'];
 
@@ -32,6 +42,13 @@ export default async function JournalEdit({ searchParams }: { searchParams: Prom
     for (const room of building.rooms) { paths.add(`/en/rooms/${room.id}`); [room.monthlyPrice, room.depositVnd].forEach(value => value && value > 0 && prices.add(value)); }
   }
   for (const post of rows) if (post.published === 1 && post.slug) paths.add(`/en/journal/${post.slug}`);
+  const links: LinkChoice[] = [
+    ...MAIN_PAGES,
+    ...buildings.map(building => ({ path: `/en/buildings/${building.id}`, label: propertyName(building.name), group: 'Tòa nhà' })),
+    ...buildings.flatMap(building => building.types.map(type => ({ path: `/en/types/${type.id}`, label: `${type.name} (${propertyName(building.name)})`, group: 'Loại phòng' }))),
+    ...buildings.flatMap(building => building.rooms.map(room => ({ path: `/en/rooms/${room.id}`, label: `${room.name} (${propertyName(building.name)})`, group: 'Phòng' }))),
+    ...rows.filter(post => post.published === 1 && post.slug && post.id !== id && post.title_en).map(post => ({ path: `/en/journal/${post.slug}`, label: post.title_en, group: 'Bài viết khác' })),
+  ];
 
   const today = new Date().toISOString().slice(0, 10);
   const initial: EditorFields = {
@@ -46,7 +63,7 @@ export default async function JournalEdit({ searchParams }: { searchParams: Prom
   return <AdminShell title={row ? 'Sửa bài' : 'Viết bài mới'}>
     <JournalEditor
       key={id} id={id} openPaste={paste === '1' && !row} isNew={!row} status={status} everLive={!!row && (status === 'published' || !!row.checked_at)} initial={initial} reviews={reviews} checkedAt={row?.checked_at || ''}
-      authors={authors} others={rows.map(item => ({ id: item.id, slug: item.slug, h1: item.title_en, keyword: item.primary_keyword, status: item.status }))}
+      authors={authors} links={links} others={rows.map(item => ({ id: item.id, slug: item.slug, h1: item.title_en, keyword: item.primary_keyword, status: item.status }))}
       knownPrices={[...prices]} knownPaths={[...paths]} photos={photos}
     />
   </AdminShell>;

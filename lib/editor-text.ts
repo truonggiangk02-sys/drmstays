@@ -57,6 +57,47 @@ export function toggleHeading(value: string, start: number, end: number, level: 
   return { from, to, text, selectFrom: from + text.length - (bare || 'Heading').length, selectTo: from + text.length };
 }
 
+/** How the line at `position` is set: plain paragraph, ## or ### heading, or something else (a list, a quote, a # or #### heading, a table row). */
+export function lineStyleAt(value: string, position: number): 'p' | 'h2' | 'h3' | 'other' {
+  const { from, to } = lineRange(value, position, position);
+  const line = value.slice(from, to);
+  if (/^\s*###\s+\S/.test(line)) return 'h3';
+  if (/^\s*##\s+\S/.test(line)) return 'h2';
+  return /^\s*(#{1,6}\s|[-*+]\s|\d+\.\s|>|\||```)/.test(line) ? 'other' : 'p';
+}
+
+/** Sets the line to a ## heading, a ### heading or a plain paragraph (like the style box of a word processor). */
+export function setLineStyle(value: string, position: number, style: 'p' | 'h2' | 'h3'): TextEdit {
+  const { from, to } = lineRange(value, position, position);
+  const bare = value.slice(from, to).replace(/^\s*(?:#{1,6}\s*|[-*+]\s+|\d+\.\s+|>\s?)/, '');
+  const text = style === 'p' ? bare : `${style === 'h2' ? '##' : '###'} ${bare || 'Heading'}`;
+  return { from, to, text, selectFrom: from + text.length - (bare || (style === 'p' ? '' : 'Heading')).length, selectTo: from + text.length };
+}
+
+/** Takes the formatting off the lines of the selection (or the cursor's line): heading, list and quote marks, bold, italic, code. Links, tables and code blocks are left. */
+export function clearFormatting(value: string, start: number, end: number): TextEdit {
+  const { from, to } = lineRange(value, start, end);
+  let fence = false;
+  const text = value.slice(from, to).split('\n').map(line => {
+    if (/^\s*```/.test(line)) { fence = !fence; return line; }
+    if (fence || /^\s*\|/.test(line)) return line;
+    return line.replace(/^\s*(?:#{1,6}\s+|[-*+]\s+|\d+\.\s+|>\s?)/, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1$2').replace(/`([^`]+)`/g, '$1');
+  }).join('\n');
+  return { from, to, text, selectFrom: from, selectTo: from + text.length };
+}
+
+/** Whether `href` can go in a Markdown link: a path on this site or an https address, with no spaces or brackets that would break the link. */
+export const validHref = (href: string) => /^(?:\/(?!\/)[^\s()[\]]*|https:\/\/[^\s()[\]]+)$/.test(href);
+
+/** [label](href) where the selection is (the selection becomes the label unless a label is given). */
+export function linkTo(value: string, start: number, end: number, href: string, label = ''): TextEdit {
+  const words = (label || value.slice(start, end)).replace(/[[\]\n]+/g, ' ').replace(/\s+/g, ' ').trim() || href;
+  return insertText(start, end, `[${words}](${href})`);
+}
+
+export const HR_BLOCK = '---';
+export const NOTE_BLOCK = '> **Note:** Text';
+
 /** Puts `text` where the cursor is (replacing the selection), with the cursor after it, or on `select` inside it. */
 export function insertText(start: number, end: number, text: string, select?: { from: number; to: number }): TextEdit {
   return { from: start, to: end, text, selectFrom: start + (select ? select.from : text.length), selectTo: start + (select ? select.to : text.length) };
