@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { BLOG, INTENTS, LEVELS, REVIEW_ITEMS, STATUSES, TEMPLATES, TOPICS, type Status } from '@/lib/blog-standard';
 import { blockers, chars, checkPost, findVndAmounts, summary, type BlogContext, type BlogDraft, type Check } from '@/lib/blog-check';
 import { parsePastedPost, type PostFields } from '@/lib/blog-frontmatter';
-import { bodyWords, countTextWords, markdownLinks, mediaImageId, slugify } from '@/lib/journal-markdown';
+import { bodyWords, countTextWords, markdownLinks, mediaImageId, outline, readingMinutes, slugify } from '@/lib/journal-markdown';
+import { CTA_BLOCK, FAQ_BLOCK, KEY_TAKEAWAYS_BLOCK, TABLE_BLOCK, asBlock, makeLink, outlineWithWords, toggleHeading, toggleLinePrefix, wrapSelection, type TextEdit } from '@/lib/editor-text';
+import { caretTop } from '@/lib/textarea-caret';
 import type { JournalPost } from '@/lib/journal';
 import type { Author } from '@/lib/authors';
 
@@ -22,7 +24,7 @@ type Props = {
   authors: Array<Pick<Author, 'id' | 'name' | 'role' | 'bio' | 'photo_id' | 'url' | 'kind'>>; others: BlogContext['others']; knownPrices: number[]; knownPaths: string[]; photos: EditorPhoto[];
 };
 
-const tabs = [['checks', 'Kiểm tra'], ['google', 'Google'], ['page', 'Xem trước trang'], ['money', 'Số tiền VND']] as const;
+const tabs = [['checks', 'Kiểm tra'], ['outline', 'Dàn ý'], ['google', 'Google'], ['page', 'Xem trước trang'], ['money', 'Số tiền VND']] as const;
 type Tab = (typeof tabs)[number][0];
 
 /** Shrinks big phone photos in the browser before upload (the server accepts up to 8 MB). */
@@ -67,6 +69,8 @@ export function JournalEditor(props: Props) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [boxWidth, setBoxWidth] = useState(540);
   const [frameReady, setFrameReady] = useState(false);
+  const [backup, setBackup] = useState<{ at: number; fields: EditorFields } | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const published = status === 'published';
   const slugLocked = everLive && !unlockSlug;
@@ -113,19 +117,48 @@ export function JournalEditor(props: Props) {
     return () => observer.disconnect();
   }, []);
 
-  // The article box grows with the text (no scrolling inside it): the page scrolls, and the checks on the right stay in view.
+  // A copy of what is being typed is kept in this browser, so a closed tab or a crash does not lose the article.
+  const backupKey = `journal-backup-${props.id}`;
   useEffect(() => {
-    const grow = () => { const area = bodyRef.current; if (!area) return; area.style.height = 'auto'; area.style.height = `${Math.max(area.scrollHeight + 4, 520)}px`; };
-    grow();
-    window.addEventListener('resize', grow);
-    return () => window.removeEventListener('resize', grow);
-  }, [f.body]);
+    const timer = setTimeout(() => {
+      try {
+        const data = JSON.parse(localStorage.getItem(backupKey) || 'null') as { at: number; fields: EditorFields } | null;
+        if (data?.fields && JSON.stringify(data.fields) !== JSON.stringify(props.initial)) setBackup(data);
+      } catch { /* no backup, or storage is off */ }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [backupKey, props.initial]);
+  useEffect(() => {
+    if (!dirty) return;
+    const timer = setTimeout(() => { try { localStorage.setItem(backupKey, JSON.stringify({ at: Date.now(), fields: f })); } catch { /* storage full or off */ } }, 1200);
+    return () => clearTimeout(timer);
+  }, [dirty, f, backupKey]);
+
+  // Ctrl/Cmd+S saves the draft (anywhere on the page). Runs on every render so it always sees the latest text.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 's') return;
+      event.preventDefault();
+      if (busy) return;
+      if (published) setMessage({ kind: 'error', text: 'Bài đang đăng: bấm "Cập nhật bài đã đăng" để lưu thay đổi.' });
+      else if (status !== 'archived') void send('save');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   const counts = summary(checks);
   const blocking = blockers(checks);
   const allTicked = reviews.every(Boolean);
   const words = bodyWords(f.body);
-  const wordCount = checks.length ? words : countTextWords(f.body);
+  const sections = useMemo(() => {
+    const items = outlineWithWords(outline(f.body), f.body, countTextWords);
+    const intro = countTextWords(f.body.slice(0, items[0]?.offset ?? f.body.length));
+    return { items, intro, h2: items.filter(item => item.level === 2).length };
+  }, [f.body]);
+  const target = f.level === 'A' || f.level === 'B' ? BLOG.words[f.level] : null;
+  const wordTone = words < BLOG.words.hardMin || words > BLOG.words.hardMax ? 'is-bad' : target && (words < target.min || words > target.max) ? 'is-warn' : 'is-ok';
+  const number = (value: number) => new Intl.NumberFormat('en-US').format(value);
 
   async function send(action: string, extra: Record<string, unknown> = {}) {
     setBusy(action); setMessage(null);
@@ -142,6 +175,7 @@ export function JournalEditor(props: Props) {
       if (['ready', 'publish', 'update'].includes(action) || data.status === 'published') setEverLive(value => value || data.status === 'published');
       if (action === 'publish' || action === 'update') setEverLive(true);
       setSaved(true); setDirty(false); setUnlockSlug(false); setConfirmSlug(false);
+      try { localStorage.removeItem(backupKey); } catch { /* storage off */ }
       if (action === 'unpublish' || action === 'archive' || action === 'unarchive') setReviews(REVIEW_ITEMS.map(() => false));
       const url = new URL(window.location.href);
       if (url.searchParams.get('id') !== props.id) { url.searchParams.set('id', props.id); window.history.replaceState(null, '', url); }
@@ -163,36 +197,48 @@ export function JournalEditor(props: Props) {
     return data;
   }
 
-  function insert(text: string, selectInside = false) {
+  /** Applies one text change as a single undoable step (Ctrl/Cmd+Z works); where the browser cannot, the text is simply replaced. */
+  function applyChange(change: TextEdit) {
     const area = bodyRef.current;
-    const start = area?.selectionStart ?? f.body.length, end = area?.selectionEnd ?? f.body.length;
-    const next = f.body.slice(0, start) + text + f.body.slice(end);
-    edit({ body: next });
-    requestAnimationFrame(() => {
-      if (!area) return;
-      area.focus();
-      const at = selectInside ? start + text.indexOf('(') + 1 : start + text.length;
-      area.setSelectionRange(at, selectInside ? at + 8 : at);
-    });
+    if (!area) return;
+    area.focus({ preventScroll: true });
+    area.setSelectionRange(change.from, change.to);
+    const done = typeof document.execCommand === 'function' && document.execCommand('insertText', false, change.text);
+    if (!done) edit({ body: area.value.slice(0, change.from) + change.text + area.value.slice(change.to) });
+    requestAnimationFrame(() => area.setSelectionRange(change.selectFrom, change.selectTo));
+  }
+  const selection = () => ({ start: bodyRef.current?.selectionStart ?? f.body.length, end: bodyRef.current?.selectionEnd ?? f.body.length });
+  const run = (build: (value: string, start: number, end: number) => TextEdit) => { const { start, end } = selection(); applyChange(build(f.body, start, end)); };
+  const putBlock = (block: string) => run((value, start, end) => asBlock(value, start, end, block));
+
+  /** Brings the spot to about a third of the way down the box (the box scrolls, not the page) and puts the cursor there. */
+  function scrollToOffset(offset: number) {
+    const area = bodyRef.current;
+    if (!area) return;
+    area.focus({ preventScroll: true });
+    area.setSelectionRange(offset, offset);
+    area.scrollTo({ top: Math.max(0, caretTop(area, offset) - area.clientHeight / 3), behavior: 'smooth' });
+    const rect = area.closest('.je-write')?.getBoundingClientRect();
+    if (rect && (rect.top < 0 || rect.top > window.innerHeight * 0.5)) area.closest('.je-write')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function wrapLink() {
-    const area = bodyRef.current;
-    const start = area?.selectionStart ?? f.body.length, end = area?.selectionEnd ?? f.body.length;
-    const label = f.body.slice(start, end) || 'link text';
-    insert(`[${label}](https://drmstays.vn/en/)`, true);
+  /** Key takeaways / FAQ: inserted where the cursor is, or, when the post already has the section, the cursor goes there. */
+  function addSection(title: string, block: string) {
+    const found = outline(f.body).find(item => item.level === 2 && item.text.toLowerCase() === title.toLowerCase());
+    if (found) { scrollToOffset(found.offset); setMessage({ kind: 'ok', text: `Bài đã có mục "${title}".` }); return; }
+    putBlock(block);
+  }
+
+  function onBodyKey(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+    const key = event.key.toLowerCase();
+    if (key === 'b') { event.preventDefault(); run((value, start, end) => wrapSelection(value, start, end, '**', 'bold text')); }
+    else if (key === 'i') { event.preventDefault(); run((value, start, end) => wrapSelection(value, start, end, '*', 'italic text')); }
+    else if (key === 'k') { event.preventDefault(); run(makeLink); }
   }
 
   function jump(check: Check) {
-    if (check.field === 'body' && check.offset !== undefined && bodyRef.current) {
-      const area = bodyRef.current;
-      area.focus({ preventScroll: true });
-      area.setSelectionRange(check.offset, check.offset);
-      // The box is as tall as the text, so the spot is found by its share of the text, then the page is scrolled there.
-      const top = area.getBoundingClientRect().top + window.scrollY + (check.offset / Math.max(1, f.body.length)) * area.scrollHeight;
-      window.scrollTo({ top: Math.max(0, top - window.innerHeight / 3), behavior: 'smooth' });
-      return;
-    }
+    if (check.field === 'body' && check.offset !== undefined) { scrollToOffset(check.offset); return; }
     const target = check.field === 'choices' ? 'jf-template' : check.field ? `jf-${check.field}` : '';
     const element = target ? document.getElementById(target) : null;
     element?.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -292,6 +338,9 @@ export function JournalEditor(props: Props) {
         <Link className="je-link" href="/admin/journal" prefetch={false}>← Danh sách</Link>
       </div>
     </header>
+    {backup && !dirty && <p className="je-message is-warn" role="status">Có bản chưa lưu từ {new Date(backup.at).toLocaleString('vi-VN')} trên trình duyệt này.
+      <button type="button" className="je-inline" onClick={() => { setF(backup.fields); setDirty(true); setBackup(null); }}>Khôi phục</button>
+      <button type="button" className="je-inline" onClick={() => { try { localStorage.removeItem(backupKey); } catch { /* storage off */ } setBackup(null); }}>Bỏ</button></p>}
     {message && <p className={`je-message is-${message.kind}`} role={message.kind === 'error' ? 'alert' : 'status'}>{message.text}</p>}
     <div className="je-grid">
       <div className="je-form">
@@ -322,22 +371,39 @@ export function JournalEditor(props: Props) {
             <label>Ngày đăng<input type="date" {...field('date')} /></label>
           </div>
         </section>
-        <section className="je-card">
-          <div className="je-row"><h2>Nội dung (tiếng Anh, Markdown)</h2><span className="je-count is-neutral">{wordCount} từ</span></div>
-          <div className="je-tools" role="toolbar" aria-label="Chèn nhanh">
-            <button type="button" onClick={() => insert('\n\n## Heading\n\n')}>H2</button>
-            <button type="button" onClick={() => insert('\n\n### Heading\n\n')}>H3</button>
-            <button type="button" onClick={() => insert('\n- item\n- item\n- item\n')}>Danh sách</button>
-            <button type="button" onClick={() => insert('\n\n| Column | Column |\n| --- | --- |\n| Text | Text |\n\n')}>Bảng</button>
-            <button type="button" onClick={wrapLink}>Link</button>
+        <section className="je-card je-write">
+          <div className="je-row"><h2>Nội dung (tiếng Anh, Markdown)</h2><button type="button" className="je-ghost" onClick={() => setHelpOpen(open => !open)} aria-expanded={helpOpen}>Cách viết</button></div>
+          {helpOpen && <div className="je-help">
+            <p><code>## Tiêu đề mục</code> · <code>### Tiêu đề nhỏ</code> · <code>**đậm**</code> · <code>*nghiêng*</code> · <code>- danh sách</code> · <code>1. đánh số</code> · <code>&gt; trích dẫn</code> · <code>[chữ](https://…)</code> · bảng: <code>| A | B |</code> rồi dòng <code>| --- | --- |</code>.</p>
+            <p>Ảnh: dùng nút “Chèn vào bài” ở mục ảnh bên dưới. Không dùng HTML và không dùng dòng bắt đầu bằng <code># </code> (trang đã có H1).</p>
+            <p>Phím tắt: <kbd>Ctrl/⌘</kbd>+<kbd>B</kbd> đậm, <kbd>I</kbd> nghiêng, <kbd>K</kbd> link, <kbd>Z</kbd> hoàn tác, <kbd>S</kbd> lưu nháp.</p>
+          </div>}
+          <div className="je-tools" role="toolbar" aria-label="Định dạng">
+            <button type="button" title="Tiêu đề mục (##)" onClick={() => run((value, start, end) => toggleHeading(value, start, end, 2))}>H2</button>
+            <button type="button" title="Tiêu đề nhỏ (###)" onClick={() => run((value, start, end) => toggleHeading(value, start, end, 3))}>H3</button>
+            <button type="button" className="je-bold" title="Đậm (Ctrl/⌘+B)" onClick={() => run((value, start, end) => wrapSelection(value, start, end, '**', 'bold text'))}>B</button>
+            <button type="button" className="je-italic" title="Nghiêng (Ctrl/⌘+I)" onClick={() => run((value, start, end) => wrapSelection(value, start, end, '*', 'italic text'))}>I</button>
+            <button type="button" title="Danh sách gạch đầu dòng" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'bullet'))}>• Danh sách</button>
+            <button type="button" title="Danh sách đánh số" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'number'))}>1. Số</button>
+            <button type="button" title="Trích dẫn" onClick={() => run((value, start, end) => toggleLinePrefix(value, start, end, 'quote'))}>&ldquo; Trích dẫn</button>
+            <button type="button" title="Chèn bảng" onClick={() => putBlock(TABLE_BLOCK)}>Bảng</button>
+            <button type="button" title="Chèn link (Ctrl/⌘+K)" onClick={() => run(makeLink)}>Link</button>
+            <span className="je-sep" aria-hidden="true" />
+            <button type="button" title="Chèn mục Key takeaways" onClick={() => addSection(BLOG.keyTakeawaysHeading, KEY_TAKEAWAYS_BLOCK)}>+ Ý chính</button>
+            <button type="button" title="Chèn mục hỏi đáp" onClick={() => addSection(BLOG.faqHeading, FAQ_BLOCK)}>+ Hỏi đáp</button>
+            <button type="button" title="Chèn lời mời liên hệ" onClick={() => putBlock(CTA_BLOCK)}>+ Mời liên hệ</button>
           </div>
-          <textarea ref={bodyRef} id="jf-body" className="je-body" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} spellCheck />
+          <textarea ref={bodyRef} id="jf-body" className="je-body" lang="en" aria-label="Nội dung bài viết (tiếng Anh, Markdown)" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} onKeyDown={onBodyKey} spellCheck />
+          <div className="je-statusbar" aria-live="polite">
+            <span className={wordTone}>{words} từ{target ? ` · mục tiêu ${number(target.min)}–${number(target.max)} (mức ${f.level})` : ''}</span>
+            <span>{number(chars(f.body))} ký tự</span><span>đọc khoảng {readingMinutes(f.body)} phút</span><span>{sections.h2} mục ##</span>
+          </div>
           {externalPictures.length > 0 && <div className="je-note"><p>{externalPictures.length} ảnh trong bài nằm ở website khác. Ảnh ngoài sẽ không hiện: hãy tải về website của mình.</p>
             <button type="button" disabled={!!busy} onClick={() => importPictures(externalPictures.map(link => ({ url: link.url, alt: link.text })))}>Tải ảnh ngoài về website</button></div>}
         </section>
         <section className="je-card" id="jf-cover">
           <h2>Ảnh bìa và ảnh trong bài</h2>
-          <PhotoPanel photos={photos} busy={!!busy} onUpload={uploadFiles} onAction={photoAction} onInsert={photo => insert(`\n\n![${photo.alt}](/media/catalog/${photo.id})\n\n`)} />
+          <PhotoPanel photos={photos} busy={!!busy} onUpload={uploadFiles} onAction={photoAction} onInsert={photo => putBlock(`![${photo.alt}](/media/catalog/${photo.id})`)} />
           <label>Mô tả ảnh bìa <Counter value={countTextWords(f.coverAlt)} min={BLOG.alt.minWords} max={BLOG.alt.maxWords} /><input {...field('coverAlt')} maxLength={BLOG.store.coverAlt} /><small>Mô tả bằng tiếng Anh: chụp gì, ở đâu (8–15 từ).</small></label>
         </section>
         <details className="je-card">
@@ -356,6 +422,14 @@ export function JournalEditor(props: Props) {
             <button type="button" onClick={() => jump(check)}><code>{check.code}</code><span>{check.message}</span></button></li>)}</ul>)}
           {group('ok').length > 0 && <details><summary>{group('ok').length} quy tắc đạt</summary><ul className="je-checks is-ok">{group('ok').map((check, index) => <li key={`${check.code}-${index}`}><code>{check.code}</code><span>{check.message}</span></li>)}</ul></details>}
           {!checks.length && <p className="je-muted">Đang kiểm tra…</p>}
+        </div>}
+        {tab === 'outline' && <div className="je-panel">
+          <p className="je-muted">Bấm một mục để nhảy tới đó trong bài. Số từ tính đến mục kế tiếp.</p>
+          <ol className="je-outline">
+            <li className="is-l2"><button type="button" onClick={() => scrollToOffset(0)}><span>Mở bài (trả lời ngay trong 60 từ đầu)</span><small>{sections.intro} từ</small></button></li>
+            {sections.items.map(item => <li key={item.offset} className={`is-l${item.level}`}><button type="button" onClick={() => scrollToOffset(item.offset)}><span>{item.text || '(trống)'}</span><small>{item.words} từ</small></button></li>)}
+          </ol>
+          {!sections.items.length && <p className="je-muted">Chưa có tiêu đề ## nào.</p>}
         </div>}
         {tab === 'google' && <div className="je-panel">
           <div className="je-serp"><p className="je-serp-url">drmstays.vn › en › journal › {f.slug || '…'}</p><p className="je-serp-title">{cut(seoShown, 60) || 'Tiêu đề Google'}</p><p className="je-serp-desc">{cut(f.meta, BLOG.meta.max) || 'Mô tả Google'}</p></div>
