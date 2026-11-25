@@ -1,5 +1,5 @@
 type Photo = { url: string; alt: string; width?: number; height?: number };
-type MediaBuilding = {
+export type MediaBuilding = {
   images: Photo[];
   renders?: Photo[];
   progressPhotos?: Photo[];

@@ -52,6 +52,8 @@ export default defineConfig(async ({ command }) => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
+    // Production deploys set IMAGE_RESIZE=1 (Cloudflare resizes catalog photos there); see lib/image-url.ts.
+    define: { __IMAGE_RESIZE__: JSON.stringify(process.env.IMAGE_RESIZE === "1" ? "1" : "") },
     server: {
       ...(managedLinux
         ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] }

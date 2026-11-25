@@ -11,7 +11,7 @@
 import { writeFileSync } from 'node:fs';
 
 // /vi/journal is left out on purpose: the journal stays hidden (404) until it has its first article. Once it has posts, the crawler finds the page through the links.
-const SEED = ['/', '/vi', '/en', '/vi/stays', '/en/stays', '/vi/services', '/vi/about', '/vi/faq', '/vi/contact', '/vi/partners', '/vi/privacy', '/vi/cancellation', '/vi/terms'];
+const SEED = ['/', '/vi', '/en', '/vi/stays', '/en/stays', '/en/monthly-rent', '/vi/services', '/vi/about', '/vi/faq', '/vi/contact', '/vi/partners', '/vi/privacy', '/vi/cancellation', '/vi/terms'];
 const SOFT_ERRORS = ["couldn't load", 'couldn’t load', 'Danh sách hiện chưa sẵn sàng', 'The catalog is temporarily unavailable', 'Các tòa nhà đang được cập nhật', 'Buildings are being updated', 'Internal Server Error'];
 
 /** Facts about one HTML page, read with plain patterns (enough for health checks, no DOM needed). */
@@ -52,6 +52,8 @@ async function main() {
   // robots + sitemap
   const robots = await get('/robots.txt');
   add(robots.response?.ok ? 'ok' : 'fail', 'SEO', 'robots.txt', robots.response ? `HTTP ${robots.response.status}` : robots.error);
+  const llms = await get('/llms.txt'); const llmsText = llms.response?.ok ? await llms.response.text() : '';
+  add(llms.response?.ok && llmsText.startsWith('# DRM Stays') ? 'ok' : 'warn', 'SEO', 'llms.txt (cho AI)', llms.response ? `HTTP ${llms.response.status}${llms.response.ok ? '' : ' (bình thường khi chưa mở site cho Google)'}` : llms.error);
   const sitemap = await get('/sitemap.xml'); const sitemapText = sitemap.response?.ok ? await sitemap.response.text() : '';
   const sitemapUrls = [...sitemapText.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   add(sitemap.response?.ok ? (sitemapUrls.length ? 'ok' : 'warn') : 'fail', 'SEO', 'sitemap.xml', sitemap.response ? `${sitemapUrls.length} địa chỉ${sitemapUrls.length ? '' : ' (rỗng: bình thường khi đang "Sắp ra mắt")'}` : sitemap.error);

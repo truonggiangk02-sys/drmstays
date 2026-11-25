@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { imgSize } from '@/lib/image-url';
 
 const reduced = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -113,7 +114,7 @@ export function ReviewCards({ items }: { items: ReviewCard[] }) {
       {items.map(item => {
         
         return <article key={item.id} className="home-rcard">
-          <div className="home-rcard-photo">{item.image ? <img src={item.image.url} alt={item.image.alt} loading="lazy" {...(item.image.width && item.image.height ? { width: item.image.width, height: item.image.height } : {})} /> : <span aria-hidden="true">DRM Stays</span>}</div>
+          <div className="home-rcard-photo">{item.image ? <img src={item.image.url} alt={item.image.alt} loading="lazy" {...imgSize(item.image)} /> : <span aria-hidden="true">DRM Stays</span>}</div>
           <div className="home-rcard-body">
             {item.stars && <p className="home-rcard-stars"><span role="img" aria-label="5 out of 5 stars">★★★★★</span>{item.date && <time>{item.date}</time>}</p>}
             <blockquote>{item.quote}</blockquote>

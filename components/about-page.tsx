@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { ContentItem } from '@/lib/site-content';
 import { buildingPhotos, buildingRoomCount } from '@/lib/building-media';
 import { buildingStatusLabel } from '@/lib/building-status';
-import { CONTACT, propertyName } from '@/lib/site';
+import { CONTACT, contactAddress, propertyName } from '@/lib/site';
 import { imgSize } from '@/lib/image-url';
 import { photoRatio } from '@/lib/justified';
 import { CountUp } from '@/components/smooth-motion';
@@ -160,7 +160,7 @@ export function AboutPage({ lang, title, items, metrics, buildings }: { lang: La
       <div className="abt-closing-inner">
         <h2 id="abt-closing-title">{w.closing.split('\n').map((line, i) => <span key={i}>{line}</span>)}</h2>
         <a className="abt-phone" href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a>
-        <dl><div><dt>{w.hours}</dt><dd>{hoursText.body || w.hoursValue}</dd></div><div><dt>{w.address}</dt><dd>{CONTACT.address}</dd></div></dl>
+        <dl><div><dt>{w.hours}</dt><dd>{hoursText.body || w.hoursValue}</dd></div><div><dt>{w.address}</dt><dd>{contactAddress(lang)}</dd></div></dl>
         <Link className="abt-button" href={`/${lang}/contact`}>{w.cta}<ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
     </section>

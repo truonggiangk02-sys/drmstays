@@ -4,6 +4,7 @@ import { buildingFromPrice, buildingPhotos, buildingRoomCount } from '@/lib/buil
 import { buildingStatusLabel } from '@/lib/building-status';
 import type { HomeContent } from '@/lib/home-content';
 import Link from 'next/link';
+import type { JournalPost } from '@/lib/journal';
 import type { ContentItem } from '@/lib/site-content';
 import { Carousel, FaqList, ReviewCards, StoryText, type ReviewCard } from '@/components/home-motion';
 import type { ContentImage } from '@/lib/site-content';
@@ -36,7 +37,7 @@ const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 export type HomeRoomType = { id: string; name: string; building: string; image?: Photo; priceFrom: number; areaSqm: number; beds: number; maxGuests: number };
 
-export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [], reviewImages = {}, serviceImages = {} }: { lang: 'vi' | 'en'; buildings: Building[]; journal: ContentItem[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[]; reviewImages?: Record<string, ContentImage[]>; serviceImages?: Record<string, ContentImage[]> }) {
+export function PublicHome({ lang, buildings, journal, home, roomTypes = [], services = [], faq = [], reviews = [], reviewImages = {}, serviceImages = {} }: { lang: 'vi' | 'en'; buildings: Building[]; journal: JournalPost[]; home: HomeContent; roomTypes?: HomeRoomType[]; services?: ContentItem[]; faq?: ContentItem[]; reviews?: ContentItem[]; reviewImages?: Record<string, ContentImage[]>; serviceImages?: Record<string, ContentImage[]> }) {
   const vi = lang === 'vi';
   const pick = (item: ContentItem) => ({ title: vi ? item.title_vi : item.title_en, body: vi ? item.body_vi : item.body_en });
   const t = home.text;
@@ -179,7 +180,7 @@ export function PublicHome({ lang, buildings, journal, home, roomTypes = [], ser
       <FaqList items={faq.slice(0, 6).map(item => ({ id: item.id, question: pick(item).title, answer: pick(item).body }))} />
     </section>}
 
-    {journal.length > 0 && <section className="editorial-journal structure-section" aria-labelledby="editorial-journal-title"><div className="editorial-section-head"><div><span className="editorial-section-label">{t.journalLabel}</span><h2 id="editorial-journal-title">{t.journalTitle}</h2></div><p>{t.journalLead}</p></div><div className="editorial-journal-grid">{journal.slice(0, 3).map((item, index) => <Link key={item.id} href={`/${lang}/journal/${item.id}`} className="editorial-journal-card"><span>{String(index + 1).padStart(2, '0')} / {t.journalTitle}</span><h3>{lang === 'vi' ? item.title_vi : item.title_en}</h3><p>{lang === 'vi' ? item.body_vi : item.body_en}</p><strong>{t.journalRead} <span aria-hidden="true">↗</span></strong></Link>)}</div><Link className="editorial-text-link" href={`/${lang}/journal`}>{t.journalAll}<span aria-hidden="true">↗</span></Link></section>}
+    {journal.length > 0 && <section className="editorial-journal structure-section" aria-labelledby="editorial-journal-title"><div className="editorial-section-head"><div><span className="editorial-section-label">{t.journalLabel}</span><h2 id="editorial-journal-title">{t.journalTitle}</h2></div><p>{t.journalLead}</p></div><div className="editorial-journal-grid">{journal.slice(0, 3).map((item, index) => <Link key={item.id} href={`/${item.lang}/journal/${item.slug}`} className="editorial-journal-card"><span>{String(index + 1).padStart(2, '0')} / {t.journalTitle}</span><h3 lang={item.lang}>{item.title}</h3><p lang={item.lang}>{item.excerpt}</p><strong>{t.journalRead} <span aria-hidden="true">↗</span></strong></Link>)}</div><Link className="editorial-text-link" href={`/${lang}/journal`}>{t.journalAll}<span aria-hidden="true">↗</span></Link></section>}
 
     <section className="editorial-investors structure-section" aria-labelledby="editorial-investors-title"><div><span className="editorial-section-label">{t.investorsLabel}</span><h2 id="editorial-investors-title">{t.investorsTitle}</h2><p>{t.investorsBody}</p></div><Link className="editorial-text-link" href={`/${lang}/partners`}>{t.investors}<span aria-hidden="true">↗</span></Link></section>
 

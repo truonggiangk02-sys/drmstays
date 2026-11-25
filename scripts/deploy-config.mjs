@@ -60,7 +60,7 @@ config.r2_buckets = process.env.NO_R2 === "1"
 if (process.env.NO_R2 !== "1") config.triggers = { crons: ["0 20 * * *"] };
 
 const vars = { ...(config.vars || {}) };
-for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS", "COMING_SOON", "STAGING", "GA_MEASUREMENT_ID"]) {
+for (const key of ["SITE_URL", "STAYDESK_CATALOG_URL", "PREVIEW_DEMO", "REDIRECT_HOSTS", "COMING_SOON", "STAGING", "GA_MEASUREMENT_ID", "USD_VND_RATE"]) {
   const value = process.env[key]?.trim();
   if (value) vars[key] = value;
 }

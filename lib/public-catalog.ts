@@ -5,6 +5,10 @@ import { demoBuildingIds, demoRoomIds, getStaydeskCatalog, type SourceBuilding }
 import { areaOf } from './image-area';
 import { effectivePrice, priceFrom, availableCount, byRoomName, type TypeDetails } from './room-types';
 import { catalogImageUrl } from './image-url';
+import { englishAddress } from './site';
+
+/** English pages show addresses without Vietnamese marks; Vietnamese pages keep them as entered. */
+const localAddress = (address: string, lang: 'vi' | 'en') => (lang === 'en' ? englishAddress(address) : address);
 import { inferFloor, parseDetails, detailText, detailNumber, detailList, detailStatus, detailMonth, type BuildingDetails, type RoomDetails } from './catalog-details';
 
 type BuildingRow = { source_id: string; updated_at?: string | null; published: number; description: string; address: string; services: string; details_json: string };
@@ -25,18 +29,18 @@ const demoMapPoints = new Map([
 
 async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang = 'en') {
   if (!env.DB) throw new Error('Catalog database is unavailable');
-  const [source, buildingRows, roomRows, imageRows, typeRows] = await Promise.all([
+  const [source, buildingRows, roomRows, imageRows, typeRows, areaRows] = await Promise.all([
     getStaydeskCatalog(checkIn, checkOut),
     env.DB.prepare('SELECT source_id, updated_at, published, description, address, services, details_json FROM catalog_buildings').all<BuildingRow>(),
     env.DB.prepare('SELECT source_id, updated_at, published, description, nightly_price, monthly_price, services, details_json, type_id FROM catalog_rooms').all<RoomRow>(),
     env.DB.prepare('SELECT id, owner_type, owner_id, alt, position, category, width, height FROM catalog_images ORDER BY position, id').all<Image>(),
     env.DB.prepare('SELECT id, updated_at, building_source_id, name_vi, name_en, published, monthly_price, details_json FROM catalog_room_types ORDER BY position, name_vi').all<TypeRow>(),
+    // Photo areas come from a column added by migration 0017; until it is applied the query fails and areas are guessed from captions.
+    (async () => env.DB!.prepare("SELECT id, area FROM catalog_images WHERE area != ''").all<{ id: string; area: string }>())().catch(() => null),
   ]);
   const buildings = new Map((buildingRows.results || []).map(row => [row.source_id, row]));
   const rooms = new Map((roomRows.results || []).map(row => [row.source_id, row]));
-  // Photo areas come from a column added by migration 0017; until it is applied the query fails and areas are guessed from captions.
-  const areaById = new Map<string, string>();
-  try { for (const row of (await env.DB!.prepare("SELECT id, area FROM catalog_images WHERE area != ''").all<{ id: string; area: string }>()).results || []) areaById.set(row.id, row.area); } catch { /* migration not applied yet */ }
+  const areaById = new Map((areaRows?.results || []).map(row => [row.id, row.area]));
   const images = new Map<string, Image[]>();
   for (const image of imageRows.results || []) {
     const key = `${image.owner_type}:${image.owner_id}`;
@@ -64,7 +68,7 @@ async function loadPublicCatalog(checkIn?: string, checkOut?: string, lang: Lang
     const photoGallery = gallery('building', building.id, 'photo');
     const description = pickText(lang === 'vi' ? detail.descriptionVi : detail.descriptionEn, lang === 'vi' ? detail.descriptionEn : detail.descriptionVi, profile.description);
     return [{
-      id: building.id, updatedAt: profile.updated_at || undefined, name: building.name, description, address: profile.address || firstSample?.address || '',
+      id: building.id, updatedAt: profile.updated_at || undefined, name: building.name, description, address: localAddress(profile.address || firstSample?.address || '', lang),
       latitude: hasCoordinates ? detail.latitude! : demoPoint?.latitude ?? null,
       longitude: hasCoordinates ? detail.longitude! : demoPoint?.longitude ?? null,
       coordinateApproximate: hasCoordinates ? detail.coordinateApproximate === true : !!demoPoint,

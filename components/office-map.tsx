@@ -1,4 +1,4 @@
-import { CONTACT } from '@/lib/site';
+import { CONTACT, contactAddress } from '@/lib/site';
 
 const words = {
   vi: { label: 'VĂN PHÒNG', title: 'Ghé thăm văn phòng DRM Stays', lead: 'Gặp trực tiếp đội ngũ để xem phòng, trao đổi nhu cầu và hoàn tất thủ tục thuê.', hours: 'Giờ làm việc', hoursValue: '8:00 – 17:00', address: 'Địa chỉ', phone: 'Điện thoại', email: 'Email', directions: 'Chỉ đường', open: 'Mở trong Google Maps', mapTitle: 'Bản đồ văn phòng DRM Stays' },
@@ -15,7 +15,7 @@ export function OfficeMap({ lang }: { lang: 'vi' | 'en' }) {
       <h2 id="office-map-title">{w.title}</h2>
       <p>{w.lead}</p>
       <dl>
-        <div><dt>{w.address}</dt><dd>{CONTACT.address}</dd></div>
+        <div><dt>{w.address}</dt><dd>{contactAddress(lang)}</dd></div>
         <div><dt>{w.hours}</dt><dd>{w.hoursValue}</dd></div>
         <div><dt>{w.phone}</dt><dd><a href={`tel:${CONTACT.phoneIntl}`}>{CONTACT.phoneDisplay}</a></dd></div>
         <div><dt>{w.email}</dt><dd><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></dd></div>
