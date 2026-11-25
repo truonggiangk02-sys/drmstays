@@ -113,6 +113,14 @@ export function JournalEditor(props: Props) {
     return () => observer.disconnect();
   }, []);
 
+  // The article box grows with the text (no scrolling inside it): the page scrolls, and the checks on the right stay in view.
+  useEffect(() => {
+    const grow = () => { const area = bodyRef.current; if (!area) return; area.style.height = 'auto'; area.style.height = `${Math.max(area.scrollHeight + 4, 520)}px`; };
+    grow();
+    window.addEventListener('resize', grow);
+    return () => window.removeEventListener('resize', grow);
+  }, [f.body]);
+
   const counts = summary(checks);
   const blocking = blockers(checks);
   const allTicked = reviews.every(Boolean);
@@ -178,9 +186,11 @@ export function JournalEditor(props: Props) {
   function jump(check: Check) {
     if (check.field === 'body' && check.offset !== undefined && bodyRef.current) {
       const area = bodyRef.current;
-      area.focus();
+      area.focus({ preventScroll: true });
       area.setSelectionRange(check.offset, check.offset);
-      area.scrollTop = Math.max(0, (check.offset / Math.max(1, f.body.length)) * area.scrollHeight - area.clientHeight / 3);
+      // The box is as tall as the text, so the spot is found by its share of the text, then the page is scrolled there.
+      const top = area.getBoundingClientRect().top + window.scrollY + (check.offset / Math.max(1, f.body.length)) * area.scrollHeight;
+      window.scrollTo({ top: Math.max(0, top - window.innerHeight / 3), behavior: 'smooth' });
       return;
     }
     const target = check.field === 'choices' ? 'jf-template' : check.field ? `jf-${check.field}` : '';

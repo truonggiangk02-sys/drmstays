@@ -42,7 +42,8 @@
 .je-card label small{font-weight:400;color:#5d6b64}
 .je-card input,.je-card select,.je-card textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid #c9d2c6;background:#fff;box-sizing:border-box}
 .je-card input[type=checkbox]{width:auto}
-.je-body{font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;min-height:420px}
+/* The box for the article grows with the text (the editor sets its height). Needs .je-card in front to win over the generic field style. */
+.je-card .je-body{font:15px/1.65 ui-monospace,Menlo,Consolas,monospace;min-height:520px;resize:none;overflow:hidden}
 .je-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .je-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .je-count{float:right;font-size:12px;font-weight:700}
