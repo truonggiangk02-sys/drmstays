@@ -178,6 +178,27 @@ describe("rule details", () => {
     expect(at(run({ h1: "short" }), "R01")[0].field).toBe("h1");
   });
 
+  it("marks the exact text of each problem, not just where it starts", () => {
+    const slice = (body: string, code: string, ctx: Partial<BlogContext> = {}) => {
+      const full = goodBody() + body;
+      const found = at(run({ body: full }, ctx), code).find(check => check.offset !== undefined && check.level !== "ok");
+      expect(found, `${code} points at the text`).toBeDefined();
+      return full.slice(found!.offset!, found!.offset! + (found!.length ?? 0));
+    };
+    expect(slice("\n\nThis is [NEEDS INPUT: price] here.", "R16")).toBe("[NEEDS INPUT");
+    expect(slice("\n\n[bad](javascript:alert(1))", "R13")).toBe("[bad](javascript:alert(1)");
+    expect(slice("\n\n[bad](http://example.com/a)", "R13")).toBe("[bad](http://example.com/a)");
+    expect(slice("\n\n<div>hello</div>", "R08")).toBe("<div>");
+    expect(slice("\n\n# A big title", "R08")).toBe("# A big title");
+    expect(slice(`\n\n![${ALT}](https://example.com/a.jpg)`, "R15")).toBe(`![${ALT}](https://example.com/a.jpg)`);
+    expect(slice("\n\nThis is the cheapest in the area.", "R17")).toBe("cheapest in");
+    expect(slice("\n\nRent is 12,500,000 VND a month.", "R18", { knownPrices: [11_000_000] })).toBe("12,500,000 VND");
+    expect(slice("\n\nThat is about USD 440 a month.", "R20")).toBe("USD 440");
+    expect(slice("\n\n| Area | Price |\n| An Thuong | 11 |", "R24")).toBe("| Area | Price |");
+    expect(slice("\n\nSee [this](/en/nothing-here) page.", "R12b")).toBe("[this](/en/nothing-here)");
+    expect(slice("\n\n" + filler(130), "R21").length).toBeGreaterThan(500);
+  });
+
   it("HTML inside a code block is not counted as HTML", () => {
     expect(levels(run({ body: goodBody() + "\n\n```\n<div>x</div>\n```" }), "R08")).toEqual(["ok"]);
   });

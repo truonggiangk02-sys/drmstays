@@ -218,12 +218,12 @@ export function faqItems(markdown: string, faqHeading: string): Array<{ question
   });
 }
 
-export type MarkdownLink = { text: string; url: string; image: boolean; offset: number };
+export type MarkdownLink = { text: string; url: string; image: boolean; offset: number; length: number };
 
 /** Every [text](url) and ![alt](url) of the text, with its position. */
 export function markdownLinks(markdown: string): MarkdownLink[] {
   const found: MarkdownLink[] = [];
   const pattern = /(!?)\[([^\]]*)\]\(([^)\s]*)(?:\s+"[^"]*")?\)/g;
-  for (let match = pattern.exec(markdown); match; match = pattern.exec(markdown)) found.push({ image: match[1] === '!', text: match[2], url: match[3], offset: match.index });
+  for (let match = pattern.exec(markdown); match; match = pattern.exec(markdown)) found.push({ image: match[1] === '!', text: match[2], url: match[3], offset: match.index, length: match[0].length });
   return found;
 }

@@ -8,6 +8,7 @@ import { parsePastedPost, type PostFields } from '@/lib/blog-frontmatter';
 import { bodyWords, countTextWords, markdownLinks, mediaImageId, outline, readingMinutes, slugify } from '@/lib/journal-markdown';
 import { CTA_BLOCK, FAQ_BLOCK, KEY_TAKEAWAYS_BLOCK, TABLE_BLOCK, asBlock, makeLink, outlineWithWords, toggleHeading, toggleLinePrefix, wrapSelection, type TextEdit } from '@/lib/editor-text';
 import { caretTop } from '@/lib/textarea-caret';
+import { problemMarks, segments } from '@/lib/problem-marks';
 import type { JournalPost } from '@/lib/journal';
 import type { Author } from '@/lib/authors';
 
@@ -71,6 +72,12 @@ export function JournalEditor(props: Props) {
   const [frameReady, setFrameReady] = useState(false);
   const [backup, setBackup] = useState<{ at: number; fields: EditorFields } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
+  const [showMarks, setShowMarks] = useState(true);
+  const [caret, setCaret] = useState(0);
+  const [checkedBody, setCheckedBody] = useState(props.initial.body);
+  const [fieldWidth, setFieldWidth] = useState(0);
+  const backdropRef = useRef<HTMLDivElement>(null);
 
   const published = status === 'published';
   const slugLocked = everLive && !unlockSlug;
@@ -91,7 +98,8 @@ export function JournalEditor(props: Props) {
 
   // Checks run half a second after the last keystroke.
   useEffect(() => {
-    const timer = setTimeout(() => setChecks(checkPost({ ...draft }, ctx)), 500);
+    const body = f.body;
+    const timer = setTimeout(() => { setChecks(checkPost({ ...draft }, ctx)); setCheckedBody(body); }, 500);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f, photos, ctx]);
@@ -147,6 +155,36 @@ export function JournalEditor(props: Props) {
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  // Problems are coloured only while the checks are for the text on screen (a moment after typing, they are not).
+  const marks = useMemo(() => (showMarks && checkedBody === f.body ? problemMarks(checks, f.body.length) : []), [showMarks, checkedBody, f.body, checks]);
+  const pieces = useMemo(() => segments(f.body, marks), [f.body, marks]);
+  const here = marks.find(mark => caret >= mark.from && caret <= mark.to);
+
+  /** The colours sit behind the text and move with it. */
+  function syncBackdrop() {
+    const area = bodyRef.current, back = backdropRef.current;
+    if (area && back) back.style.transform = `translateY(${-area.scrollTop}px)`;
+  }
+  useEffect(() => { syncBackdrop(); }, [f.body, marks, focusMode, fieldWidth]);
+  useEffect(() => {
+    const area = bodyRef.current;
+    if (!area || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setFieldWidth(area.clientWidth));
+    observer.observe(area);
+    return () => observer.disconnect();
+  }, []);
+
+  // Writing full screen: Esc comes back, and the page behind does not scroll.
+  useEffect(() => {
+    if (!focusMode) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setFocusMode(false); };
+    window.addEventListener('keydown', onKey);
+    requestAnimationFrame(() => bodyRef.current?.focus({ preventScroll: true }));
+    return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', onKey); };
+  }, [focusMode]);
+
   const counts = summary(checks);
   const blocking = blockers(checks);
   const allTicked = reviews.every(Boolean);
@@ -168,7 +206,7 @@ export function JournalEditor(props: Props) {
         body: JSON.stringify({ id: props.id, action, ...f, reviews, confirmSlugChange: confirmSlug, ...extra }),
       });
       const data = await response.json().catch(() => ({})) as { error?: string; status?: Status | 'deleted'; slug?: string; checks?: Check[]; notice?: string };
-      if (!response.ok) { setMessage({ kind: 'error', text: data.error || 'Không thực hiện được.' }); if (data.checks) setChecks(data.checks); return false; }
+      if (!response.ok) { setMessage({ kind: 'error', text: data.error || 'Không thực hiện được.' }); if (data.checks) { setChecks(data.checks); setCheckedBody(f.body); } return false; }
       if (data.status === 'deleted') { window.location.assign('/admin/journal?saved=deleted'); return true; }
       if (data.status) setStatus(data.status);
       if (data.slug) { setServerSlug(data.slug); setF(current => ({ ...current, slug: data.slug! })); }
@@ -212,13 +250,14 @@ export function JournalEditor(props: Props) {
   const putBlock = (block: string) => run((value, start, end) => asBlock(value, start, end, block));
 
   /** Brings the spot to about a third of the way down the box (the box scrolls, not the page) and puts the cursor there. */
-  function scrollToOffset(offset: number) {
+  function scrollToOffset(offset: number, length = 0) {
     const area = bodyRef.current;
     if (!area) return;
     area.focus({ preventScroll: true });
-    area.setSelectionRange(offset, offset);
+    area.setSelectionRange(offset, offset + length);
+    setCaret(offset);
     area.scrollTo({ top: Math.max(0, caretTop(area, offset) - area.clientHeight / 3), behavior: 'smooth' });
-    const rect = area.closest('.je-write')?.getBoundingClientRect();
+    const rect = focusMode ? null : area.closest('.je-write')?.getBoundingClientRect();
     if (rect && (rect.top < 0 || rect.top > window.innerHeight * 0.5)) area.closest('.je-write')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -227,6 +266,16 @@ export function JournalEditor(props: Props) {
     const found = outline(f.body).find(item => item.level === 2 && item.text.toLowerCase() === title.toLowerCase());
     if (found) { scrollToOffset(found.offset); setMessage({ kind: 'ok', text: `Bài đã có mục "${title}".` }); return; }
     putBlock(block);
+  }
+
+  /** Goes to the next problem in the text after the cursor (a blocking one or a warning), and selects it; from the last one it starts over. */
+  function nextProblem() {
+    const area = bodyRef.current;
+    if (!area) return;
+    const list = checks.filter(check => check.field === 'body' && check.offset !== undefined && (check.level === 'block' || check.level === 'warn')).sort((a, b) => a.offset! - b.offset!);
+    if (!list.length) { setMessage({ kind: 'ok', text: 'Không còn lỗi hay cảnh báo nào chỉ vào một chỗ cụ thể trong bài.' }); return; }
+    const next = list.find(check => check.offset! > area.selectionStart) || list[0];
+    scrollToOffset(next.offset!, next.length || 0);
   }
 
   function onBodyKey(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -238,7 +287,7 @@ export function JournalEditor(props: Props) {
   }
 
   function jump(check: Check) {
-    if (check.field === 'body' && check.offset !== undefined) { scrollToOffset(check.offset); return; }
+    if (check.field === 'body' && check.offset !== undefined) { scrollToOffset(check.offset, check.length || 0); return; }
     const target = check.field === 'choices' ? 'jf-template' : check.field ? `jf-${check.field}` : '';
     const element = target ? document.getElementById(target) : null;
     element?.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -371,8 +420,9 @@ export function JournalEditor(props: Props) {
             <label>Ngày đăng<input type="date" {...field('date')} /></label>
           </div>
         </section>
-        <section className="je-card je-write">
-          <div className="je-row"><h2>Nội dung (tiếng Anh, Markdown)</h2><button type="button" className="je-ghost" onClick={() => setHelpOpen(open => !open)} aria-expanded={helpOpen}>Cách viết</button></div>
+        <section className={`je-card je-write${focusMode ? ' je-focus' : ''}`}>
+          <div className="je-row"><h2>Nội dung (tiếng Anh, Markdown)</h2><span className="je-row-actions"><button type="button" className="je-ghost" onClick={() => setHelpOpen(open => !open)} aria-expanded={helpOpen}>Cách viết</button>
+            <button type="button" className="je-ghost" onClick={() => setFocusMode(on => !on)} aria-pressed={focusMode} title="Viết toàn màn hình (Esc để thoát)">{focusMode ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'}</button></span></div>
           {helpOpen && <div className="je-help">
             <p><code>## Tiêu đề mục</code> · <code>### Tiêu đề nhỏ</code> · <code>**đậm**</code> · <code>*nghiêng*</code> · <code>- danh sách</code> · <code>1. đánh số</code> · <code>&gt; trích dẫn</code> · <code>[chữ](https://…)</code> · bảng: <code>| A | B |</code> rồi dòng <code>| --- | --- |</code>.</p>
             <p>Ảnh: dùng nút “Chèn vào bài” ở mục ảnh bên dưới. Không dùng HTML và không dùng dòng bắt đầu bằng <code># </code> (trang đã có H1).</p>
@@ -393,11 +443,20 @@ export function JournalEditor(props: Props) {
             <button type="button" title="Chèn mục hỏi đáp" onClick={() => addSection(BLOG.faqHeading, FAQ_BLOCK)}>+ Hỏi đáp</button>
             <button type="button" title="Chèn lời mời liên hệ" onClick={() => putBlock(CTA_BLOCK)}>+ Mời liên hệ</button>
           </div>
-          <textarea ref={bodyRef} id="jf-body" className="je-body" lang="en" aria-label="Nội dung bài viết (tiếng Anh, Markdown)" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} onKeyDown={onBodyKey} spellCheck />
+          <div className="je-field">
+            <div className="je-backdrop" aria-hidden="true" style={{ width: fieldWidth || undefined }}><div ref={backdropRef}>{pieces.map((piece, index) => piece.mark ? <mark key={index} className={`je-mark is-${piece.mark.level}`}>{piece.text}</mark> : <span key={index}>{piece.text}</span>)}{'\n'}</div></div>
+            <textarea ref={bodyRef} id="jf-body" className="je-body" lang="en" aria-label="Nội dung bài viết (tiếng Anh, Markdown)" value={f.body} rows={26} maxLength={BLOG.store.body} onChange={event => edit({ body: event.target.value })} onKeyDown={onBodyKey} onScroll={syncBackdrop} onSelect={event => setCaret(event.currentTarget.selectionStart)} spellCheck />
+          </div>
           <div className="je-statusbar" aria-live="polite">
             <span className={wordTone}>{words} từ{target ? ` · mục tiêu ${number(target.min)}–${number(target.max)} (mức ${f.level})` : ''}</span>
             <span>{number(chars(f.body))} ký tự</span><span>đọc khoảng {readingMinutes(f.body)} phút</span><span>{sections.h2} mục ##</span>
+            <span className="je-statusbar-tools">
+              <label className="je-check"><input type="checkbox" checked={showMarks} onChange={event => setShowMarks(event.target.checked)} /> Tô lỗi</label>
+              <button type="button" className="je-inline-btn" onClick={nextProblem} disabled={checkedBody !== f.body} title="Nhảy tới chỗ lỗi hoặc cảnh báo kế tiếp trong bài">Lỗi tiếp theo ↓</button>
+            </span>
           </div>
+          {here && <p className={`je-here is-${here.level}`} role="status"><code>{here.code}</code> {here.message}</p>}
+          {focusMode && message && <p className={`je-message is-${message.kind} je-focus-note`} role="status">{message.text}</p>}
           {externalPictures.length > 0 && <div className="je-note"><p>{externalPictures.length} ảnh trong bài nằm ở website khác. Ảnh ngoài sẽ không hiện: hãy tải về website của mình.</p>
             <button type="button" disabled={!!busy} onClick={() => importPictures(externalPictures.map(link => ({ url: link.url, alt: link.text })))}>Tải ảnh ngoài về website</button></div>}
         </section>

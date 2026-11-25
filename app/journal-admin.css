@@ -43,7 +43,7 @@
 .je-card input,.je-card select,.je-card textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid #c9d2c6;background:#fff;box-sizing:border-box}
 .je-card input[type=checkbox]{width:auto}
 /* The writing box: a fixed pane about as tall as the screen, with its own scroll bar that stays visible (Mac hides the default one until you scroll). Needs .je-card in front to win over the generic field style. */
-.je-card .je-body{font:15px/1.65 ui-monospace,Menlo,Consolas,monospace;height:clamp(480px,calc(100vh - 250px),920px);min-height:320px;resize:vertical;overflow-y:scroll}
+.je-card .je-body{display:block;position:relative;z-index:1;border:0;background:transparent;outline:none;font:15px/1.65 ui-monospace,Menlo,Consolas,monospace;height:clamp(480px,calc(100vh - 250px),920px);min-height:320px;resize:vertical;overflow-y:scroll}
 .je-body::-webkit-scrollbar{width:16px}
 .je-body::-webkit-scrollbar-track{background:#e9eee8;border-left:1px solid #d3dcd0}
 .je-body::-webkit-scrollbar-thumb{background:#8aa699;border:3px solid #e9eee8;border-radius:10px;min-height:56px}
@@ -125,3 +125,27 @@
 .je-photo-buttons{display:flex;gap:6px;flex-wrap:wrap}
 .je-badge{background:#315d50;color:#fff;padding:1px 7px;font-size:11px}
 @media (max-width:980px){.je-grid{grid-template-columns:minmax(0,1fr)}.je-side{position:static;max-height:none}.je-two{grid-template-columns:minmax(0,1fr)}}
+
+/* Problems coloured inside the text: a copy of the text sits behind the transparent writing box, with the problem stretches marked. Same font, padding and wrapping, so they line up. */
+.je-row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.je-field{position:relative;border:1px solid #c9d2c6;background:#fff}
+.je-field:focus-within{outline:2px solid #173f33}
+.je-backdrop{position:absolute;top:0;left:0;bottom:0;overflow:hidden;pointer-events:none}
+.je-backdrop>div{box-sizing:border-box;width:100%;padding:8px 10px;font:15px/1.65 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:break-word;color:transparent}
+.je-mark{color:transparent;border-radius:2px;text-decoration-skip-ink:none;text-underline-offset:3px}
+.je-mark.is-block{background:rgba(179,38,30,.14);text-decoration:underline wavy #b3261e}
+.je-mark.is-warn{background:rgba(236,170,0,.28);text-decoration:underline wavy #c28a00}
+.je-statusbar-tools{margin-left:auto;display:flex;gap:14px;align-items:center}
+.je-statusbar-tools .je-check{font-size:13px}
+.je-write .je-inline-btn{font:inherit;font-size:13px;font-weight:700;line-height:1.4;padding:4px 12px;border:1px solid #315d50;background:#fff;color:#315d50;cursor:pointer;border-radius:0;min-height:0;height:auto}
+.je-write .je-inline-btn:disabled{opacity:.4;cursor:not-allowed}
+.je-here{margin:0;padding:6px 10px;font-size:13px;line-height:1.5}
+.je-here code{font-size:11px;padding:1px 6px;margin-right:6px;background:rgba(0,0,0,.08)}
+.je-here.is-block{background:#fde7e5;color:#8c1d18}
+.je-here.is-warn{background:#fdf0c8;color:#6b4a00}
+
+/* Writing full screen. */
+.je-write.je-focus{position:fixed;inset:0;z-index:1000;margin:0;border:0;padding:14px max(16px,calc((100vw - 1000px) / 2));display:flex;flex-direction:column;gap:8px;background:#fff;overflow:auto}
+.je-write.je-focus .je-field{flex:1;min-height:0;display:flex}
+.je-write.je-focus .je-body{flex:1;height:auto;max-height:none;resize:none}
+.je-focus-note{margin:0;flex:none}

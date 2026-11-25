@@ -66,7 +66,7 @@ describe("reading the structure of a post", () => {
 
   it("finds links and pictures with their position", () => {
     const links = markdownLinks("a [x](https://a.com) b ![alt text](/media/catalog/1)");
-    expect(links).toEqual([{ text: "x", url: "https://a.com", image: false, offset: 2 }, { text: "alt text", url: "/media/catalog/1", image: true, offset: 23 }]);
+    expect(links).toEqual([{ text: "x", url: "https://a.com", image: false, offset: 2, length: 18 }, { text: "alt text", url: "/media/catalog/1", image: true, offset: 23, length: 29 }]);
   });
 
   it("counts words without tables, code and picture lines", () => {

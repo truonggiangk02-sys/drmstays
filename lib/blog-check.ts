@@ -12,8 +12,8 @@ import { looksVietnamese } from './seo-copy';
  */
 
 export type CheckLevel = 'block' | 'warn' | 'ok' | 'todo';
-/** `field` names the form field to fix; `offset` is a position in the body the editor can jump to. */
-export type Check = { code: string; level: CheckLevel; message: string; field?: string; offset?: number };
+/** `field` names the form field to fix; `offset` and `length` are the stretch of the body the problem is in (the editor jumps there and colours it). */
+export type Check = { code: string; level: CheckLevel; message: string; field?: string; offset?: number; length?: number };
 
 export type BlogDraft = {
   h1: string; seoTitle: string; meta: string; slug: string; keyword: string; variations: string;
@@ -55,6 +55,9 @@ function maskCode(body: string): string {
     return fence ? line.replace(/[^\n]/g, ' ') : line;
   }).join('\n');
 }
+
+/** Length of the line that starts at `offset`. */
+const lineLength = (text: string, offset: number) => { const end = text.indexOf('\n', offset); return (end === -1 ? text.length : end) - offset; };
 
 const ok = (code: string, message: string): Check => ({ code, level: 'ok', message });
 const block = (code: string, message: string, extra: Partial<Check> = {}): Check => ({ code, level: 'block', message, ...extra });
@@ -173,11 +176,11 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   // R08 no HTML, no H1, only ## and ###
   const r08: Check[] = [];
   const tag = /<\/?[a-zA-Z][^>\n]*>|<!--/.exec(masked);
-  if (tag) r08.push(block('R08', `Bài có thẻ HTML "${tag[0].slice(0, 30)}". Chỉ dùng Markdown.`, { field: 'body', offset: tag.index }));
+  if (tag) r08.push(block('R08', `Bài có thẻ HTML "${tag[0].slice(0, 30)}". Chỉ dùng Markdown.`, { field: 'body', offset: tag.index, length: tag[0].length }));
   const h1Line = /^[ \t]*#[ \t]+\S/m.exec(masked);
-  if (h1Line) r08.push(block('R08', 'Bài có dòng bắt đầu bằng "# " (H1). Trang đã có H1 riêng; chỉ dùng ## và ###.', { field: 'body', offset: h1Line.index }));
+  if (h1Line) r08.push(block('R08', 'Bài có dòng bắt đầu bằng "# " (H1). Trang đã có H1 riêng; chỉ dùng ## và ###.', { field: 'body', offset: h1Line.index, length: lineLength(masked, h1Line.index) }));
   const deep = /^[ \t]*#{4,}[ \t]+\S/m.exec(masked);
-  if (deep) r08.push(block('R08', 'Bài có tiêu đề cấp #### trở xuống; chỉ dùng ## và ###.', { field: 'body', offset: deep.index }));
+  if (deep) r08.push(block('R08', 'Bài có tiêu đề cấp #### trở xuống; chỉ dùng ## và ###.', { field: 'body', offset: deep.index, length: lineLength(masked, deep.index) }));
   out.push(...(r08.length ? r08 : [ok('R08', 'Chỉ dùng Markdown, không có HTML hay H1 trong bài.')]));
 
   // R09 number of ## headings
@@ -190,8 +193,8 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   else {
     const bullets = sectionLines(masked, takeaways).filter(line => /^\s*[-*+]\s+\S/.test(line)).length;
     const early = body.length ? takeaways.offset / body.length <= BLOG.takeaways.withinFirst : true;
-    if (!range(bullets, BLOG.takeaways.min, BLOG.takeaways.max)) out.push(block('R10', `"${BLOG.keyTakeawaysHeading}" có ${bullets} gạch đầu dòng, cần ${BLOG.takeaways.min}–${BLOG.takeaways.max}.`, { field: 'body', offset: takeaways.offset }));
-    else if (!early) out.push(block('R10', `"${BLOG.keyTakeawaysHeading}" phải nằm trong ${Math.round(BLOG.takeaways.withinFirst * 100)}% đầu bài.`, { field: 'body', offset: takeaways.offset }));
+    if (!range(bullets, BLOG.takeaways.min, BLOG.takeaways.max)) out.push(block('R10', `"${BLOG.keyTakeawaysHeading}" có ${bullets} gạch đầu dòng, cần ${BLOG.takeaways.min}–${BLOG.takeaways.max}.`, { field: 'body', offset: takeaways.offset, length: lineLength(masked, takeaways.offset) }));
+    else if (!early) out.push(block('R10', `"${BLOG.keyTakeawaysHeading}" phải nằm trong ${Math.round(BLOG.takeaways.withinFirst * 100)}% đầu bài.`, { field: 'body', offset: takeaways.offset, length: lineLength(masked, takeaways.offset) }));
     else out.push(ok('R10', `${bullets} ý chính ở đầu bài.`));
   }
 
@@ -201,8 +204,8 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   else {
     const items = faqItems(masked, BLOG.faqHeading);
     const bad = items.filter(item => !range(words(item.answer), BLOG.faq.answerWords.min, BLOG.faq.answerWords.max));
-    if (!range(items.length, BLOG.faq.min, BLOG.faq.max)) out.push(block('R11', `Mục hỏi đáp có ${items.length} câu ###, cần ${BLOG.faq.min}–${BLOG.faq.max}.`, { field: 'body', offset: faqHeading.offset }));
-    else if (bad.length) for (const item of bad) out.push(block('R11', `Câu trả lời "${item.question.slice(0, 50)}" dài ${words(item.answer)} từ, cần ${BLOG.faq.answerWords.min}–${BLOG.faq.answerWords.max}.`, { field: 'body', offset: faqHeading.offset }));
+    if (!range(items.length, BLOG.faq.min, BLOG.faq.max)) out.push(block('R11', `Mục hỏi đáp có ${items.length} câu ###, cần ${BLOG.faq.min}–${BLOG.faq.max}.`, { field: 'body', offset: faqHeading.offset, length: lineLength(masked, faqHeading.offset) }));
+    else if (bad.length) for (const item of bad) out.push(block('R11', `Câu trả lời "${item.question.slice(0, 50)}" dài ${words(item.answer)} từ, cần ${BLOG.faq.answerWords.min}–${BLOG.faq.answerWords.max}.`, { field: 'body', offset: masked.indexOf(item.question, faqHeading.offset) >= 0 ? masked.indexOf(item.question, faqHeading.offset) : faqHeading.offset, length: item.question.length }));
     else out.push(ok('R11', `${items.length} câu hỏi thường gặp, trả lời đủ độ dài.`));
   }
 
@@ -225,7 +228,7 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   if (ctx.knownPaths) {
     const known = new Set(ctx.knownPaths.map(path => path.replace(/\/+$/, '') || '/'));
     const broken = internal.filter(item => !known.has(item.path));
-    out.push(...(broken.length ? broken.map(item => warn('R12b', `Link không mở được trên website: ${item.path}`, { field: 'body', offset: item.link.offset })) : [ok('R12b', 'Mọi link nội bộ đều mở được.')]));
+    out.push(...(broken.length ? broken.map(item => warn('R12b', `Link không mở được trên website: ${item.path}`, { field: 'body', offset: item.link.offset, length: item.link.length })) : [ok('R12b', 'Mọi link nội bộ đều mở được.')]));
   }
 
   // R13 external links
@@ -233,9 +236,9 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const outside = new Set<string>();
   for (const link of textLinks) {
     const url = link.url.trim();
-    if (/^(?:javascript|data|vbscript):/i.test(url)) r13.push(block('R13', `Link bị cấm: ${url.slice(0, 40)}`, { field: 'body', offset: link.offset }));
-    else if (/^http:\/\//i.test(url)) r13.push(block('R13', `Link ngoài chỉ dùng https://: ${url.slice(0, 60)}`, { field: 'body', offset: link.offset }));
-    else if (/^\/\//.test(url) || (!/^(?:https:\/\/|\/|#|mailto:|tel:)/i.test(url) && url)) r13.push(block('R13', `Link thiếu https:// hoặc không hợp lệ: ${url.slice(0, 60)}`, { field: 'body', offset: link.offset }));
+    if (/^(?:javascript|data|vbscript):/i.test(url)) r13.push(block('R13', `Link bị cấm: ${url.slice(0, 40)}`, { field: 'body', offset: link.offset, length: link.length }));
+    else if (/^http:\/\//i.test(url)) r13.push(block('R13', `Link ngoài chỉ dùng https://: ${url.slice(0, 60)}`, { field: 'body', offset: link.offset, length: link.length }));
+    else if (/^\/\//.test(url) || (!/^(?:https:\/\/|\/|#|mailto:|tel:)/i.test(url) && url)) r13.push(block('R13', `Link thiếu https:// hoặc không hợp lệ: ${url.slice(0, 60)}`, { field: 'body', offset: link.offset, length: link.length }));
     else if (/^https:\/\//i.test(url) && !/^https:\/\/(?:www\.)?drmstays\.vn(?:[/?#]|$)/i.test(url)) outside.add(url);
   }
   if (!r13.length && outside.size > BLOG.externalLinks.max) r13.push(warn('R13', `Bài có ${outside.size} link ra ngoài, nên tối đa ${BLOG.externalLinks.max} (chỉ nguồn chính thức).`, { field: 'body' }));
@@ -252,8 +255,8 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const r15: Check[] = [];
   const own = pictures.filter(picture => mediaImageId(picture.url));
   for (const picture of pictures) {
-    if (!mediaImageId(picture.url)) r15.push(block('R15', `Ảnh trong bài phải là ảnh tải lên website (/media/catalog/...), không dùng ảnh ngoài: ${picture.url.slice(0, 50)}`, { field: 'body', offset: picture.offset }));
-    else if (!range(words(picture.text), BLOG.alt.minWords, BLOG.alt.maxWords)) r15.push(block('R15', `Mô tả ảnh có ${words(picture.text)} từ, cần ${BLOG.alt.minWords}–${BLOG.alt.maxWords}: "${picture.text.slice(0, 40)}"`, { field: 'body', offset: picture.offset }));
+    if (!mediaImageId(picture.url)) r15.push(block('R15', `Ảnh trong bài phải là ảnh tải lên website (/media/catalog/...), không dùng ảnh ngoài: ${picture.url.slice(0, 50)}`, { field: 'body', offset: picture.offset, length: picture.length }));
+    else if (!range(words(picture.text), BLOG.alt.minWords, BLOG.alt.maxWords)) r15.push(block('R15', `Mô tả ảnh có ${words(picture.text)} từ, cần ${BLOG.alt.minWords}–${BLOG.alt.maxWords}: "${picture.text.slice(0, 40)}"`, { field: 'body', offset: picture.offset, length: picture.length }));
   }
   if (own.length < BLOG.inlineImages.min) r15.unshift(block('R15', `Bài có ${own.length} ảnh trong nội dung, cần ít nhất ${BLOG.inlineImages.min}.`, { field: 'body' }));
   out.push(...(r15.length ? r15 : [ok('R15', `${own.length} ảnh trong bài, đều có mô tả.`)]));
@@ -263,20 +266,20 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const r16: Check[] = [];
   for (const [field, text] of allText) for (const pattern of BLOG.placeholders) {
     const hit = pattern.exec(text);
-    if (hit) r16.push(block('R16', `Còn chữ giữ chỗ "${hit[0]}" trong ${field === 'body' ? 'nội dung' : field}.`, field === 'body' ? { field, offset: hit.index } : { field }));
+    if (hit) r16.push(block('R16', `Còn chữ giữ chỗ "${hit[0]}" trong ${field === 'body' ? 'nội dung' : field}.`, field === 'body' ? { field, offset: hit.index, length: hit[0].length } : { field }));
   }
   out.push(...(r16.length ? r16 : [ok('R16', 'Không còn chữ giữ chỗ.')]));
 
   // R17 forbidden words
   const lower = `${h1}\n${seoTitle}\n${meta}\n${body}`.toLowerCase();
   const forbidden = BLOG.forbiddenWords.filter(word => lower.includes(word));
-  out.push(forbidden.length ? warn('R17', `Có từ quảng cáo quá lời: ${forbidden.map(word => `"${word}"`).join(', ')}. Người duyệt quyết định giữ hay bỏ.`, { field: 'body', offset: Math.max(0, body.toLowerCase().indexOf(forbidden[0])) }) : ok('R17', 'Không có từ cấm.'));
+  out.push(forbidden.length ? warn('R17', `Có từ quảng cáo quá lời: ${forbidden.map(word => `"${word}"`).join(', ')}. Người duyệt quyết định giữ hay bỏ.`, { field: 'body', offset: Math.max(0, body.toLowerCase().indexOf(forbidden[0])), length: forbidden[0].length }) : ok('R17', 'Không có từ cấm.'));
 
   // R18 amounts in VND against the real prices; R19 the "checked" line
   const amounts = findVndAmounts(masked, ctx.knownPrices);
   const strange = amounts.filter(amount => !amount.known);
   if (!amounts.length) out.push(ok('R18', 'Bài không nêu số tiền VND.'));
-  else if (strange.length) for (const amount of strange) out.push(warn('R18', `Số tiền "${amount.text}" không trùng giá thật nào trong hệ thống (loại phòng, phòng, cọc). Hãy đối chiếu.`, { field: 'body', offset: amount.offset }));
+  else if (strange.length) for (const amount of strange) out.push(warn('R18', `Số tiền "${amount.text}" không trùng giá thật nào trong hệ thống (loại phòng, phòng, cọc). Hãy đối chiếu.`, { field: 'body', offset: amount.offset, length: amount.text.length }));
   else out.push(ok('R18', `${amounts.length} số tiền VND đều khớp giá thật.`));
   if (amounts.length) out.push(new RegExp(`${BLOG.pricesCheckedLabel}\\s*(?:${MONTHS})\\s+\\d{4}`, 'i').test(body) ? ok('R19', 'Có dòng ngày kiểm tra giá.') : block('R19', `Bài có số tiền VND nên phải có dòng "${BLOG.pricesCheckedLabel} <Tháng Năm>", ví dụ "${BLOG.pricesCheckedLabel} November 2026".`, { field: 'body' }));
 
@@ -286,7 +289,7 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   let offset = 0;
   for (const paragraph of masked.split(/\n\s*\n/)) {
     const hit = usd.exec(paragraph); usd.lastIndex = 0;
-    if (hit && !new RegExp(`\\b(?:${MONTHS})\\b|\\b20\\d\\d\\b`, 'i').test(paragraph)) r20.push(warn('R20', `Số tiền USD "${hit[0].trim()}" chưa kèm tháng hoặc năm quy đổi, ví dụ "about USD 440, Nov 2026".`, { field: 'body', offset: offset + hit.index }));
+    if (hit && !new RegExp(`\\b(?:${MONTHS})\\b|\\b20\\d\\d\\b`, 'i').test(paragraph)) r20.push(warn('R20', `Số tiền USD "${hit[0].trim()}" chưa kèm tháng hoặc năm quy đổi, ví dụ "about USD 440, Nov 2026".`, { field: 'body', offset: offset + hit.index, length: hit[0].length }));
     offset += paragraph.length + 2;
   }
   out.push(...(r20.length ? r20 : [ok('R20', 'Số tiền USD (nếu có) đều kèm ngày quy đổi.')]));
@@ -295,7 +298,7 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const r21: Check[] = [];
   offset = 0;
   for (const paragraph of masked.split(/\n\s*\n/)) {
-    if (!/^\s*(?:#|>|[-*+]\s|\d+\.\s|\||!\[|```)/.test(paragraph) && words(paragraph) > BLOG.paragraphWords) r21.push(warn('R21', `Có đoạn dài ${words(paragraph)} từ (tối đa ${BLOG.paragraphWords}). Hãy tách ra.`, { field: 'body', offset: offset + paragraph.search(/\S|$/) }));
+    if (!/^\s*(?:#|>|[-*+]\s|\d+\.\s|\||!\[|```)/.test(paragraph) && words(paragraph) > BLOG.paragraphWords) r21.push(warn('R21', `Có đoạn dài ${words(paragraph)} từ (tối đa ${BLOG.paragraphWords}). Hãy tách ra.`, { field: 'body', offset: offset + paragraph.search(/\S|$/), length: paragraph.trim().length }));
     offset += paragraph.length + 2;
   }
   const sentences = bodyWords(body) ? body.replace(/\|[^\n]*/g, ' ').split(/[.!?]+(?:\s|$)/).filter(sentence => words(sentence) > 0) : [];
@@ -321,7 +324,7 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
 
   // R24 tables have a header row
   const headless = tables(masked).filter(table => !table.hasHeader);
-  out.push(...(headless.length ? headless.map(table => warn('R24', 'Có bảng chưa có hàng tiêu đề (dòng thứ hai phải là | --- | --- |).', { field: 'body', offset: table.offset })) : [ok('R24', 'Bảng (nếu có) đều có hàng tiêu đề.')]));
+  out.push(...(headless.length ? headless.map(table => warn('R24', 'Có bảng chưa có hàng tiêu đề (dòng thứ hai phải là | --- | --- |).', { field: 'body', offset: table.offset, length: lineLength(masked, table.offset) })) : [ok('R24', 'Bảng (nếu có) đều có hàng tiêu đề.')]));
 
   return out;
 }
