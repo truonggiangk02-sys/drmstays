@@ -19,7 +19,7 @@ export type EditorFields = {
 
 type Props = {
   id: string; isNew: boolean; openPaste?: boolean; status: Status; everLive: boolean; initial: EditorFields; reviews: boolean[]; checkedAt: string;
-  authors: Array<Pick<Author, 'id' | 'name' | 'role' | 'bio' | 'photo_id' | 'url'>>; others: BlogContext['others']; knownPrices: number[]; knownPaths: string[]; photos: EditorPhoto[];
+  authors: Array<Pick<Author, 'id' | 'name' | 'role' | 'bio' | 'photo_id' | 'url' | 'kind'>>; others: BlogContext['others']; knownPrices: number[]; knownPaths: string[]; photos: EditorPhoto[];
 };
 
 const tabs = [['checks', 'Kiểm tra'], ['google', 'Google'], ['page', 'Xem trước trang'], ['money', 'Số tiền VND']] as const;

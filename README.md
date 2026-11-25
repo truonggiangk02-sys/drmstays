@@ -98,7 +98,7 @@ Bài blog viết và đăng ở `/admin/journal` (mục "Cẩm nang" trên menu 
 - **Dán cả bài:** khối thông tin giữa hai dòng `---` ở đầu bài (h1, seo_title, meta, slug, keyword, variations, intent, template, level, topic, author, date, cover_alt) rồi nội dung Markdown; đọc bởi `lib/blog-frontmatter.ts`. Ảnh `![mô tả](https://…)` của website khác được tải về kho ảnh khi người dùng bấm xác nhận (chỉ https, website công khai, tối đa 8 MB).
 - **Markdown** chỉ vẽ một tập con an toàn (`lib/journal-markdown.ts`): không bao giờ ra HTML từ bài viết; ảnh chỉ nhận `/media/catalog/<id>`.
 - **Xem trước** trang bài chạy trong khung `/admin/journal/preview` (cùng CSS với website); chỉ hai trang này được nhúng khung (xem `next.config.ts`), mọi trang khác vẫn `frame-ancestors 'none'`.
-- Cần tác giả (tên, chức danh, tiểu sử, ảnh) trước khi đăng bài đầu tiên: nhập ở mục "Tác giả" của `/admin/journal`.
+- Cần ít nhất một tác giả trước khi đăng bài đầu tiên (nhập ở mục "Tác giả" của `/admin/journal`). Tác giả là một người hoặc một đội nhóm (ví dụ "DRM Stays Marketing Team"); đội nhóm được khai với Google là `Organization` thuộc DRM Stays, người là `Person`.
 
 ## Bảo mật
 

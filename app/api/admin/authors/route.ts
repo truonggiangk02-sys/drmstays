@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin, validOrigin } from '@/lib/admin';
-import { AUTHOR_LIMITS } from '@/lib/authors';
+import { AUTHOR_LIMITS, isAuthorKind } from '@/lib/authors';
 import { removeAuthorPhotos, storeAuthorPhoto } from '@/lib/journal-images';
 
 const back = (request: NextRequest, query: string) => NextResponse.redirect(new URL(`/admin/journal?${query}#authors`, request.url), 303);
@@ -36,8 +36,9 @@ export async function POST(request: NextRequest) {
     if (!name) return back(request, 'error=name');
     if (url && !/^https:\/\/\S+$/i.test(url)) return back(request, 'error=url');
     const id = idValue || crypto.randomUUID();
-    await env.DB.prepare('INSERT INTO authors (id, name, role, bio, url) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, role = excluded.role, bio = excluded.bio, url = excluded.url')
-      .bind(id, name, field(form, 'role', AUTHOR_LIMITS.role), field(form, 'bio', AUTHOR_LIMITS.bio), url).run();
+    const kind = String(form.get('kind') || 'person');
+    await env.DB.prepare('INSERT INTO authors (id, name, role, bio, url, kind) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, role = excluded.role, bio = excluded.bio, url = excluded.url, kind = excluded.kind')
+      .bind(id, name, field(form, 'role', AUTHOR_LIMITS.role), field(form, 'bio', AUTHOR_LIMITS.bio), url, isAuthorKind(kind) ? kind : 'person').run();
     const photo = form.get('photo');
     if (photo instanceof File && photo.size > 0) {
       if (!env.BUCKET) return back(request, 'error=photo');

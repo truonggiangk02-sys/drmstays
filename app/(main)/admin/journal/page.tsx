@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { AdminShell } from '@/components/admin-shell';
 import { isAdmin } from '@/lib/admin';
-import { AUTHOR_LIMITS, authorPhotoUrl, getAuthors } from '@/lib/authors';
+import { AUTHOR_KINDS, AUTHOR_LIMITS, authorPhotoUrl, getAuthors } from '@/lib/authors';
 import { STATUSES, TOPICS, isStatus, isTopic, type Status } from '@/lib/blog-standard';
 import { checkPost } from '@/lib/blog-check';
 import { getJournalRows } from '@/lib/journal';
@@ -68,11 +68,12 @@ export default async function JournalAdmin({ searchParams }: { searchParams: Pro
 
     <section id="authors" className="jl-authors">
       <h2>Tác giả</h2>
-      <p className="admin-hint">Mỗi bài có một tác giả cụ thể (tên, chức danh, tiểu sử ngắn, ảnh): Google và AI đánh giá cao bài có người viết rõ ràng. Không ghi chung “Admin”.</p>
+      <p className="admin-hint">Mỗi bài có một tác giả: một người, hoặc cả đội nhóm (ví dụ “DRM Stays Marketing Team”). Đội nhóm được khai với Google là tổ chức. Không ghi chung “Admin”.</p>
       {authors.map(author => <details key={author.id} className="jl-author">
         <summary>{author.name}{author.role && <small> · {author.role}</small>}</summary>
         <form action="/api/admin/authors" method="post" encType="multipart/form-data">
           <input type="hidden" name="action" value="save" /><input type="hidden" name="id" value={author.id} />
+          <label>Loại<select name="kind" defaultValue={author.kind}>{Object.entries(AUTHOR_KINDS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>Tên<input name="name" defaultValue={author.name} required maxLength={AUTHOR_LIMITS.name} /></label>
           <label>Chức danh<input name="role" defaultValue={author.role} maxLength={AUTHOR_LIMITS.role} /></label>
           <label>Tiểu sử ngắn (tối đa {AUTHOR_LIMITS.bio} ký tự)<textarea name="bio" defaultValue={author.bio} rows={3} maxLength={AUTHOR_LIMITS.bio} /></label>
@@ -86,8 +87,9 @@ export default async function JournalAdmin({ searchParams }: { searchParams: Pro
         <summary>Thêm tác giả</summary>
         <form action="/api/admin/authors" method="post" encType="multipart/form-data">
           <input type="hidden" name="action" value="save" />
-          <label>Tên<input name="name" required maxLength={AUTHOR_LIMITS.name} /></label>
-          <label>Chức danh<input name="role" maxLength={AUTHOR_LIMITS.role} placeholder="Head of Operations" /></label>
+          <label>Loại<select name="kind" defaultValue="team">{Object.entries(AUTHOR_KINDS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>Tên<input name="name" required maxLength={AUTHOR_LIMITS.name} placeholder="DRM Stays Marketing Team" /></label>
+          <label>Chức danh<input name="role" maxLength={AUTHOR_LIMITS.role} placeholder="Local hosts and marketing team" /></label>
           <label>Tiểu sử ngắn (tối đa {AUTHOR_LIMITS.bio} ký tự)<textarea name="bio" rows={3} maxLength={AUTHOR_LIMITS.bio} /></label>
           <label>Trang giới thiệu (https://…, không bắt buộc)<input name="url" maxLength={AUTHOR_LIMITS.url} /></label>
           <label>Ảnh (JPG, PNG, WebP, tối đa 3 MB)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" /></label>

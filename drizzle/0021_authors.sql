@@ -6,7 +6,9 @@ CREATE TABLE IF NOT EXISTS authors (
   role text NOT NULL DEFAULT '',
   bio text NOT NULL DEFAULT '',
   photo_id text NOT NULL DEFAULT '',
-  url text NOT NULL DEFAULT ''
+  url text NOT NULL DEFAULT '',
+  -- 'person' or 'team' (for example "DRM Stays Marketing Team"): a team is declared to Google as an organization.
+  kind text NOT NULL DEFAULT 'person'
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS journal_redirects (

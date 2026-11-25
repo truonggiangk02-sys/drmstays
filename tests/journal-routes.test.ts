@@ -126,7 +126,15 @@ describe("POST /api/admin/authors", () => {
     const response = await call({ action: "save", name: "  Nguyen   Van A ", role: "Head of Operations", bio: "Runs the buildings.", url: "https://example.com/a" });
     expect(response.status).toBe(303);
     expect(where(response)).toBe("?saved=author");
-    expect(d1.sqlCalls(/INSERT INTO authors/)[0].args.slice(1)).toEqual(["Nguyen Van A", "Head of Operations", "Runs the buildings.", "https://example.com/a"]);
+    expect(d1.sqlCalls(/INSERT INTO authors/)[0].args.slice(1)).toEqual(["Nguyen Van A", "Head of Operations", "Runs the buildings.", "https://example.com/a", "person"]);
+  });
+
+  it("saves a team as a team, and any other kind as a person", async () => {
+    const { d1 } = setup();
+    await call({ action: "save", name: "DRM Stays Marketing Team", kind: "team" });
+    await call({ action: "save", name: "Someone", kind: "robot" });
+    const kinds = d1.sqlCalls(/INSERT INTO authors/).map(call => call.args[5]);
+    expect(kinds).toEqual(["team", "person"]);
   });
 
   it("needs a name and an https page address", async () => {

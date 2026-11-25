@@ -78,7 +78,7 @@ export function faqData(items: Array<{ question: string; answer: string }>, lang
 }
 
 /** Who wrote a post, for the BlogPosting data and the author block. */
-export type ArticleAuthor = { name: string; role?: string; url?: string; imageUrl?: string };
+export type ArticleAuthor = { name: string; role?: string; url?: string; imageUrl?: string; kind?: 'person' | 'team' };
 
 /**
  * BlogPosting for a journal post, published by DRM Stays. The author is a Person when the post has one (otherwise the
@@ -94,7 +94,11 @@ export function articleData(
   if (!base) return null;
   const url = `${base}/${post.lang}/journal/${post.slug}`;
   const pictures = imageUrls.map(image => absoluteUrl(image)).filter((image): image is string => !!image).slice(0, 5);
-  const author = extra.author?.name
+  const team = extra.author?.kind === 'team';
+  const author = extra.author?.name && team
+    // A team is an organization that belongs to DRM Stays, not a person.
+    ? clean({ '@type': 'Organization', name: extra.author.name, url: extra.author.url || base, logo: extra.author.imageUrl ? absoluteUrl(extra.author.imageUrl) : undefined, parentOrganization: { '@id': `${base}/#org` } })
+    : extra.author?.name
     ? clean({ '@type': 'Person', name: extra.author.name, jobTitle: extra.author.role, url: extra.author.url, image: extra.author.imageUrl ? absoluteUrl(extra.author.imageUrl) : undefined, worksFor: { '@id': `${base}/#org` } })
     : { '@type': 'Organization', '@id': `${base}/#org`, name: SITE_NAME, url: base };
   return clean({

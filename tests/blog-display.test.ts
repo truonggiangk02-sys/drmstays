@@ -20,7 +20,8 @@ const row = (over: Partial<JournalRow> = {}): JournalRow => ({
   seo_title_en: "Where to Stay in Da Nang: Best Areas", primary_keyword: "where to stay in da nang", keyword_variations: "best area to stay; which area to stay", search_intent: "informational",
   post_template: "A", post_level: "B", topic: "area", author_id: "a1", status: "published", checks_json: "", checked_by: "admin", checked_at: "2026-11-30", cover_alt_en: "", ...over,
 });
-const author = { id: "a1", name: "Nguyen Van A", role: "Head of Operations", bio: "Runs the buildings every day.", photo_id: "99999999-9999-4999-8999-999999999999", url: "https://example.com/a" };
+const author = { id: "a1", name: "Nguyen Van A", role: "Head of Operations", bio: "Runs the buildings every day.", photo_id: "99999999-9999-4999-8999-999999999999", url: "https://example.com/a", kind: "person" as const };
+const team = { id: "t1", name: "DRM Stays Marketing Team", role: "", bio: "The team that runs our apartments and writes these guides.", photo_id: "", url: "", kind: "team" as const };
 const cover = { id: "cover-1", url: "/media/catalog/cover-1", alt: "Cover of the post", width: 1600, height: 900 };
 const inBody = { id: IMG, url: `/media/catalog/${IMG}`, alt: "", width: 1200, height: 800 };
 const unused = { id: "unused-1", url: "/media/catalog/unused-1", alt: "Not in the text", width: 800, height: 600 };
@@ -57,6 +58,13 @@ describe("the post page", () => {
     expect(page).toContain("Runs the buildings every day.");
     expect(page).toContain('src="/media/catalog/99999999-9999-4999-8999-999999999999"');
     expect(page).toContain('<a href="https://example.com/a" rel="noopener noreferrer">Nguyen Van A</a>');
+  });
+
+  it("shows a team as the author without a job title or photo", () => {
+    const page = html({ author: team });
+    expect(page).toContain("Written by <strong>DRM Stays Marketing Team</strong>");
+    expect(page).toContain("The team that runs our apartments and writes these guides.");
+    expect(page).not.toContain("<img src=\"/media/catalog/\"");
   });
 
   it("does not link an author page that is not https", () => {
@@ -99,6 +107,12 @@ describe("data for Google and AI", () => {
     expect(data.articleSection).toBe("Areas");
     expect(data.wordCount).toBe(post.words);
     expect(data.dateModified).toBe("2026-12-10");
+  });
+
+  it("a team author is declared as an Organization of DRM Stays, not as a Person", () => {
+    setEnv({ SITE_URL: "https://drmstays.vn" });
+    const data = articleData(post, [], { author: { name: team.name, kind: "team" } }) as Ld;
+    expect(data.author).toEqual({ "@type": "Organization", name: "DRM Stays Marketing Team", url: "https://drmstays.vn", parentOrganization: { "@id": "https://drmstays.vn/#org" } });
   });
 
   it("falls back to the organization as author and the default picture when there is none", () => {

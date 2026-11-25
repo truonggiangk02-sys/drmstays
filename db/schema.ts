@@ -102,6 +102,7 @@ export const authors = sqliteTable("authors", {
   bio: text("bio").notNull().default(""),
   photoId: text("photo_id").notNull().default(""),
   url: text("url").notNull().default(""),
+  kind: text("kind").notNull().default("person"),
 });
 
 /** Old addresses of journal posts whose address changed after publishing (migration 0021). */
