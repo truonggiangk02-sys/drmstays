@@ -53,7 +53,9 @@ export default async function JournalEdit({ searchParams }: { searchParams: Prom
   const today = new Date().toISOString().slice(0, 10);
   const initial: EditorFields = {
     h1: row?.title_en || '', seoTitle: row?.seo_title_en || '', meta: row?.excerpt_en || '', slug: row?.slug || '', keyword: row?.primary_keyword || '', variations: row?.keyword_variations || '',
-    intent: row?.search_intent || '', template: row?.post_template || '', level: row?.post_level || '', topic: row?.topic || '', authorId: row?.author_id || '',
+    intent: row?.search_intent || '', template: row?.post_template || '', level: row?.post_level || '', topic: row?.topic || '',
+    // A new post starts with the author already chosen when there is only one (the marketing team).
+    authorId: row ? row.author_id : authors.length === 1 ? authors[0].id : '',
     date: row?.published_at || today, body: row?.body_en || '', coverAlt: row?.cover_alt_en || '', titleVi: row?.title_vi || '', metaVi: row?.excerpt_vi || '', bodyVi: row?.body_vi || '',
   };
   let reviews: boolean[] = [];

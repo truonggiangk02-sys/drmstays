@@ -14,3 +14,12 @@ describe("migrations list", () => {
     expect(pendingMigrations(EXPECTED_MIGRATIONS.map(name => `${name}.sql`))).toEqual([]);
   });
 });
+
+import { readFileSync } from "node:fs";
+describe("migration 0021", () => {
+  const sql = readFileSync(join(__dirname, "..", "drizzle", "0021_authors.sql"), "utf8");
+  it("adds the company's marketing team as the first author, safe to run twice", () => {
+    expect(sql).toMatch(/INSERT OR IGNORE INTO authors[^;]*'DRM Stays Marketing Team'[^;]*'team'\)/);
+    expect(/VALUES \('([0-9a-f-]{36})'/.exec(sql)?.[1]).toMatch(/^[0-9a-f-]{36}$/);
+  });
+});

@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS authors (
   kind text NOT NULL DEFAULT 'person'
 );
 --> statement-breakpoint
+-- The author of the guides is the company's marketing team. The owner can add a short description and a logo in /admin/journal.
+INSERT OR IGNORE INTO authors (id, name, role, bio, photo_id, url, kind) VALUES ('5b1f6d3e-8c2a-4f7e-9a41-d2a0c4e7b001', 'DRM Stays Marketing Team', '', '', '', '', 'team');
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS journal_redirects (
   old_slug text PRIMARY KEY NOT NULL,
   post_id text NOT NULL
