@@ -111,7 +111,7 @@ async function main() {
 
   // admin
   if (headers.Cookie) {
-    for (const path of ['/admin', '/admin/catalog', '/admin/media', '/admin/locations', '/admin/catalog-inquiries', '/admin/contact-channels']) { const { response } = await get(path); add(response?.ok ? 'ok' : 'fail', 'Admin', path, `HTTP ${response?.status ?? 'lỗi'}`); }
+    for (const path of ['/admin', '/admin/catalog', '/admin/media', '/admin/locations', '/admin/catalog-inquiries', '/admin/contact-channels', '/admin/journal']) { const { response } = await get(path); add(response?.ok ? 'ok' : 'fail', 'Admin', path, `HTTP ${response?.status ?? 'lỗi'}`); }
     const health = await get('/admin/health');
     if (health.response?.ok) {
       const html = await health.response.text();

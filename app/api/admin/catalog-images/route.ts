@@ -105,15 +105,16 @@ export async function POST(request: NextRequest) {
     let uploaded = 0;
     const failed: string[] = [];
     const limit = kind === 'home' && isHomeSlot(sourceId) ? HOME_SLOTS[sourceId].max : kind === 'building' ? MAX_PER_BUILDING : MAX_PER_ITEM;
-    if (kind === 'home' && limit === 1) {
-      // A single-photo area is replaced, not stacked: the previous photo goes away.
-      const old = await env.DB.prepare("SELECT id, object_key FROM catalog_images WHERE owner_type = 'home' AND owner_id = ?").bind(sourceId).all<{ id: string; object_key: string }>();
-      for (const row of old.results || []) { await env.DB.prepare('DELETE FROM catalog_images WHERE id = ?').bind(row.id).run(); await env.BUCKET.delete(row.object_key); }
-    }
+    // A single-photo area is replaced, not stacked. The previous photo is removed only after the new one is saved,
+    // so a wrong file (HEIC, too large, not an image) never leaves the home page without its photo.
+    const replaced = kind === 'home' && limit === 1
+      ? (await env.DB.prepare("SELECT id, object_key FROM catalog_images WHERE owner_type = 'home' AND owner_id = ?").bind(sourceId).all<{ id: string; object_key: string }>()).results || []
+      : [];
     for (const file of files) {
-      const problem = await storeImage(file, kind, sourceId, category, alt, limit, area);
+      const problem = await storeImage(file, kind, sourceId, category, alt, limit + replaced.length, area);
       if (problem) failed.push(`${file.name || 'image'}: ${problem}`); else uploaded += 1;
     }
+    if (uploaded) for (const row of replaced) { await env.DB.prepare('DELETE FROM catalog_images WHERE id = ?').bind(row.id).run(); await env.BUCKET.delete(row.object_key); }
     if (wantsJson) return NextResponse.json({ uploaded, failed }, { status: uploaded || !failed.length ? 200 : 400 });
     if (!uploaded) return new NextResponse(failed[0] || 'Upload failed', { status: 400 });
   } else if (action === 'area') {

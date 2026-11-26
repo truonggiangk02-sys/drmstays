@@ -73,8 +73,12 @@ export async function runHealthChecks(): Promise<Check[]> {
 
   // 6. Alerts
   try {
-    const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM catalog_inquiries WHERE telegram_status = 'failed' AND created_at > datetime('now', '-30 days')").first<{ n: number }>();
-    checks.push((row?.n || 0) > 0 ? warn('Yêu cầu khách', 'telegram', 'Báo Telegram', `${row!.n} yêu cầu trong 30 ngày qua gửi Telegram thất bại: xem Guest contacts và liên hệ khách trực tiếp.`) : ok('Yêu cầu khách', 'telegram', 'Báo Telegram', 'Không có yêu cầu nào bị lỗi gửi.'));
+    // created_at is an ISO string; compare it with an ISO cutoff (datetime() uses a space instead of "T").
+    const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+    const count = async (table: 'catalog_inquiries' | 'partner_inquiries') => (await env.DB!.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE telegram_status = 'failed' AND created_at > ?`).bind(since).first<{ n: number }>())?.n || 0;
+    const [guests, partners] = await Promise.all([count('catalog_inquiries'), count('partner_inquiries')]);
+    const where = [guests ? `${guests} yêu cầu ở mục "Khách"` : '', partners ? `${partners} yêu cầu ở mục "Chủ tòa"` : ''].filter(Boolean).join(', ');
+    checks.push(guests + partners > 0 ? warn('Yêu cầu khách', 'telegram', 'Báo Telegram', `Trong 30 ngày qua gửi Telegram thất bại: ${where}. Bấm gửi lại hoặc liên hệ trực tiếp.`) : ok('Yêu cầu khách', 'telegram', 'Báo Telegram', 'Không có yêu cầu nào bị lỗi gửi.'));
   } catch (error) { checks.push(warn('Yêu cầu khách', 'telegram', 'Báo Telegram', reason(error))); }
   return checks;
 }

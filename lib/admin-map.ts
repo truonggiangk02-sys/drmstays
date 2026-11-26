@@ -12,7 +12,7 @@ export const SITE_AREAS: SiteArea[] = [
   { id: 'services', title: 'Dịch vụ', publicPath: '/services', summary: 'Dịch vụ và chi phí cho người thuê.', links: [{ label: 'Trang Dịch vụ', href: '/admin/content#services' }] },
   { id: 'faq', title: 'Câu hỏi thường gặp', publicPath: '/faq', summary: 'Hỏi đáp khi thuê phòng.', links: [{ label: 'Câu hỏi thường gặp', href: '/admin/content#faq' }] },
   { id: 'partners', title: 'Dành cho chủ đầu tư', publicPath: '/partners', summary: 'Tư vấn, vận hành cho chủ tòa.', links: [{ label: 'Trang Chủ đầu tư', href: '/admin/content#partners' }, { label: 'Sửa các con số', href: '/admin/content#metrics' }] },
-  { id: 'journal', title: 'Cẩm nang', publicPath: '/journal', summary: 'Bài viết (ẩn đến khi có bài đầu).', links: [{ label: 'Bài viết', href: '/admin/content#journal' }] },
+  { id: 'journal', title: 'Cẩm nang', publicPath: '/journal', summary: 'Bài viết (ẩn đến khi có bài đầu).', links: [{ label: 'Bài viết và tác giả', href: '/admin/journal' }] },
   { id: 'reviews', title: 'Đánh giá của khách', publicPath: '/', summary: 'Đánh giá thật từ Airbnb, Google.', links: [{ label: 'Đánh giá', href: '/admin/content#reviews' }] },
   { id: 'contact', title: 'Liên hệ', publicPath: '/contact', summary: 'Điện thoại, Zalo, WhatsApp, mạng xã hội.', links: [{ label: 'Kênh liên hệ nhanh', href: '/admin/contact-channels' }] },
 ];
@@ -28,6 +28,7 @@ export function adminTargetFor(pathname: string): AdminLink | null {
   if (parts[0] !== 'vi' && parts[0] !== 'en') return null;
   const [, section, id] = parts;
   if (!section) return { label: 'Sửa trang chủ', href: '/admin/home' };
+  if (section === 'journal') return { label: 'Sửa trang này', href: '/admin/journal' };
   if (section in CONTENT_PAGES) return { label: 'Sửa trang này', href: `/admin/content#${CONTENT_PAGES[section]}` };
   if (section === 'contact') return { label: 'Sửa kênh liên hệ', href: '/admin/contact-channels' };
   if (section === 'buildings' && id && /^[0-9a-f-]{36}$/i.test(id)) return { label: 'Sửa tòa này', href: `/admin/catalog?b=${id}` };

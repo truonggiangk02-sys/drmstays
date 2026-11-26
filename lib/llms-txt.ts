@@ -2,6 +2,7 @@ import { buildingFromPrice, buildingRoomCount, type MediaBuilding } from "./buil
 import { pageMeta } from "./page-meta";
 import { CONTACT, propertyName } from "./site";
 import { ownLanguageText } from "./seo-copy";
+import { TOPIC_NAMES_EN } from "./blog-standard";
 import type { ContentItem } from "./site-content";
 
 type LlmsType = { id: string; name: string; description?: string; areaSqm?: number; maxGuests?: number; beds?: number; priceFrom: number; rooms: unknown[] };
@@ -18,7 +19,7 @@ const line = (text: string) => text.replace(/\s+/g, " ").trim();
  * The /llms.txt document (https://llmstxt.org): who DRM Stays is, the facts an AI answer needs (place, prices, sizes,
  * languages, contact) and links to the page that holds each fact, in English with the Vietnamese pages linked too.
  */
-export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: LlmsBuilding[] }, faq: ContentItem[], posts: Array<{ slug: string; title: string; excerpt: string }> = []): string {
+export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: LlmsBuilding[] }, faq: ContentItem[], posts: Array<{ slug: string; title: string; excerpt: string; updatedAt?: string; topic?: string }> = []): string {
   const out: string[] = [];
   const buildings = catalog.en.length ? catalog.en : catalog.vi;
   const prices = buildings.map(building => buildingFromPrice(building)).filter(price => price > 0);
@@ -91,7 +92,11 @@ export function buildLlmsTxt(origin: string, catalog: { vi: LlmsBuilding[]; en: 
 
   if (posts.length) {
     out.push("## Guides (DRM Stays journal)");
-    for (const post of posts) out.push(`- [${line(post.title)}](${origin}/en/journal/${post.slug}): ${line(post.excerpt)}`);
+    for (const post of posts) {
+      const topic = post.topic ? TOPIC_NAMES_EN[post.topic as keyof typeof TOPIC_NAMES_EN] : "";
+      const facts = [topic && `topic: ${topic}`, post.updatedAt && `updated ${post.updatedAt.slice(0, 10)}`].filter(Boolean).join(", ");
+      out.push(`- [${line(post.title)}](${origin}/en/journal/${post.slug}): ${line(post.excerpt)}${facts ? ` (${facts})` : ""}`);
+    }
     out.push("");
   }
 

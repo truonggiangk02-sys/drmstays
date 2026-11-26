@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BackToTop } from "@/components/back-to-top";
 import { SaveInPlace } from "@/components/save-in-place";
+import "../../journal-admin.css";
 
 export const metadata: Metadata = { title: "Owner CMS | DRM Stays", robots: { index: false, follow: false } };
 

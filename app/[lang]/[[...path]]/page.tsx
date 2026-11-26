@@ -25,7 +25,10 @@ import { policies, policySections, POLICIES_UPDATED, type PolicySection } from '
 import { articleData, breadcrumbData, faqData, structuredData, webPageData } from '@/lib/structured-data';
 import { lastChanged, metaDescription, parseRate, priceRows } from '@/lib/monthly-rent';
 import { MonthlyRentPage, monthlyRentFaq } from '@/components/monthly-rent-page';
-import { findJournalRow, getPublishedJournal, hasLanguage, postFor, rowLanguages, type JournalRow } from '@/lib/journal';
+import { findJournalRedirect, findJournalRow, getPublishedJournal, hasLanguage, postFor, relatedPosts, rowLanguages, type JournalRow } from '@/lib/journal';
+import { faqItems as postFaqItems } from '@/lib/journal-markdown';
+import { getAuthors } from '@/lib/authors';
+import { BLOG, TOPIC_NAMES_EN } from '@/lib/blog-standard';
 import { JournalArticle, JournalIndex } from '@/components/journal-views';
 import { ownLanguageText } from '@/lib/seo-copy';
 import { groupByFloor } from '@/lib/catalog-progress';
@@ -39,7 +42,7 @@ import { InvestorPage } from '@/components/investor-page';
 import { buildingStatusLabel } from '@/lib/building-status';
 import { getHomeContent } from '@/lib/home-content';
 import { jsonLd } from '@/lib/site';
-import { imgSize, LOGO_SIZE, OG_DEFAULT } from '@/lib/image-url';
+import { catalogImageUrl, imgSize, LOGO_SIZE, OG_DEFAULT } from '@/lib/image-url';
 import { homeMeta, listingDescription, pageMeta } from '@/lib/page-meta';
 
 export const dynamic = 'force-dynamic';
@@ -119,7 +122,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     const row = await findJournalRow(id).catch(() => undefined);
     const post = row && postFor(row, lang);
     if (!row || !post) return { title: lang === 'vi' ? 'Không tìm thấy' : 'Not found', robots: { index: false } };
-    title = post.title; description = summarize(post.excerpt);
+    title = post.seoTitle; description = summarize(post.excerpt);
     postLanguages = post.languages; postPath = `/journal/${post.slug}`; postDates = { published: post.publishedAt, modified: post.updatedAt };
     const cover = (await getContentImages([{ id: row.id } as ContentItem]).catch(() => ({} as Record<string, ContentImage[]>)))[row.id]?.[0];
     image = cover?.url; imageSize = imgSize(cover);
@@ -224,7 +227,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   if (section === 'monthly-rent' && lang === 'vi') redirect('/en/monthly-rent');
   if ((section === 'buildings' || section === 'rooms' || section === 'types') && !id) notFound();
   if (id && !['buildings', 'rooms', 'types', 'journal'].includes(section)) notFound();
-  const needsCatalog = !section || ['stays', 'room-types', 'buildings', 'rooms', 'types', 'contact', 'services', 'partners', 'about', 'monthly-rent'].includes(section);
+  const needsCatalog = !section || (section === 'journal' && !!id) || ['stays', 'room-types', 'buildings', 'rooms', 'types', 'contact', 'services', 'partners', 'about', 'monthly-rent'].includes(section);
   // Everything the page reads is independent, so it is requested at once: one round of database queries instead of a dozen in a row.
   const none = <T,>(value: T) => Promise.resolve(value);
   const [data, landmarks, content, journalRows, homeContent, homeServices, metricItems, homeReviews, homeFaq, contactChannels, socialSetting] = await Promise.all([
@@ -252,10 +255,19 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   if (section === 'journal' && !showJournal) notFound();
   // A post: found by its address (slug) or, for older links, its id; moved to its address, or to the language it is written in.
   const journalRow = section === 'journal' && id ? journalRows.find(row => (row.slug && row.slug === id) || row.id === id) : undefined;
-  if (section === 'journal' && id && !journalRow) notFound();
+  if (section === 'journal' && id && !journalRow) {
+    // A post whose address was changed after publishing: the old address moves to the new one (301).
+    const current = await findJournalRedirect(id);
+    if (current) permanentRedirect(`/${lang}/journal/${current}`);
+    notFound();
+  }
   if (journalRow && !hasLanguage(journalRow, lang)) redirect(`/${rowLanguages(journalRow)[0]}/journal/${journalRow.slug || journalRow.id}`);
   if (journalRow && journalRow.slug && id !== journalRow.slug) permanentRedirect(`/${lang}/journal/${journalRow.slug}`);
   const journalPost = journalRow ? postFor(journalRow, lang) : null;
+  // The post's author, up to three other guides of the same topic and the building the post is about (named in it, else the first).
+  const postAuthor = journalPost?.authorId ? (await getAuthors()).find(item => item.id === journalPost.authorId) ?? null : null;
+  const postRelated = journalPost ? relatedPosts(journalRows.map(row => postFor(row, lang)).filter((post): post is NonNullable<typeof post> => !!post), journalPost) : [];
+  const postBuilding = journalPost && data?.buildings.length ? (data.buildings.find(item => journalPost.body.toLowerCase().includes(propertyName(item.name).toLowerCase())) || data.buildings[0]) : null;
   // The list in this language, plus posts written only in the other language (shown marked, linked to that language).
   const journalList = section === 'journal' && !id || !section ? journalRows.map(row => postFor(row, lang) || postFor(row, lang === 'vi' ? 'en' : 'vi')).filter((post): post is NonNullable<typeof post> => !!post) : [];
   const [contentImages, reviewImages, homeServiceImages] = await Promise.all([
@@ -274,7 +286,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const contactPhoto = section === 'contact' ? data?.buildings.map(item => buildingPhotos(item)[0]).find(Boolean) : undefined;
   const ld = env.PREVIEW_DEMO === '1' ? null : !section ? structuredData('home', lang, undefined, undefined, { sameAs: socialLinks.map(link => link.url), buildings: data?.buildings || [], priceFrom: lowestPrice((data?.buildings || []).map(buildingFromPrice)) }) : building ? structuredData('building', lang, { ...building, description: ownLanguageText(building.description, lang) }) : room ? structuredData('room', lang, { ...room, description: ownLanguageText(room.description, lang) }, data?.buildings.find(item => item.rooms.some(r => r.id === room.id))) : roomType ? structuredData('type', lang, { id: roomType.id, name: roomType.name, description: ownLanguageText(roomType.description, lang), monthlyPrice: roomType.priceFrom, areaSqm: roomType.areaSqm, maxGuests: roomType.maxGuests, beds: roomType.beds, images: roomType.images }, roomType.building) : null;
   const faqItems = section === 'faq' ? content : section === 'monthly-rent' ? monthlyRentFaq(homeFaq) : !section ? homeFaq.slice(0, 6) : [];
-  const faqLd = env.PREVIEW_DEMO === '1' ? null : faqData(faqItems.map(item => ({ question: contentTitle(item, lang), answer: contentBody(item, lang) })), lang);
+  const faqLd = env.PREVIEW_DEMO === '1' ? null : faqData(journalPost ? postFaqItems(journalPost.body, BLOG.faqHeading) : faqItems.map(item => ({ question: contentTitle(item, lang), answer: contentBody(item, lang) })), lang);
   const homeCrumb = { name: lang === 'vi' ? 'Trang chủ' : 'Home', path: `/${lang}` };
   const staysCrumb = { name: t.navStays, path: `/${lang}/stays` };
   const roomBuilding = room ? data?.buildings.find(item => item.rooms.some(r => r.id === room.id)) : undefined;
@@ -286,7 +298,10 @@ export default async function Page({ params, searchParams }: { params: Promise<{
     : journalPost ? breadcrumbData([homeCrumb, { name: t.navJournal, path: `/${lang}/journal` }, { name: title, path: `/${lang}/journal/${journalPost.slug}` }]) : null;
   const monthlyRentRows = section === 'monthly-rent' ? priceRows(data?.buildings || [], 'en') : [];
   const monthlyRentLd = env.PREVIEW_DEMO === '1' || section !== 'monthly-rent' || !monthlyRentRows.length ? null : webPageData({ name: title, description: metaDescription(monthlyRentRows, parseRate(env.USD_VND_RATE)), path: '/en/monthly-rent', dateModified: lastChanged(data?.buildings || []), lang });
-  const articleLd = env.PREVIEW_DEMO === '1' || !journalPost ? null : articleData(journalPost, (contentImages[journalPost.id] || []).map(image => image.url));
+  const articleLd = env.PREVIEW_DEMO === '1' || !journalPost ? null : articleData(journalPost, (contentImages[journalPost.id] || []).slice(0, 1).map(image => image.url), {
+    author: postAuthor ? { name: postAuthor.name, kind: postAuthor.kind, role: postAuthor.role, url: /^https:\/\/\S+$/i.test(postAuthor.url.trim()) ? postAuthor.url.trim() : undefined, imageUrl: postAuthor.photo_id ? catalogImageUrl(postAuthor.photo_id) : undefined } : null,
+    keywords: journalPost.keyword ? [journalPost.keyword, ...journalPost.variations] : [], section: journalPost.topic ? TOPIC_NAMES_EN[journalPost.topic] : undefined, wordCount: journalPost.words,
+  });
   return <div className="structure-site" lang={lang}>{ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}{crumbs && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(crumbs) }} />}{faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />}{articleLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleLd) }} />}{monthlyRentLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(monthlyRentLd) }} />}{env.PREVIEW_DEMO === '1' && <p className="catalog-demo-banner">{t.demo}</p>}<Header lang={lang} segments={segments} dateQuery={dateQuery} showJournal={showJournal} />
     <main id="main-content"><PageTransition>
     {!section && <PublicHome lang={lang} buildings={data?.buildings || []} journal={journalList} home={homeContent!} services={homeServices} serviceImages={homeServiceImages} faq={homeFaq} reviews={homeReviews} reviewImages={reviewImages} roomTypes={(data?.buildings || []).flatMap(item => item.types.map(type => ({ id: type.id, name: type.name, building: propertyName(item.name), image: type.images[0], priceFrom: type.priceFrom, areaSqm: type.areaSqm, beds: type.beds, maxGuests: type.maxGuests })))} />}
@@ -327,7 +342,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       {room.floorplans.length > 0 && <DetailBlock title={t.floorplan} icon="plan" accent="violet"><Floorplans title={t.floorplan} items={room.floorplans} bare /></DetailBlock>}
     </DetailShell> : <section className="structure-page-hero"><h1>{title || t.noResults}</h1></section>)}
     {section === 'monthly-rent' && (data ? <MonthlyRentPage title={title} buildings={data.buildings} faq={monthlyRentFaq(homeFaq)} rate={parseRate(env.USD_VND_RATE)} updated={lastChanged(data.buildings)} /> : <section className="structure-page-hero"><h1>{title}</h1><p>{t.empty}</p></section>)}
-    {section === 'journal' && (journalPost ? <JournalArticle lang={lang} post={journalPost} images={contentImages[journalPost.id] || []} /> : <JournalIndex lang={lang} title={title} posts={journalList} images={contentImages} />)}
+    {section === 'journal' && (journalPost ? <JournalArticle lang={lang} post={journalPost} images={contentImages[journalPost.id] || []} author={postAuthor} related={postRelated} building={postBuilding ? { id: postBuilding.id, name: propertyName(postBuilding.name) } : null} /> : <JournalIndex lang={lang} title={title} posts={journalList} images={contentImages} />)}
     {['faq','contact'].includes(section || '') && <><section className="structure-page-hero"><span className="eyebrow">DRM STAYS</span><h1>{title}</h1>{section === 'partners' && <p>{lang === 'vi' ? 'Chia sẻ thông tin tòa nhà và nhu cầu hợp tác. Chúng tôi sẽ liên hệ để trao đổi phương án phù hợp.' : 'Share your building details and partnership goals. Our team will contact you to discuss a suitable approach.'}</p>}</section>{section === 'contact' && <OfficeMap lang={lang} />}<section className="structure-section structure-content">{false && <img className="structure-logo-large" src="/drm-stay-logo.png" alt="DRM STAY — Your Stay Our Care" {...LOGO_SIZE} />}{isContent && section !== 'services' && <ContentCards items={content} lang={lang} images={contentImages} />}{section === 'partners' && <>{q.sent === '1' && <p role="status">{t.received}</p>}<form className="structure-form" action="/api/partner-inquiries" method="post"><input type="hidden" name="lang" value={lang} /><label>{t.name}<input name="name" required maxLength={100} /></label><label>{t.phone}<input name="phone" required maxLength={24} /></label><label>{t.email}<input name="email" type="email" maxLength={254} /></label><label>{t.partnerProperty}<input name="property" maxLength={200} /></label><label>{t.message}<textarea name="message" rows={5} maxLength={2000} /></label><label className="honeypot" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label><button>{t.partnerSend}</button><small><Link href={`/${lang}/privacy`}>{lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy'}</Link></small></form></>}{section === 'contact' && <><ContactDetails lang={lang} socials={socialLinks} />{q.sent === '1' && <p role="status">{t.received}</p>}<p>{t.contactText}</p><ContactForm lang={lang} roomId="" />{contactPhoto && <img className="editorial-contact-photo" src={contactPhoto.url} alt={contactPhoto.alt || "DRM Stays apartment"} loading="lazy" {...imgSize(contactPhoto)} />}</>}</section></>}
     {section === 'about' && <AboutPage lang={lang} title={title} items={content} metrics={metricItems} buildings={data?.buildings || []} />}
     {section === 'partners' && <InvestorPage lang={lang} title={title} items={content} metrics={metricItems} buildings={data?.buildings || []} images={contentImages} sent={q.sent === '1'} labels={{ name: t.name, phone: t.phone, email: t.email, property: t.partnerProperty, message: t.message, send: t.partnerSend, received: t.received }} />}
