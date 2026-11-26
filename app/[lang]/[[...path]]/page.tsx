@@ -168,8 +168,10 @@ const contentBody = (item: ContentItem, lang: Lang) => lang === 'vi' ? item.body
 
 function Header({ lang, segments, dateQuery, showJournal }: { lang: Lang; segments: string[]; dateQuery: string; showJournal: boolean }) {
   const t = copy[lang], suffix = segments.length ? `/${segments.join('/')}` : '';
+  // The monthly-rent page exists in English only; its Vietnamese address redirects, so the VI link goes to the Vietnamese home instead.
+  const viSuffix = segments[0] === 'monthly-rent' ? '' : suffix;
   const links = [['stays', t.navStays], ['room-types', t.navRoomTypes], ['services', t.navServices], ...(showJournal ? [['journal', t.navJournal] as const] : []), ['about', t.navAbout], ['partners', t.navPartners], ['contact', t.navContact]] as const;
-  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link><span>/</span><Link href={`/vi${suffix}${dateQuery}`} aria-label="Tiếng Việt">VI</Link></div></header>;
+  return <header className="structure-header"><Link href={`/${lang}`} className="structure-brand"><img className="structure-header-logo" src="/drm-stay-logo.png" alt="DRM STAY" {...LOGO_SIZE} /><span>DRM Stays<small>{lang === 'vi' ? 'TƯ VẤN · VẬN HÀNH' : 'CONSULTING · OPERATIONS'}</small></span></Link><nav aria-label="Main navigation">{links.map(([path, label]) => <Link href={`/${lang}/${path}`} key={path}>{label}</Link>)}</nav><div className="structure-languages"><Link href={`/en${suffix}${dateQuery}`} aria-label="English">EN</Link><span>/</span><Link href={`/vi${viSuffix}${viSuffix ? dateQuery : ''}`} aria-label="Tiếng Việt">VI</Link></div></header>;
 }
 function ContactDetails({ lang, socials }: { lang: Lang; socials: SocialLink[] }) {
   const vi = lang === 'vi';

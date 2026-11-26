@@ -6,6 +6,6 @@ export function GET(request: NextRequest) {
   // Staging, preview, coming-soon builds and any host other than the production address tell crawlers to stay out entirely.
   const body = !isIndexable(request.nextUrl.hostname)
     ? "User-agent: *\nDisallow: /\n"
-    : `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /thanks\n\nSitemap: ${origin}/sitemap.xml\n`;
+    : `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${origin}/sitemap.xml\n`;
   return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
 }

@@ -36,10 +36,10 @@ describe("indexingAllowed", () => {
 const robotsFor = async (url: string) => (await robots(new NextRequest(url))).text();
 
 describe("robots.txt in each mode", () => {
-  it("open site: crawl everything except admin/api/thanks, and point at the sitemap", async () => {
+  it("open site: crawl everything except admin/api, and point at the sitemap", async () => {
     setEnv(PROD);
     const body = await robotsFor("https://drmstays.vn/robots.txt");
-    expect(body).toBe("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /thanks\n\nSitemap: https://drmstays.vn/sitemap.xml\n");
+    expect(body).toBe("User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: https://drmstays.vn/sitemap.xml\n");
     expect(body).not.toContain("Disallow: /media");
   });
   it("COMING_SOON=1: blocks everything", async () => {
