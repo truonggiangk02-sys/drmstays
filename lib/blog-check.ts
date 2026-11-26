@@ -3,7 +3,7 @@ import { bodyWords, countTextWords, faqItems, markdownLinks, mediaImageId, outli
 import { looksVietnamese } from './seo-copy';
 
 /*
- * The blog standard as code: rules R01-R24 of the admin spec. Pure functions, so the editor runs them while the
+ * The blog standard as code: rules R01-R27 of the admin spec. Pure functions, so the editor runs them while the
  * reviewer types and the server runs the very same ones before it saves, marks ready or publishes.
  *
  *   block = the post cannot be marked ready or published; warn = it can, with the warning shown;
@@ -105,7 +105,7 @@ function tables(body: string): Table[] {
   return found;
 }
 
-/** Runs rules R01-R24. Always returns at least one entry per rule: a violation, or an "ok" when the rule is met. */
+/** Runs rules R01-R27. Always returns at least one entry per rule: a violation, or an "ok" when the rule is met. */
 export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const out: Check[] = [];
   const h1 = draft.h1.trim(), seoTitle = draft.seoTitle.trim(), meta = draft.meta.trim(), slug = draft.slug.trim(), keyword = draft.keyword.trim();
@@ -116,17 +116,21 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   const links = markdownLinks(masked);
   const others = ctx.others.filter(other => other.id !== ctx.selfId && other.status !== 'archived');
 
-  // R01 H1
+  // R01 H1: the advised length is a warning, only an empty, tiny or huge H1 blocks
   const h1Chars = chars(h1);
-  out.push(range(h1Chars, BLOG.h1.min, BLOG.h1.max) ? ok('R01', `H1: ${h1Chars} ký tự.`) : block('R01', `H1 đang ${h1Chars} ký tự, cần ${BLOG.h1.min}–${BLOG.h1.max}.`, { field: 'h1' }));
+  if (h1Chars < BLOG.h1.hardMin || h1Chars > BLOG.h1.hardMax) out.push(block('R01', `H1 đang ${h1Chars} ký tự, cần ít nhất ${BLOG.h1.hardMin} và tối đa ${BLOG.h1.hardMax}.`, { field: 'h1' }));
+  else if (!range(h1Chars, BLOG.h1.min, BLOG.h1.max)) out.push(warn('R01', `H1 đang ${h1Chars} ký tự, nên ${BLOG.h1.min}–${BLOG.h1.max}. Với chủ đề ngắn, tự nhiên thì giữ nguyên cũng được.`, { field: 'h1' }));
+  else out.push(ok('R01', `H1: ${h1Chars} ký tự.`));
 
   // R02 SEO title
   const seoChars = chars(seoTitle);
   out.push(range(seoChars, BLOG.seoTitle.min, BLOG.seoTitle.max) ? ok('R02', `Tiêu đề Google: ${seoChars} ký tự (website tự thêm "${BLOG.suffix}").`) : block('R02', `Tiêu đề Google đang ${seoChars} ký tự, cần ${BLOG.seoTitle.min}–${BLOG.seoTitle.max} (website tự thêm "${BLOG.suffix}").`, { field: 'seoTitle' }));
 
-  // R03 meta description
+  // R03 meta description: empty or too long blocks, the advised 120-160 is a warning
   const metaChars = chars(meta);
-  out.push(range(metaChars, BLOG.meta.min, BLOG.meta.max) ? ok('R03', `Mô tả Google: ${metaChars} ký tự.`) : block('R03', `Mô tả Google đang ${metaChars} ký tự, cần ${BLOG.meta.min}–${BLOG.meta.max}.`, { field: 'meta' }));
+  if (!metaChars || metaChars > BLOG.meta.hardMax) out.push(block('R03', metaChars ? `Mô tả Google dài ${metaChars} ký tự, tối đa ${BLOG.meta.hardMax}.` : 'Chưa có mô tả Google.', { field: 'meta' }));
+  else if (!range(metaChars, BLOG.meta.min, BLOG.meta.max)) out.push(warn('R03', `Mô tả Google đang ${metaChars} ký tự, nên ${BLOG.meta.min}–${BLOG.meta.max}.`, { field: 'meta' }));
+  else out.push(ok('R03', `Mô tả Google: ${metaChars} ký tự.`));
   const start = (text: string) => norm(text).trim().split(' ').slice(0, 3).join(' ');
   if (meta && h1 && start(meta) === start(h1)) out.push(warn('R03', 'Mô tả Google đang bắt đầu giống H1. Hãy mở bằng ý khác (con số, địa điểm).', { field: 'meta' }));
 
@@ -142,11 +146,14 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
     if (clash) slugProblems.push(`Địa chỉ bài đã có ở bài khác: "${clash.h1 || clash.slug}".`);
   }
   if (slugProblems.length) for (const message of slugProblems) out.push(block('R04', message, { field: 'slug' }));
+  else if (slug.split('-').filter(Boolean).length > BLOG.slug.warnAbove) out.push(warn('R04', `Địa chỉ bài có ${slug.split('-').filter(Boolean).length} từ: được, nhưng ngắn gọn (tối đa ${BLOG.slug.warnAbove} từ) thì dễ nhớ và dễ chia sẻ hơn.`, { field: 'slug' }));
   else out.push(ok('R04', `Địa chỉ bài hợp lệ: /en/journal/${slug}.`));
 
   // R05 keyword in the H1
   if (!keyword) out.push(block('R05', 'Chưa nhập từ khóa chính.', { field: 'keyword' }));
-  else out.push(includesPhrase(h1, keyword) ? ok('R05', 'Từ khóa chính có trong H1.') : block('R05', `H1 chưa có từ khóa chính "${keyword}".`, { field: 'h1' }));
+  else if (includesPhrase(h1, keyword)) out.push(ok('R05', 'Từ khóa chính có trong H1.'));
+  else if (norm(keyword).trim().split(' ').every(word => norm(h1).includes(` ${word} `))) out.push(warn('R05', `H1 có đủ các từ của "${keyword}" nhưng không liền nhau hoặc khác thứ tự. Được, nếu đọc vẫn tự nhiên.`, { field: 'h1' }));
+  else out.push(block('R05', `H1 chưa có từ khóa chính "${keyword}".`, { field: 'h1' }));
 
   // R05b keyword in the SEO title, the first 100 words, a ## heading; not stuffed
   if (keyword) {
@@ -162,7 +169,8 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
 
   // R06 length
   const level = isLevel(draft.level) ? draft.level : null;
-  if (total < BLOG.words.hardMin) out.push(block('R06', `Bài chỉ có ${total} từ, tối thiểu ${BLOG.words.hardMin}.`, { field: 'body' }));
+  const hardMin = BLOG.words.hardMinByTemplate[draft.template] ?? BLOG.words.hardMin;
+  if (total < hardMin) out.push(block('R06', `Bài chỉ có ${total} từ, tối thiểu ${hardMin}${hardMin !== BLOG.words.hardMin ? ' (mẫu bài này được ngắn hơn)' : ''}.`, { field: 'body' }));
   else if (total > BLOG.words.hardMax) out.push(block('R06', `Bài dài ${total} từ, tối đa ${BLOG.words.hardMax}.`, { field: 'body' }));
   else if (level && !range(total, BLOG.words[level].min, BLOG.words[level].max)) out.push(warn('R06', `Bài ${total} từ, mức ${level} nên ${BLOG.words[level].min}–${BLOG.words[level].max} từ.`, { field: 'body' }));
   else out.push(ok('R06', `Độ dài: ${total} từ.`));
@@ -230,6 +238,10 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
     const broken = internal.filter(item => !known.has(item.path));
     out.push(...(broken.length ? broken.map(item => warn('R12b', `Link không mở được trên website: ${item.path}`, { field: 'body', offset: item.link.offset, length: item.link.length })) : [ok('R12b', 'Mọi link nội bộ đều mở được.')]));
   }
+
+  // R12c link texts that say nothing about where they lead
+  const vague = textLinks.filter(link => (BLOG.weakAnchors as readonly string[]).includes(norm(link.text).trim()));
+  out.push(...(vague.length ? vague.map(link => warn('R12c', `Chữ của link "${link.text}" không cho biết trang đích. Hãy dùng chữ mô tả, ví dụ "furnished apartments in An Thuong".`, { field: 'body', offset: link.offset, length: link.length })) : [ok('R12c', 'Chữ của các link đều mô tả trang đích.')]));
 
   // R13 external links
   const r13: Check[] = [];
@@ -325,6 +337,42 @@ export function checkPost(draft: BlogDraft, ctx: BlogContext): Check[] {
   // R24 tables have a header row
   const headless = tables(masked).filter(table => !table.hasHeader);
   out.push(...(headless.length ? headless.map(table => warn('R24', 'Có bảng chưa có hàng tiêu đề (dòng thứ hai phải là | --- | --- |).', { field: 'body', offset: table.offset, length: lineLength(masked, table.offset) })) : [ok('R24', 'Bảng (nếu có) đều có hàng tiêu đề.')]));
+
+  // R25 brand and place named inside the parts an AI cuts out (key takeaways, FAQ answers)
+  const takeawaysHeading = h2.find(item => item.text.toLowerCase() === BLOG.keyTakeawaysHeading.toLowerCase());
+  const cuttable = [...(takeawaysHeading ? sectionLines(masked, takeawaysHeading) : []), ...faqItems(masked, BLOG.faqHeading).flatMap(item => [item.question, item.answer])].join('\n');
+  if (cuttable.trim()) {
+    const lacking = [!BLOG.brand.test(cuttable) && 'tên thương hiệu "DRM Stays"', !BLOG.places.test(cuttable) && 'tên thành phố hoặc khu vực (ví dụ Da Nang, An Thuong)'].filter(Boolean);
+    out.push(lacking.length ? warn('R25', `Key takeaways và hỏi đáp chưa nhắc ${lacking.join(' và ')}. AI hay cắt riêng từng ý ra khỏi bài, nên nhắc tên một cách tự nhiên trong ít nhất một ý hoặc một câu trả lời.`, { field: 'body' }) : ok('R25', 'Key takeaways và hỏi đáp có nhắc thương hiệu và địa điểm.'));
+  }
+
+  // R26 answer first: the paragraph right under a ## answers the point, in a few words
+  const r26: Check[] = [];
+  const bodyLines = masked.split('\n');
+  for (const heading of h2) {
+    const title = heading.text.toLowerCase();
+    if (title === BLOG.keyTakeawaysHeading.toLowerCase() || title === BLOG.faqHeading.toLowerCase()) continue;
+    const lines: string[] = [];
+    let kind = '';
+    for (let i = heading.line + 1; i < bodyLines.length; i++) {
+      const line = bodyLines[i];
+      if (/^\s*#{1,6}\s/.test(line)) break;
+      if (!line.trim()) { if (lines.length) break; continue; }
+      if (!lines.length) kind = /^\s*\|/.test(line) ? 'bảng' : /^\s*(?:[-*+]|\d+\.)\s/.test(line) ? 'danh sách' : /^\s*!\[/.test(line) ? 'ảnh' : /^\s*>/.test(line) ? 'trích dẫn' : '';
+      lines.push(line);
+    }
+    if (!lines.length) continue;
+    const place = { field: 'body' as const, offset: heading.offset, length: lineLength(masked, heading.offset) };
+    if (kind) r26.push(warn('R26', `Mục "${heading.text.slice(0, 40)}" mở đầu bằng ${kind}. Hãy mở bằng 1–2 câu trả lời thẳng vào ý của mục, rồi mới phân tích.`, place));
+    else if (words(lines.join(' ')) > BLOG.answerFirstWords) r26.push(warn('R26', `Đoạn đầu của mục "${heading.text.slice(0, 40)}" dài ${words(lines.join(' '))} từ. Hãy mở bằng câu trả lời ngắn (khoảng 40–${BLOG.answerFirstWords} từ).`, place));
+  }
+  out.push(...(r26.length ? r26 : [ok('R26', 'Mỗi mục mở đầu bằng đoạn trả lời ngắn.')]));
+
+  // R27 real data: a level A post has at least one table or a list with figures
+  if (level === 'A') {
+    const figures = masked.split('\n').filter(line => /^\s*(?:[-*+]|\d+\.)\s/.test(line) && /\d/.test(line)).length;
+    out.push(tables(masked).length || figures >= 3 ? ok('R27', 'Có bảng hoặc danh sách số liệu cụ thể.') : warn('R27', 'Bài mức A nên có ít nhất một bảng so sánh hoặc danh sách số liệu (khoảng cách, thời gian di chuyển, diện tích, chi phí).', { field: 'body' }));
+  }
 
   return out;
 }

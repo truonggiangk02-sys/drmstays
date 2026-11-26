@@ -41,7 +41,7 @@ export default async function JournalAdmin({ searchParams }: { searchParams: Pro
     {pending.length > 0 && <p className="translation-error" role="alert">Chưa áp dụng migration: {pending.join(', ')}. Deploy với <code>--migrate</code> (Mac) hoặc <code>-Migrate</code> (Windows) trước khi viết bài.</p>}
     {flash && <p className={query.error ? 'translation-error' : 'cx-flash'} role={query.error ? 'alert' : 'status'}>{flash}</p>}
     <div className="jl-top">
-      <p className="admin-hint">Bài nào cũng phải đạt tiêu chuẩn SEO–GEO (24 quy tắc) trước khi đăng. Make viết nháp, người duyệt sửa rồi dán vào đây.</p>
+      <p className="admin-hint">Bài nào cũng phải đạt tiêu chuẩn SEO–GEO (27 quy tắc) trước khi đăng. Make viết nháp, người duyệt sửa rồi dán vào đây.</p>
       <Link className="jl-new" href="/admin/journal/edit">Viết bài mới</Link>
       <Link className="jl-new is-ghost" href="/admin/journal/edit?paste=1">Dán cả bài</Link>
     </div>

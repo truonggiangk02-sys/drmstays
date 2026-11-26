@@ -6,7 +6,7 @@ import { getJournalRows } from './journal';
 import { slugify } from './journal-markdown';
 
 /*
- * What the journal editor's buttons do on the server. The checks (rules R01-R24) run again here on every save: the
+ * What the journal editor's buttons do on the server. The checks (rules R01-R27) run again here on every save: the
  * browser shows them while typing, but only this code decides whether a post may be marked ready or go live.
  */
 

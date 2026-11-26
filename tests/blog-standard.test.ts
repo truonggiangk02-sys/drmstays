@@ -22,18 +22,18 @@ function goodBody(): string {
   return [
     `We think the quiet streets of An Thuong are the best answer to ${KEYWORD}, with the beach ten minutes away by bike. ${filler(40)}`,
     "## Key takeaways",
-    "- An Thuong suits long stays.",
+    "- DRM Stays suggests An Thuong for long stays in Da Nang.",
     "- My Khe is nearer the beach.",
     "- Son Tra is the quietest area.",
     `## ${KEYWORD[0].toUpperCase()}${KEYWORD.slice(1)} for a month`,
-    filler(90),
+    filler(60), filler(30),
     `![${ALT}](/media/catalog/${IMG1})`,
     `Read our [monthly rent guide](https://drmstays.vn/en/monthly-rent) before you decide. ${filler(80)}`,
     "## How the areas differ",
-    filler(100), filler(100),
+    filler(60), filler(40), filler(100),
     `![${ALT}](/media/catalog/${IMG2})`,
     "## Who each area suits",
-    filler(100), filler(100), filler(100), filler(100),
+    filler(60), filler(40), filler(100), filler(100), filler(100),
     "## Frequently asked questions",
     "### Is An Thuong good for a long stay?", answer(40),
     "### Is the beach close by?", answer(40),
@@ -72,19 +72,31 @@ describe("the sample post", () => {
 
 /** One row per rule: [code, what is wrong, expected level]. The sample post passes every one of these rules (see above). */
 const violations: Array<[string, string, Partial<BlogDraft>, Partial<BlogContext>, "block" | "warn"]> = [
-  ["R01", "H1 too short", { h1: "Where to stay in Da Nang" }, {}, "block"],
-  ["R01", "H1 too long", { h1: "Where to stay in Da Nang: the complete and very detailed guide to every area and neighbourhood" }, {}, "block"],
+  ["R01", "H1 shorter than advised (a short natural topic)", { h1: "Where to stay in Da Nang" }, {}, "warn"],
+  ["R01", "H1 tiny", { h1: "Da Nang" }, {}, "block"],
+  ["R01", "H1 empty", { h1: "" }, {}, "block"],
+  ["R01", "H1 longer than advised", { h1: "Where to stay in Da Nang: the complete guide to every area, with prices and times" }, {}, "warn"],
+  ["R01", "H1 far too long", { h1: "Where to stay in Da Nang: the complete and very detailed guide to every area and neighbourhood, with prices, walking times and honest notes" }, {}, "block"],
   ["R02", "SEO title too long", { seoTitle: "Where to stay in Da Nang: the best areas compared by local hosts" }, {}, "block"],
   ["R02", "SEO title too short", { seoTitle: "Where to stay in Da Nang" }, {}, "block"],
-  ["R03", "meta too short", { meta: "A short description." }, {}, "block"],
+  ["R03", "meta shorter than advised", { meta: "A short description." }, {}, "warn"],
+  ["R03", "meta empty", { meta: "" }, {}, "block"],
+  ["R03", "meta far too long", { meta: "x".repeat(170) }, {}, "block"],
   ["R03", "meta starts like the H1", { meta: "Where to stay in Da Nang? An Thuong, My Khe, Hai Chau or Son Tra: a local host compares four areas by price, beach distance and noise, with real times." }, {}, "warn"],
   ["R04", "slug with capitals and spaces", { slug: "Where To Stay" }, {}, "block"],
   ["R04", "slug with one word", { slug: "stay" }, {}, "block"],
-  ["R04", "slug with seven words", { slug: "where-to-stay-in-da-nang-guide" }, {}, "block"],
+  ["R04", "slug with seven words (allowed, advised shorter)", { slug: "where-to-stay-in-da-nang-guide" }, {}, "warn"],
+  ["R04", "slug with nine words", { slug: "where-to-stay-in-da-nang-for-a-month-guide" }, {}, "block"],
   ["R04", "slug with a date", { slug: "where-to-stay-2026-11-25" }, {}, "block"],
   ["R04", "slug used by another post", {}, { others: [{ id: "x", slug: "where-to-stay-da-nang", h1: "Other", keyword: "something else", status: "published" }] }, "block"],
   ["R05", "keyword missing", { keyword: "" }, {}, "block"],
   ["R05", "keyword not in the H1", { h1: "The Best Areas of Da Nang Compared by Your Local Hosts" }, {}, "block"],
+  ["R05", "all keyword words in the H1 but not in a row", { h1: "In Da Nang, where to stay: the best areas compared by local hosts" }, {}, "warn"],
+  ["R06", "a practical (C) post may be shorter, but not under 500", { template: "C", body: "Short post about where to stay in da nang." }, {}, "block"],
+  ["R12c", "a link that says click here", { body: goodBody() + "\n\nFor details, [click here](/en/stays)." }, {}, "warn"],
+  ["R25", "no brand or place in the takeaways and FAQ", { body: goodBody().replace("DRM Stays suggests An Thuong for long stays in Da Nang.", "An Thuong suits long stays.") }, {}, "warn"],
+  ["R26", "a section that opens with a table", { body: goodBody().replace("## How the areas differ\n\n", "## How the areas differ\n\n| Area | Price |\n| --- | --- |\n| An Thuong | 11 |\n\n") }, {}, "warn"],
+  ["R26", "a section whose first paragraph is long", { body: goodBody().replace(/(## Who each area suits\n\n)[^\n]+/, "$1" + "x".repeat(0) + Array.from({ length: 5 }, () => "The quiet lane keeps the apartment calm at night while the market stays close by foot.").join(" ")) }, {}, "warn"],
   ["R05b", "keyword missing from the SEO title", { seoTitle: "Best Areas of Da Nang Compared by Hosts" }, {}, "warn"],
   ["R05b", "keyword stuffed", { body: goodBody() + `\n\n${(KEYWORD + ". ").repeat(12)}` }, {}, "warn"],
   ["R06", "under 700 words", { body: "Short post about where to stay in da nang." }, {}, "block"],
@@ -105,7 +117,7 @@ const violations: Array<[string, string, Partial<BlogDraft>, Partial<BlogContext
   ["R12b", "a link to a page that does not exist", { body: goodBody() + "\n\nSee [this](/en/nothing-here) page." }, {}, "warn"],
   ["R13", "a javascript: link", { body: goodBody() + "\n\n[bad](javascript:alert(1))" }, {}, "block"],
   ["R13", "an http: link", { body: goodBody() + "\n\n[bad](http://example.com/a)" }, {}, "block"],
-  ["R13", "more than three outside links", { body: goodBody() + "\n\n[a](https://a.gov/x) [b](https://b.gov/x) [c](https://c.gov/x) [d](https://d.gov/x)" }, {}, "warn"],
+  ["R13", "more than six outside links", { body: goodBody() + "\n\n[a](https://a.gov/x) [b](https://b.gov/x) [c](https://c.gov/x) [d](https://d.gov/x) [e](https://e.gov/x) [f](https://f.gov/x) [g](https://g.gov/x)" }, {}, "warn"],
   ["R14", "no cover photo", { hasCover: false }, {}, "block"],
   ["R14", "cover description too short", { coverAlt: "A lane" }, {}, "block"],
   ["R15", "only one picture in the post", { body: goodBody().replace(`![${ALT}](/media/catalog/${IMG2})`, "") }, {}, "block"],
@@ -134,13 +146,22 @@ describe("rules R01-R24: each is met by the sample post and caught when broken",
 
   it("covers every rule of the spec", () => {
     const covered = new Set(violations.map(row => row[0]));
-    for (const code of ["R01", "R02", "R03", "R04", "R05", "R05b", "R06", "R07", "R08", "R09", "R10", "R11", "R12", "R12b", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22b", "R23", "R24"]) expect(covered, code).toContain(code);
+    for (const code of ["R01", "R02", "R03", "R04", "R05", "R05b", "R06", "R07", "R08", "R09", "R10", "R11", "R12", "R12b", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22b", "R23", "R24", "R12c", "R25", "R26"]) expect(covered, code).toContain(code);
   });
 
   it("the sample post gets an ok line for every rule that applies to it", () => {
     const checks = run({ body: goodBody() + "\n\nRent is 11,000,000 VND a month, about USD 440 in Nov 2026.\n\n| Area | Price |\n| --- | --- |\n| An Thuong | 11 |\n\nPrices and details checked: November 2026" }, { knownPrices: [11_000_000] });
-    for (const code of ["R01", "R02", "R03", "R04", "R05", "R05b", "R06", "R07", "R08", "R09", "R10", "R11", "R12", "R12b", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22b", "R23", "R24"]) expect(levels(checks, code), code).toContain("ok");
+    for (const code of ["R01", "R02", "R03", "R04", "R05", "R05b", "R06", "R07", "R08", "R09", "R10", "R11", "R12", "R12b", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21", "R22", "R22b", "R23", "R24", "R12c", "R25", "R26"]) expect(levels(checks, code), code).toContain("ok");
   });
+});
+
+describe("rule R27 (data in a level A post)", () => {
+  const table = "\n\n| Area | Walk to beach |\n| --- | --- |\n| An Thuong | 10 min |";
+  it("warns a level A post with no table or figures, and not one with a table", () => {
+    expect(levels(run({ level: "A" }), "R27")).toEqual(["warn"]);
+    expect(levels(run({ level: "A", body: goodBody() + table }), "R27")).toEqual(["ok"]);
+  });
+  it("does not apply to level B", () => expect(at(run(), "R27")).toEqual([]));
 });
 
 describe("rule details", () => {
@@ -215,7 +236,10 @@ describe("rule details", () => {
   });
 
   it("keeps every limit in BLOG, one place", () => {
-    expect(BLOG.h1).toEqual({ min: 45, max: 70 });
+    expect(BLOG.h1).toEqual({ min: 45, max: 70, hardMin: 20, hardMax: 90 });
+    expect(BLOG.meta).toEqual({ min: 120, max: 160, hardMax: 165 });
+    expect(BLOG.slug).toEqual({ minWords: 3, maxWords: 8, warnAbove: 6 });
+    expect([BLOG.alt.minWords, BLOG.alt.maxWords, BLOG.externalLinks.max]).toEqual([5, 18, 6]);
     expect(BLOG.seoTitle.max).toBe(48);
   });
 });

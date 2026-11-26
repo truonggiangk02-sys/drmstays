@@ -93,7 +93,7 @@ Mọi yêu cầu từ khách được lưu D1 **trước**, rồi mới báo Tel
 
 Bài blog viết và đăng ở `/admin/journal` (mục "Cẩm nang" trên menu admin). Bài lưu trong `site_content_items` (section `journal`); tác giả ở bảng `authors`, địa chỉ cũ của bài đã đổi ở `journal_redirects` (migration `0019`, `0020`, `0021`).
 
-- **Tiêu chuẩn SEO–GEO** nằm trong code: mọi giới hạn số ở `lib/blog-standard.ts`, 24 quy tắc kiểm tra (R01–R24) ở `lib/blog-check.ts`. Trình soạn chạy các quy tắc này khi gõ; máy chủ chạy lại chính các quy tắc đó khi lưu (`lib/journal-admin.ts`), nên bài còn lỗi chặn không thể sẵn sàng hay lên web, dù gọi API trực tiếp.
+- **Tiêu chuẩn SEO–GEO** nằm trong code: mọi giới hạn số ở `lib/blog-standard.ts`, 27 quy tắc kiểm tra (R01–R27) ở `lib/blog-check.ts`. Trình soạn chạy các quy tắc này khi gõ; máy chủ chạy lại chính các quy tắc đó khi lưu (`lib/journal-admin.ts`), nên bài còn lỗi chặn không thể sẵn sàng hay lên web, dù gọi API trực tiếp.
 - **Quy trình:** Lưu nháp → Đánh dấu sẵn sàng (không còn lỗi chặn) → người duyệt tích đủ 6 ô → Đăng. Bài đang đăng sửa bằng "Cập nhật bài đã đăng"; "Gỡ xuống" trả bài về nháp (trang bài 404, rời sitemap). Địa chỉ bài bị khóa sau khi đăng; đổi cần xác nhận và địa chỉ cũ tự chuyển hướng.
 - **Dán cả bài:** khối thông tin giữa hai dòng `---` ở đầu bài (h1, seo_title, meta, slug, keyword, variations, intent, template, level, topic, author, date, cover_alt) rồi nội dung Markdown; đọc bởi `lib/blog-frontmatter.ts`. Ảnh `![mô tả](https://…)` của website khác được tải về kho ảnh khi người dùng bấm xác nhận (chỉ https, website công khai, tối đa 8 MB).
 - **Markdown** chỉ vẽ một tập con an toàn (`lib/journal-markdown.ts`): không bao giờ ra HTML từ bài viết; ảnh chỉ nhận `/media/catalog/<id>`.

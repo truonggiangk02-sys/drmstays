@@ -4,23 +4,34 @@
  */
 export const BLOG = {
   /** H1 of the page (title_en). */
-  h1: { min: 45, max: 70 },
+  /** min-max is the advised length (a warning outside it); hardMin and hardMax are the limits that block. */
+  h1: { min: 45, max: 70, hardMin: 20, hardMax: 90 },
   /** Title on Google; the site adds `suffix` after it. */
   seoTitle: { min: 30, max: 48 },
   suffix: ' | DRM Stays',
   /** Description on Google (excerpt_en). */
-  meta: { min: 140, max: 160 },
-  slug: { minWords: 3, maxWords: 6 },
+  /** Advised 120-160 characters; empty or over hardMax blocks (Google cuts and often rewrites the description). */
+  meta: { min: 120, max: 160, hardMax: 165 },
+  /** 3-8 words; more than warnAbove is only a warning. */
+  slug: { minWords: 3, maxWords: 8, warnAbove: 6 },
   /** Length by level; below hardMin or above hardMax the post is blocked, between is only a warning. */
-  words: { A: { min: 1200, max: 1800 }, B: { min: 800, max: 1300 }, hardMin: 700, hardMax: 3000 },
+  words: { A: { min: 1200, max: 1800 }, B: { min: 800, max: 1300 }, hardMin: 700, hardMax: 3000, /** Template C (practical, how-to) may be shorter. */ hardMinByTemplate: { C: 500 } as Record<string, number> },
   h2: { min: 3, max: 8 },
   takeaways: { min: 3, max: 5, withinFirst: 0.2 },
   faq: { min: 3, max: 5, answerWords: { min: 30, max: 70 } },
   internalLinks: { min: 2, ctaWithinLast: 0.15 },
-  externalLinks: { max: 3 },
-  alt: { minWords: 8, maxWords: 15 },
+  /** Linking out to official sources is good; more than this is only a warning. */
+  externalLinks: { max: 6 },
+  alt: { minWords: 5, maxWords: 18 },
   inlineImages: { min: 2 },
   paragraphWords: 120,
+  /** The first paragraph under a ## answers the point: at most this many words. */
+  answerFirstWords: 70,
+  brand: /DRM\s+Stays/i,
+  /** City or area names that tie the text to a place (for the brand/place check in the takeaways and FAQ). */
+  places: /\b(?:Da\s?Nang|Đà\s?Nẵng|An\s+Th[uư][oơ]ng|My\s+Khe|Mỹ\s+Khê|Son\s+Tra|Sơn\s+Trà|Ngu\s+Hanh\s+Son|Hai\s+Chau|Hải\s+Châu|Thanh\s+Khe|Cam\s+Le|Hoi\s+An)\b/i,
+  /** Link texts that say nothing about the page they lead to. */
+  weakAnchors: ['click here', 'here', 'read more', 'more', 'this', 'this link', 'link', 'learn more', 'đây', 'tại đây', 'xem thêm'],
   sentenceAvgWords: 25,
   /** The keyword may appear at most once per this many words. */
   keywordEveryWords: 150,

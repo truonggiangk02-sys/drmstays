@@ -99,7 +99,7 @@ function LinkPanel({ links, selected, onInsert, close }: { links: LinkChoice[]; 
 
 /** The photos of the post: click one to put it in the text. */
 function ImagePanel({ photos, onPick, goToPhotos, close }: { photos: ToolbarPhoto[]; onPick: (photo: ToolbarPhoto) => void; goToPhotos: () => void; close: () => void }) {
-  if (!photos.length) return <div className="je-image-pick"><p className="je-muted">Bài chưa có ảnh nào. Tải ảnh lên ở mục “Ảnh bìa và ảnh trong bài” bên dưới, rồi quay lại đây để chèn.</p><button type="button" className="je-primary-sm" onClick={() => { goToPhotos(); close(); }}>Đi tới mục tải ảnh</button></div>;
+  if (!photos.length) return <div className="je-image-pick"><p className="je-muted">Bài chưa có ảnh nào. Tải ảnh lên ở mục “Ảnh bìa và ảnh theo từng mục” bên dưới, rồi quay lại đây để chèn.</p><button type="button" className="je-primary-sm" onClick={() => { goToPhotos(); close(); }}>Đi tới mục tải ảnh</button></div>;
   return <div className="je-image-pick">
     <p className="je-muted">Bấm một ảnh để chèn vào chỗ con trỏ.</p>
     <div className="je-image-grid">{photos.map((photo, index) => {
