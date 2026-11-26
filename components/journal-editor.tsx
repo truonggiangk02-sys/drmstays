@@ -519,11 +519,11 @@ export function JournalEditor(props: Props) {
         </section>
         <section className="je-card" id="jf-cover">
           <h2>Ảnh bìa và ảnh theo từng mục</h2>
-          <p className="je-muted">Mỗi mục ## có chỗ thêm ảnh riêng: ảnh được đặt ngay dưới tiêu đề mục đó. Mỗi ảnh cần mô tả tiếng Anh 8–15 từ.</p>
+          <p className="je-muted">Mỗi mục ## có chỗ thêm ảnh riêng: ảnh được đặt ngay dưới tiêu đề mục đó. Mỗi ảnh cần mô tả tiếng Anh 5–18 từ.</p>
           <JournalSections body={f.body} photos={photos} busy={!!busy} onUpload={uploadPictures} onAction={photoAction}
             onPlace={(photo, key) => changeBody(body => addPictures(body, key, [pictureLine(photo.id, photo.alt)]))}
             onRemove={picture => changeBody(body => removePicture(body, picture))} />
-          <label>Mô tả ảnh bìa <Counter value={countTextWords(f.coverAlt)} min={BLOG.alt.minWords} max={BLOG.alt.maxWords} /><input {...field('coverAlt')} maxLength={BLOG.store.coverAlt} /><small>Mô tả bằng tiếng Anh: chụp gì, ở đâu (8–15 từ).</small></label>
+          <label>Mô tả ảnh bìa <Counter value={countTextWords(f.coverAlt)} min={BLOG.alt.minWords} max={BLOG.alt.maxWords} /><input {...field('coverAlt')} maxLength={BLOG.store.coverAlt} /><small>Mô tả bằng tiếng Anh: chụp gì, ở đâu (5–18 từ).</small></label>
         </section>
         <details className="je-card">
           <summary>Bản tiếng Việt (không bắt buộc)</summary>
