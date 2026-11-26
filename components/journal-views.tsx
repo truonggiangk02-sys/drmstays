@@ -46,6 +46,11 @@ export function JournalArticle({ lang, post, images, author = null, related = []
   const library = Object.fromEntries(images.map(image => [image.id, { width: image.width, height: image.height, alt: image.alt }]));
   const { html, headings } = renderMarkdownFull(post.body, { images: library });
   const contents = headings.filter(heading => heading.level === 2);
+  // The contents list: each ## with its ### parts under it (the ### are not counted for showing the list).
+  const tree = headings.filter(heading => heading.level === 2 || heading.level === 3).reduce<Array<{ main: (typeof headings)[number]; parts: typeof headings }>>((list, heading) => {
+    if (heading.level === 2) list.push({ main: heading, parts: [] }); else list[list.length - 1]?.parts.push(heading);
+    return list;
+  }, []);
   const shown = new Set(markdownLinks(post.body).filter(link => link.image).map(link => mediaImageId(link.url)).filter(Boolean));
   const extra = images.slice(1).filter(image => !shown.has(image.id));
   const authorPhoto = author?.photo_id ? catalogImageUrl(author.photo_id) : '';
@@ -59,7 +64,7 @@ export function JournalArticle({ lang, post, images, author = null, related = []
     </header>
     <div className="structure-section journal-body-wrap">
       {cover && <img className="journal-cover" src={cover.url} alt={cover.alt || post.title} fetchPriority="high" {...imgSize(cover, '(max-width: 900px) 100vw, 860px')} />}
-      {contents.length >= 3 && <nav className="journal-toc" aria-label={w.contents}><strong>{w.contents}</strong><ol>{contents.map(heading => <li key={heading.id}><a href={`#${heading.id}`}>{heading.text}</a></li>)}</ol></nav>}
+      {contents.length >= 3 && <nav className="journal-toc" aria-label={w.contents}><strong>{w.contents}</strong><ol>{tree.map(({ main, parts }) => <li key={main.id}><a href={`#${main.id}`}>{main.text}</a>{parts.length > 0 && <ol>{parts.map(part => <li key={part.id}><a href={`#${part.id}`}>{part.text}</a></li>)}</ol>}</li>)}</ol></nav>}
       <div className="journal-body" dangerouslySetInnerHTML={{ __html: html }} />
       {extra.length > 0 && <div className="journal-gallery">{extra.map(image => <img key={image.id} src={image.url} alt={image.alt || post.title} loading="lazy" {...imgSize(image, '(max-width: 700px) 100vw, 420px')} />)}</div>}
       {author && <aside className="journal-author" aria-label={w.aboutAuthor}>

@@ -62,6 +62,23 @@
 .je-help code,.je-help kbd{background:#e6ece3;padding:1px 6px;font:12px ui-monospace,Menlo,Consolas,monospace}
 .je-outline{list-style:none;margin:0;padding:0;display:grid;gap:2px}
 .je-outline li.is-l3{padding-left:18px}
+.je-outline li.is-l1 button{background:#eef2ec;font-weight:600}
+.je-outline b{color:#315d50;margin-right:4px}
+.je-toc-note{margin:10px 0 0;font-size:13px}.je-toc-note.is-ok{color:#2c6b4a}.je-toc-note.is-warn{color:#8a5a00}
+.je-sec{display:grid;gap:14px}
+.je-sec-row{border:1px solid #d9dfd6;padding:12px;display:grid;gap:8px}
+.je-sec-row h3{margin:0;font-size:15px}
+.je-sec-row p{margin:0}
+.je-sec-tag{color:#5d6b64;font-family:ui-monospace,monospace;font-size:13px}
+.je-sec-pic{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:start}
+.je-sec-pic img,.je-sec-pics img{object-fit:cover;background:#eef2ec}
+.je-sec-pics{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.je-sec-pics li{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.je-sec-alt{flex:1 1 180px;font-size:13px;color:#33423b}
+.je-sec-ext{display:inline-grid;place-items:center;width:72px;height:54px;background:#f6ecd8;font-size:12px}
+.je-sec button,.je-sec select{font:inherit;font-size:13px}
+.je-sec button:not(.je-ghost):not(.je-danger){font-weight:700;padding:7px 12px;border:1px solid #315d50;background:#fff;color:#315d50;cursor:pointer;border-radius:0}
+.je-sec button:disabled{opacity:.45;cursor:not-allowed}
 .je-outline button{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;gap:10px;width:100%;padding:6px 8px;cursor:pointer;font-size:14px;line-height:1.4}
 .je-outline button:hover,.je-outline button:focus-visible{background:#eef2ec}
 .je-outline small{flex:none;color:#5d6b64}

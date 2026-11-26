@@ -153,6 +153,7 @@
 .journal-toc strong{display:block;margin-bottom:8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .journal-toc ol{margin:0;padding-left:1.3em;display:grid;gap:5px;line-height:1.5}
 .journal-toc a{color:#315d50;text-decoration:underline;text-underline-offset:3px}
+.journal-toc ol ol{margin-top:5px;font-size:.94em;list-style:lower-alpha}
 .journal-author{display:flex;gap:16px;align-items:flex-start;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);max-width:70ch}
 .journal-author img{flex:none;width:72px;height:72px;border-radius:50%;object-fit:cover}
 .journal-author p{margin:0 0 6px;line-height:1.65}

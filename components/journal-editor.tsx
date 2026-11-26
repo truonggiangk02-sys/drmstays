@@ -11,6 +11,8 @@ import { cellRanges, insertRow, tableAt } from '@/lib/table-edit';
 import { replaceAllText } from '@/lib/find-replace';
 import { JournalToolbar, type LinkChoice } from '@/components/journal-toolbar';
 import { JournalFind } from '@/components/journal-find';
+import { JournalSections } from '@/components/journal-sections';
+import { addPictures, numberHeadings, planSections, removePicture } from '@/lib/journal-sections';
 import { caretTop } from '@/lib/textarea-caret';
 import { problemMarks, segments } from '@/lib/problem-marks';
 import type { JournalPost } from '@/lib/journal';
@@ -198,7 +200,10 @@ export function JournalEditor(props: Props) {
   const sections = useMemo(() => {
     const items = outlineWithWords(outline(f.body), f.body, countTextWords);
     const intro = countTextWords(f.body.slice(0, items[0]?.offset ?? f.body.length));
-    return { items, intro, h2: items.filter(item => item.level === 2).length };
+    const plan = planSections(f.body).filter(section => section.key !== 'intro');
+    let two = -1;
+    const numbered = numberHeadings(items).map(item => { if (item.level === 2) two += 1; return { ...item, pictures: item.level === 2 ? plan[two]?.pictures.length ?? 0 : 0 }; });
+    return { items: numbered, intro, h2: items.filter(item => item.level === 2).length, pictures: planSections(f.body)[0]?.pictures.length ?? 0 };
   }, [f.body]);
   const target = f.level === 'A' || f.level === 'B' ? BLOG.words[f.level] : null;
   const wordTone = words < BLOG.words.hardMin || words > BLOG.words.hardMax ? 'is-bad' : target && (words < target.min || words > target.max) ? 'is-warn' : 'is-ok';
@@ -361,7 +366,16 @@ export function JournalEditor(props: Props) {
 
   const field = (key: keyof EditorFields) => ({ id: `jf-${key}`, value: f[key], onChange: (event: { target: { value: string } }) => edit({ [key]: event.target.value } as Partial<EditorFields>) });
 
-  async function uploadFiles(files: File[], description: string) {
+  /** Edits the text from a place that may run after an upload: always works on the latest text. */
+  function changeBody(change: (body: string) => string) {
+    setF(current => ({ ...current, body: change(current.body) }));
+    setDirty(true);
+    setReviews(REVIEW_ITEMS.map(() => false));
+  }
+  const pictureLine = (id: string, alt: string) => `![${alt.replace(/[[\]\n]+/g, ' ').replace(/\s+/g, ' ').trim()}](/media/catalog/${id})`;
+
+  /** Uploads pictures for the cover or for one section; the ones for a section are put in the text right under its heading. */
+  async function uploadPictures(files: File[], description: string, key: string) {
     if (!description.trim()) { setMessage({ kind: 'error', text: 'Nhập mô tả ảnh trước khi tải lên.' }); return false; }
     if (!(await ensureSaved())) return false;
     setBusy('upload');
@@ -369,8 +383,18 @@ export function JournalEditor(props: Props) {
       const form = new FormData();
       form.set('action', 'upload'); form.set('alt', description);
       for (const file of files) form.append('image', await shrink(file));
+      const hadCover = photos.length > 0;
       const data = await callPhotos(form);
-      setMessage(data.failed?.length ? { kind: 'error', text: data.failed.join(' · ') } : data.error ? { kind: 'error', text: data.error } : { kind: 'ok', text: 'Đã tải ảnh lên.' });
+      const ids = (data.added || []).map(item => item.id);
+      if (data.error || data.failed?.length) setMessage({ kind: 'error', text: data.error || (data.failed || []).join(' · ') });
+      if (!ids.length) return false;
+      if (key === 'cover') {
+        if (hadCover) { const done = new FormData(); done.set('action', 'cover'); done.set('imageId', ids[0]); done.set('alt', ''); await callPhotos(done); }
+        if (!data.error && !data.failed?.length) setMessage({ kind: 'ok', text: 'Đã cập nhật ảnh bìa.' });
+      } else {
+        changeBody(body => addPictures(body, key, ids.map(id => pictureLine(id, data.photos?.find(photo => photo.id === id)?.alt || description))));
+        if (!data.error && !data.failed?.length) setMessage({ kind: 'ok', text: 'Đã tải ảnh lên và đặt ngay dưới tiêu đề mục. Bấm Lưu nháp để lưu.' });
+      }
       return !data.error && !data.failed?.length;
     } finally { setBusy(''); }
   }
@@ -470,7 +494,7 @@ export function JournalEditor(props: Props) {
             <button type="button" className="je-ghost" onClick={() => setFocusMode(on => !on)} aria-pressed={focusMode} title="Viết toàn màn hình (Esc để thoát)">{focusMode ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'}</button></span></div>
           {helpOpen && <div className="je-help">
             <p><code>## Tiêu đề mục</code> · <code>### Tiêu đề nhỏ</code> · <code>**đậm**</code> · <code>*nghiêng*</code> · <code>- danh sách</code> · <code>1. đánh số</code> · <code>&gt; trích dẫn</code> · <code>[chữ](https://…)</code> · bảng: <code>| A | B |</code> rồi dòng <code>| --- | --- |</code>.</p>
-            <p>Ảnh: dùng nút “Chèn vào bài” ở mục ảnh bên dưới. Không dùng HTML và không dùng dòng bắt đầu bằng <code># </code> (trang đã có H1).</p>
+            <p>Ảnh: mỗi mục có nút “Thêm ảnh vào mục này” ở phần ảnh bên dưới, hoặc dùng nút Ảnh trên thanh công cụ để chèn ảnh đã tải. H1 là ô “H1” ở đầu form (mỗi bài chỉ có một H1): trong nội dung chỉ dùng <code>##</code> và <code>###</code>, không dùng HTML.</p>
             <p>Phím tắt: <kbd>Ctrl/⌘</kbd>+<kbd>B</kbd> đậm, <kbd>I</kbd> nghiêng, <kbd>K</kbd> link, <kbd>H</kbd> tìm &amp; thay, <kbd>Z</kbd> hoàn tác, <kbd>S</kbd> lưu nháp. Trong bảng: <kbd>Tab</kbd> sang ô kế tiếp.</p>
           </div>}
           <JournalToolbar value={f.body} selStart={caret} selectedText={selectedText} photos={photos} links={props.links} run={run} apply={applyChange} put={putBlock} addSection={addSection} undo={undo} redo={redo} find={() => setFindOpen(open => !open)} goToPhotos={goToPhotos} />
@@ -494,8 +518,11 @@ export function JournalEditor(props: Props) {
             <button type="button" disabled={!!busy} onClick={() => importPictures(externalPictures.map(link => ({ url: link.url, alt: link.text })))}>Tải ảnh ngoài về website</button></div>}
         </section>
         <section className="je-card" id="jf-cover">
-          <h2>Ảnh bìa và ảnh trong bài</h2>
-          <PhotoPanel photos={photos} busy={!!busy} onUpload={uploadFiles} onAction={photoAction} onInsert={photo => putBlock(`![${photo.alt}](/media/catalog/${photo.id})`)} />
+          <h2>Ảnh bìa và ảnh theo từng mục</h2>
+          <p className="je-muted">Mỗi mục ## có chỗ thêm ảnh riêng: ảnh được đặt ngay dưới tiêu đề mục đó. Mỗi ảnh cần mô tả tiếng Anh 8–15 từ.</p>
+          <JournalSections body={f.body} photos={photos} busy={!!busy} onUpload={uploadPictures} onAction={photoAction}
+            onPlace={(photo, key) => changeBody(body => addPictures(body, key, [pictureLine(photo.id, photo.alt)]))}
+            onRemove={picture => changeBody(body => removePicture(body, picture))} />
           <label>Mô tả ảnh bìa <Counter value={countTextWords(f.coverAlt)} min={BLOG.alt.minWords} max={BLOG.alt.maxWords} /><input {...field('coverAlt')} maxLength={BLOG.store.coverAlt} /><small>Mô tả bằng tiếng Anh: chụp gì, ở đâu (8–15 từ).</small></label>
         </section>
         <details className="je-card">
@@ -516,11 +543,13 @@ export function JournalEditor(props: Props) {
           {!checks.length && <p className="je-muted">Đang kiểm tra…</p>}
         </div>}
         {tab === 'outline' && <div className="je-panel">
-          <p className="je-muted">Bấm một mục để nhảy tới đó trong bài. Số từ tính đến mục kế tiếp.</p>
+          <p className="je-muted">Cấu trúc bài: H1 là tiêu đề trang, các mục ## nằm trong H1, các ### nằm trong mục ##. Bấm một dòng để nhảy tới đó. Số từ tính đến mục kế tiếp.</p>
           <ol className="je-outline">
-            <li className="is-l2"><button type="button" onClick={() => scrollToOffset(0)}><span>Mở bài (trả lời ngay trong 60 từ đầu)</span><small>{sections.intro} từ</small></button></li>
-            {sections.items.map(item => <li key={item.offset} className={`is-l${item.level}`}><button type="button" onClick={() => scrollToOffset(item.offset)}><span>{item.text || '(trống)'}</span><small>{item.words} từ</small></button></li>)}
+            <li className="is-l1"><button type="button" onClick={() => document.getElementById('jf-h1')?.focus()}><span><b>H1</b> {f.h1 || '(chưa có tiêu đề)'}</span></button></li>
+            <li className="is-l2"><button type="button" onClick={() => scrollToOffset(0)}><span>Mở bài (trả lời ngay trong 60 từ đầu)</span><small>{sections.intro} từ{sections.pictures ? ` · ${sections.pictures} ảnh` : ''}</small></button></li>
+            {sections.items.map(item => <li key={item.offset} className={`is-l${item.level}`}><button type="button" onClick={() => scrollToOffset(item.offset)}><span><b>{item.number}</b> {item.text || '(trống)'}</span><small>{item.words} từ{item.pictures ? ` · ${item.pictures} ảnh` : ''}</small></button></li>)}
           </ol>
+          <p className={`je-toc-note ${sections.h2 >= 3 ? 'is-ok' : 'is-warn'}`}>{sections.h2 >= 3 ? `Mục lục sẽ hiện trên trang bài: ${sections.h2} mục ##, kèm các ### bên dưới.` : `Mục lục chỉ hiện khi bài có từ 3 mục ## (hiện có ${sections.h2}).`}</p>
           {!sections.items.length && <p className="je-muted">Chưa có tiêu đề ## nào.</p>}
         </div>}
         {tab === 'google' && <div className="je-panel">
@@ -579,38 +608,5 @@ function PasteBox({ onApply, onClose }: { onApply: (text: string) => string; onC
     <textarea rows={10} value={text} onChange={event => setText(event.target.value)} placeholder={'---\nh1: ...\nseo_title: ...\n---\nOpening answer…'} />
     <div className="je-row"><button type="button" disabled={!text.trim()} onClick={() => setResult(onApply(text))}>Phân tích và điền vào form</button><button type="button" className="je-ghost" onClick={onClose}>Đóng</button></div>
     {result && <p className="je-note">{result}</p>}
-  </div>;
-}
-
-/** Cover and pictures of the post: upload (with the required description), insert into the text, set cover, delete. */
-function PhotoPanel({ photos, busy, onUpload, onAction, onInsert }: {
-  photos: EditorPhoto[]; busy: boolean; onUpload: (files: File[], alt: string) => Promise<boolean>;
-  onAction: (action: 'cover' | 'delete' | 'alt', id: string, alt?: string) => Promise<void>; onInsert: (photo: EditorPhoto) => void;
-}) {
-  const [alt, setAlt] = useState('');
-  const input = useRef<HTMLInputElement>(null);
-  const [over, setOver] = useState(false);
-  async function pick(list: FileList | File[] | null) {
-    const files = Array.from(list || []).filter(file => file.type.startsWith('image/'));
-    if (!files.length) return;
-    if (await onUpload(files, alt)) { setAlt(''); if (input.current) input.current.value = ''; }
-  }
-  return <div className="je-photos">
-    <div className={`je-drop ${over ? 'is-over' : ''}`} onDragOver={event => { event.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={event => { event.preventDefault(); setOver(false); void pick(event.dataTransfer.files); }}>
-      <label>Mô tả ảnh (bắt buộc, tiếng Anh, 8–15 từ) <Counter value={countTextWords(alt)} min={BLOG.alt.minWords} max={BLOG.alt.maxWords} /><input value={alt} maxLength={BLOG.store.coverAlt} onChange={event => setAlt(event.target.value)} placeholder="Quiet lane in An Thuong with apartment buildings at dusk" /></label>
-      <p>Kéo ảnh vào đây hoặc <button type="button" className="je-ghost" disabled={busy} onClick={() => input.current?.click()}>chọn ảnh</button> (JPG, PNG, WebP, tối đa 8 MB; ảnh lớn tự thu nhỏ). Ảnh đầu tiên là ảnh bìa.</p>
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={event => void pick(event.target.files)} />
-    </div>
-    {photos.length > 0 && <ul className="je-photo-list">{photos.map((photo, index) => <li key={photo.id}>
-      <img src={photo.url} alt={photo.alt} width={96} height={72} loading="lazy" />
-      <div>
-        <p>{index === 0 ? <strong className="je-badge">Ảnh bìa</strong> : null} <input aria-label="Mô tả ảnh" defaultValue={photo.alt} maxLength={BLOG.store.coverAlt} onBlur={event => { if (event.target.value.trim() !== photo.alt) void onAction('alt', photo.id, event.target.value); }} /></p>
-        <p className="je-photo-buttons">
-          <button type="button" disabled={busy} onClick={() => onInsert(photo)}>Chèn vào bài</button>
-          {index > 0 && <button type="button" className="je-ghost" disabled={busy} onClick={() => void onAction('cover', photo.id)}>Đặt làm ảnh bìa</button>}
-          <button type="button" className="je-danger" disabled={busy} onClick={() => { if (window.confirm('Xóa ảnh này?')) void onAction('delete', photo.id); }}>Xóa</button>
-        </p>
-      </div>
-    </li>)}</ul>}
   </div>;
 }
